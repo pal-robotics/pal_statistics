@@ -1,5 +1,5 @@
-# the producer of the data
-string origin_name
+# header
+Header header
 
-# device data
-KeyValue[] data
+# Statistics
+Statistic[] statistics
