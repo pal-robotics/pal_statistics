@@ -68,15 +68,15 @@ std::map<std::string, double> getVariableAndValues(const pal_statistics_msgs::St
 }
 TEST_F(PalStatisticsTest, checkValues)
 {
-  boost::shared_ptr<StatisticsRegistry> foo =
+  boost::shared_ptr<StatisticsRegistry> registry =
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
 
-  foo->registerVariable("var1", &var1_);
-  foo->registerVariable("var2", &var2_);
+  registry->registerVariable("var1", &var1_);
+  registry->registerVariable("var2", &var2_);
 
   var1_ = 1.0;
   var2_ = 2.0;
-  pal_statistics_msgs::Statistics msg = foo->createMsg();
+  pal_statistics_msgs::Statistics msg = registry->createMsg();
 
   EXPECT_NEAR(ros::Time::now().toSec(), msg.header.stamp.toSec(), 0.001);
   auto s = getVariableAndValues(msg);
@@ -85,7 +85,7 @@ TEST_F(PalStatisticsTest, checkValues)
 
   var1_ = 100.0;
   var2_ = -100.0;
-  msg = foo->createMsg();
+  msg = registry->createMsg();
   s = getVariableAndValues(msg);
   EXPECT_EQ(var1_, s["var1"]);
   EXPECT_EQ(var2_, s["var2"]);
@@ -93,77 +93,77 @@ TEST_F(PalStatisticsTest, checkValues)
 
 TEST_F(PalStatisticsTest, manualRegistration)
 {
-  boost::shared_ptr<StatisticsRegistry> foo =
+  boost::shared_ptr<StatisticsRegistry> registry =
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
 
-  foo->registerVariable("var1", &var1_);
-  foo->registerVariable("var2", &var2_);
+  registry->registerVariable("var1", &var1_);
+  registry->registerVariable("var2", &var2_);
 
-  pal_statistics_msgs::Statistics msg = foo->createMsg();
+  pal_statistics_msgs::Statistics msg = registry->createMsg();
 
   EXPECT_NEAR(ros::Time::now().toSec(), msg.header.stamp.toSec(), 0.001);
   EXPECT_THAT(getVariables(msg), UnorderedElementsAre("var1", "var2"));
 
-  foo->unregisterVariable("var1");
-  msg = foo->createMsg();
+  registry->unregisterVariable("var1");
+  msg = registry->createMsg();
   EXPECT_THAT(getVariables(msg), UnorderedElementsAre("var2"));
 }
 
 
 TEST_F(PalStatisticsTest, automaticRegistration)
 {
-  boost::shared_ptr<StatisticsRegistry> foo =
+  boost::shared_ptr<StatisticsRegistry> registry =
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
   pal_statistics_msgs::Statistics msg;
   {
     StatisticsRegistry::BookkeepingType bookkeeping;
 
-    foo->registerVariable("var1", &var1_, &bookkeeping);
-    foo->registerVariable("var2", &var2_, &bookkeeping);
+    registry->registerVariable("var1", &var1_, &bookkeeping);
+    registry->registerVariable("var2", &var2_, &bookkeeping);
 
-    msg = foo->createMsg();
+    msg = registry->createMsg();
 
     EXPECT_NEAR(ros::Time::now().toSec(), msg.header.stamp.toSec(), 0.001);
     EXPECT_THAT(getVariables(msg), UnorderedElementsAre("var1", "var2"));
   }
 
-  msg = foo->createMsg();
+  msg = registry->createMsg();
   EXPECT_THAT(getVariables(msg), UnorderedElementsAre());
 }
 
 
 TEST_F(PalStatisticsTest, automaticRegistrationDestruction)
 {
-  boost::shared_ptr<StatisticsRegistry> foo =
+  boost::shared_ptr<StatisticsRegistry> registry =
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
   {
     StatisticsRegistry::BookkeepingType bookkeeping;
 
-    foo->registerVariable("var1", &var1_, &bookkeeping);
-    foo->registerVariable("var2", &var2_, &bookkeeping);
+    registry->registerVariable("var1", &var1_, &bookkeeping);
+    registry->registerVariable("var2", &var2_, &bookkeeping);
 
-    foo->createMsg();
+    registry->createMsg();
 
     // Delete the main class, the bookkeeper shouldn't crash on destruction
-    foo.reset();
+    registry.reset();
   }
 }
 
 TEST_F(PalStatisticsTest, asyncPublisher)
 {
-  boost::shared_ptr<StatisticsRegistry> foo =
+  boost::shared_ptr<StatisticsRegistry> registry =
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
   {
     StatisticsRegistry::BookkeepingType bookkeeping;
 
-    foo->startPublishThread();
+    registry->startPublishThread();
 
     // Time for publisher to connect to subscriber
     ros::Duration(0.5).sleep();
-    foo->registerVariable("var1", &var1_, &bookkeeping);
-    foo->registerVariable("var2", &var2_, &bookkeeping);
+    registry->registerVariable("var1", &var1_, &bookkeeping);
+    registry->registerVariable("var2", &var2_, &bookkeeping);
 
-    foo->publishAsync();
+    registry->publishAsync();
     ros::Duration(0.1).sleep();
     ASSERT_TRUE(last_msg_.get());
 
@@ -178,7 +178,7 @@ TEST_F(PalStatisticsTest, asyncPublisher)
 
     var1_ = 2.0;
     var2_ = 3.0;
-    foo->publishAsync();
+    registry->publishAsync();
     ros::Duration(0.1).sleep();
     ASSERT_TRUE(last_msg_.get());
 
@@ -188,7 +188,7 @@ TEST_F(PalStatisticsTest, asyncPublisher)
 
     last_msg_.reset();
   }
-  foo->publishAsync();
+  registry->publishAsync();
   ros::Duration(0.1).sleep();
   ASSERT_TRUE(last_msg_.get());
   EXPECT_EQ(0, last_msg_->statistics.size());
