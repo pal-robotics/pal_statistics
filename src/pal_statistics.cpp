@@ -24,17 +24,42 @@ Registration::~Registration()
 StatisticsRegistry::StatisticsRegistry(const std::string &topic)
 {
   pub_ = nh_.advertise<pal_statistics_msgs::Statistics>(topic, 10);
+  
+  boost::unique_lock<boost::shared_mutex> write_lock(variables_mutex_);
+  variables_ = boost::make_shared<VariablesType>();
+  variables_aux_ = boost::make_shared<VariablesType>();
+}
+
+StatisticsRegistry::~StatisticsRegistry()
+{
+  if (publisher_thread_)
+    publisher_thread_->interrupt();
+  data_ready_cond_.notify_all();
+  
+  if (publisher_thread_)
+    publisher_thread_->interrupt();
 }
 
 void StatisticsRegistry::registerVariable(const std::string &name, double *variable,
-                                    StatisticsRegistry::BookkeepingType *bookkeeping)
+                                          StatisticsRegistry::BookkeepingType *bookkeeping)
 {
+  // Acquire read lock and copy the current variable list
+  {
+    boost::shared_lock<boost::shared_mutex> read_lock(variables_mutex_);
+    *variables_aux_ = *variables_;
+  }
+  // Register variable on aux variable list
+  variables_aux_->push_back(std::make_pair(name, variable));
+  
+  // Reserve enough space for all variables
+  {
+    boost::lock_guard<boost::mutex> lock_async(async_pub_mutex_);
+    msg_.statistics.reserve(variables_aux_->size());
+  }
+  // Swap aux and real variable lists
   {
     boost::unique_lock<boost::shared_mutex> write_lock(variables_mutex_);
-    variables_.push_back(std::make_pair(name, variable));
-    boost::lock_guard<boost::mutex> lock_async(async_pub_mutex_);
-    // reserve enough space for all variables
-    foo_.statistics.reserve(variables_.size());
+    variables_.swap(variables_aux_);
   }
   if (bookkeeping)
     bookkeeping->push_back(boost::make_shared<Registration>(name, weak_from_this()));
@@ -60,12 +85,13 @@ void StatisticsRegistry::unregisterVariable(const std::string &name,
       }
     }
   }
+  
   boost::unique_lock<boost::shared_mutex> write_lock(variables_mutex_);
-  for (VariablesType::iterator it = variables_.begin(); it != variables_.end(); ++it)
+  for (VariablesType::iterator it = variables_->begin(); it != variables_->end(); ++it)
   {
     if (it->first == name)
     {
-      variables_.erase(it);
+      variables_->erase(it);
       return;
     }
   }
@@ -84,12 +110,13 @@ bool StatisticsRegistry::publishAsync()
     ROS_WARN("Called publishAsync but publisher thread has not been started, starting it, this is not RT safe");
     startPublishThread();
   }
+  
   if (variables_mutex_.try_lock_shared())
   {
     boost::shared_lock<boost::shared_mutex> read_lock(variables_mutex_, boost::adopt_lock);
     boost::lock_guard<boost::mutex> lock_async(async_pub_mutex_);
     // Update stored message with latest data
-    fillMsgUnsafe(foo_);
+    fillMsgUnsafe(msg_);
     data_ready_cond_.notify_one();
     return true;
   }
@@ -115,13 +142,13 @@ pal_statistics_msgs::Statistics StatisticsRegistry::createMsg()
 
 void StatisticsRegistry::fillMsgUnsafe(pal_statistics_msgs::Statistics &msg) const
 {
-  
-  msg.statistics.resize(0);  // delete all elements
-  for (size_t i = 0; i < variables_.size(); ++i)
+  // Will keep reserved space, so reallocation should not happen
+  msg.statistics.clear();
+  for (size_t i = 0; i < variables_->size(); ++i)
   {
     pal_statistics_msgs::Statistic s;
-    s.name = variables_[i].first;
-    s.value = *variables_[i].second;
+    s.name = (*variables_)[i].first;
+    s.value = *(*variables_)[i].second;
     msg.statistics.push_back(s);
   }
   msg.header.stamp = ros::Time::now();
@@ -130,12 +157,12 @@ void StatisticsRegistry::fillMsgUnsafe(pal_statistics_msgs::Statistics &msg) con
 void StatisticsRegistry::publisherThreadCycle()
 {
   boost::unique_lock<boost::mutex> lock_async(async_pub_mutex_);
-  while (true)
+  while (!publisher_thread_->interruption_requested() && ros::ok())
   {
     data_ready_cond_.wait(lock_async);
     if (pub_.getNumSubscribers() > 0)
     {
-      pub_.publish(foo_);
+      pub_.publish(msg_);
     }
   }
 }

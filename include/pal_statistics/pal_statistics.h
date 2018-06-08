@@ -3,7 +3,7 @@
 **  Author: victor
 **  Created on: 2018/06/06
 **
-**  Copyright (c) 2017 PAL Robotics SL. All Rights Reserved
+**  Copyright (c) 2018 PAL Robotics SL. All Rights Reserved
 **************************************************************************/
 
 #ifndef _PAL_STATISTICS_H_
@@ -40,6 +40,8 @@ public:
   typedef std::vector<boost::shared_ptr<Registration> > BookkeepingType;
 
   StatisticsRegistry(const std::string &topic);
+  
+  virtual ~StatisticsRegistry();
 
   void registerVariable(const std::string &name, double *variable,
                         BookkeepingType *bookkeeping = NULL);
@@ -52,6 +54,12 @@ public:
 
   void unregisterVariable(const std::string &name, BookkeepingType *bookkeeping = NULL);
 
+  /**
+   * @brief publish Reads the values of all registered variables and publishes them to the
+   * topic associated to this object.
+   * @warning This function may lock if another thread is adding/removing registered
+   * variables, use publishAsync if you need RT safety
+   */
   void publish();
 
   /**
@@ -83,13 +91,14 @@ private:
   ros::Publisher pub_;
   boost::shared_mutex variables_mutex_;
   typedef std::vector<std::pair<std::string, double *> > VariablesType;
-  VariablesType variables_;
+  boost::shared_ptr<VariablesType> variables_;
+  boost::shared_ptr<VariablesType> variables_aux_;
 
   // Async publisher data
-  boost::shared_ptr<boost::thread> publisher_thread_;
   boost::mutex async_pub_mutex_;
   boost::condition_variable data_ready_cond_;
-  pal_statistics_msgs::Statistics foo_;
+  boost::shared_ptr<boost::thread> publisher_thread_;
+  pal_statistics_msgs::Statistics msg_;
 };
 }  // namespace pal
 #endif
