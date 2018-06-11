@@ -11,7 +11,7 @@ find_package(Boost REQUIRED COMPONENTS thread)
 
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES pal_statistics
+  LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS pal_statistics_msgs roscpp
 #  DEPENDS Boost
 )
