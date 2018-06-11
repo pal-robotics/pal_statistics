@@ -10,9 +10,10 @@
 #define _PAL_STATISTICS_H_
 
 #include <ros/ros.h>
-#include <rosbag/bag.h>
-#include <realtime_tools/realtime_publisher.h>
 #include <boost/thread/lock_guard.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
+#include <boost/thread/thread.hpp>
 #include <pal_statistics_msgs/Statistics.h>
 namespace pal
 {
