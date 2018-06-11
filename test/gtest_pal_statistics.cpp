@@ -50,7 +50,7 @@ protected:
 std::vector<std::string> getVariables(const pal_statistics_msgs::Statistics &msg)
 {
   std::vector<std::string> v;
-  for (auto s : msg.statistics)
+  for (const auto &s : msg.statistics)
   {
     v.push_back(s.name);
   }
@@ -60,12 +60,23 @@ std::vector<std::string> getVariables(const pal_statistics_msgs::Statistics &msg
 std::map<std::string, double> getVariableAndValues(const pal_statistics_msgs::Statistics &msg)
 {
   std::map<std::string, double> m;
-  for (auto s : msg.statistics)
+  for (const auto &s : msg.statistics)
   {
     m[s.name] = s.value;
   }
   return m;
 }
+TEST_F(PalStatisticsTest, misUse)
+{
+  boost::shared_ptr<StatisticsRegistry> registry =
+      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  registry->unregisterVariable("foo");
+  registry->registerVariable("var1", &var1_);
+  registry->registerVariable("var1", &var1_);
+  registry->unregisterVariable("var1");
+  registry->unregisterVariable("var1");
+}
+
 TEST_F(PalStatisticsTest, checkValues)
 {
   boost::shared_ptr<StatisticsRegistry> registry =
@@ -116,7 +127,7 @@ TEST_F(PalStatisticsTest, automaticRegistration)
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
   pal_statistics_msgs::Statistics msg;
   {
-    StatisticsRegistry::BookkeepingType bookkeeping;
+    RegistrationsRAII bookkeeping;
 
     registry->registerVariable("var1", &var1_, &bookkeeping);
     registry->registerVariable("var2", &var2_, &bookkeeping);
@@ -137,7 +148,7 @@ TEST_F(PalStatisticsTest, automaticRegistrationDestruction)
   boost::shared_ptr<StatisticsRegistry> registry =
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
   {
-    StatisticsRegistry::BookkeepingType bookkeeping;
+    RegistrationsRAII bookkeeping;
 
     registry->registerVariable("var1", &var1_, &bookkeeping);
     registry->registerVariable("var2", &var2_, &bookkeeping);
@@ -154,7 +165,7 @@ TEST_F(PalStatisticsTest, asyncPublisher)
   boost::shared_ptr<StatisticsRegistry> registry =
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
   {
-    StatisticsRegistry::BookkeepingType bookkeeping;
+    RegistrationsRAII bookkeeping;
 
     registry->startPublishThread();
 
@@ -197,7 +208,7 @@ TEST_F(PalStatisticsTest, asyncPublisher)
 TEST_F(PalStatisticsTest, macroTest)
 {
   {
-    StatisticsRegistry::BookkeepingType bookkeeping;
+    RegistrationsRAII bookkeeping;
     REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var1", &var1_, NULL);
     REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var1_bk", &var1_, &bookkeeping);
     REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var2", &var2_, NULL);
@@ -216,6 +227,148 @@ TEST_F(PalStatisticsTest, macroTest)
   EXPECT_THAT(getVariables(*last_msg_), UnorderedElementsAre("macro_var1", "macro_var2"));
 }
 
+void registerThread(boost::shared_ptr<StatisticsRegistry> registry,
+                    const std::string &prefix, size_t iterations, double *variable,
+                    RegistrationsRAII *bookkeeping = NULL)
+{
+  for (size_t i = 0; i < iterations; ++i)
+  {
+    ros::Time b = ros::Time::now();
+    registry->registerVariable(prefix + std::to_string(i), variable, bookkeeping);
+    //    ROS_INFO_STREAM(i << " " << (ros::Time::now() - b).toSec());
+  }
+}
+void unregisterThread(boost::shared_ptr<StatisticsRegistry> registry,
+                      const std::string &prefix, size_t n_variables)
+{
+  // Deregister in inverse order
+  for (size_t i = n_variables; i > 0; --i)
+  {
+    registry->unregisterVariable(prefix + std::to_string(i - 1), NULL);
+  }
+}
+
+
+void publish(boost::shared_ptr<StatisticsRegistry> registry, size_t n_variables)
+{
+  for (size_t i = n_variables; i > 0; --i)
+  {
+    registry->publish();
+  }
+}
+
+
+void publishAsync(boost::shared_ptr<StatisticsRegistry> registry, size_t n_variables)
+{
+  for (size_t i = n_variables; i > 0; --i)
+  {
+    registry->publishAsync();
+  }
+}
+
+
+TEST_F(PalStatisticsTest, concurrencyTest)
+{
+  size_t n_variables = 2e4;
+  size_t n_threads = 5;
+  std::vector<boost::thread> threads;
+  boost::shared_ptr<StatisticsRegistry> registry =
+      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  registry->startPublishThread();
+  ROS_INFO_STREAM("Start registration threads");
+  for (size_t i = 0; i < n_threads; ++i)
+  {
+    threads.push_back(boost::thread(
+        boost::bind(&registerThread, registry, std::to_string(i) + "_", n_variables,
+                    &var1_, static_cast<RegistrationsRAII *>(NULL))));
+  }
+  for (size_t i = 0; i < n_threads; ++i)
+  {
+    threads[i].join();
+  }
+  ROS_INFO_STREAM("Registration ended");
+  pal_statistics_msgs::Statistics msg = registry->createMsg();
+
+  EXPECT_EQ(n_variables * n_threads, msg.statistics.size());
+  ROS_INFO_STREAM("Start publishAsync");
+  ros::Time b = ros::Time::now();
+  size_t iter = 100000;
+  for (size_t i = 0; i < iter; ++i)
+  {
+    registry->publishAsync();
+  }
+  ROS_INFO_STREAM("End publishAsync " << (100. * (ros::Time::now() - b).toSec()) / double(iter));
+  ROS_INFO_STREAM("Start publish");
+  for (size_t i = 0; i < n_variables; ++i)
+  {
+    registry->publish();
+  }
+  ROS_INFO_STREAM("End publish");
+
+  threads.clear();
+  ROS_INFO_STREAM("Start deregistration threads");
+  for (size_t i = 0; i < n_threads; ++i)
+  {
+    threads.push_back(boost::thread(
+        boost::bind(&unregisterThread, registry, std::to_string(i) + "_", n_variables)));
+  }
+  for (size_t i = 0; i < n_threads; ++i)
+  {
+    threads[i].join();
+  }
+  ROS_INFO_STREAM("Deregistration ended");
+  msg = registry->createMsg();
+  threads.clear();
+  EXPECT_EQ(0, msg.statistics.size());
+
+
+  for (size_t i = 0; i < n_threads; ++i)
+  {
+    threads[i].join();
+  }
+
+  threads.clear();
+
+}
+
+TEST_F(PalStatisticsTest, concurrencyMixTest)
+{
+  size_t n_variables = 2e3;
+  size_t n_threads = 5;
+  std::vector<boost::thread> threads;
+  boost::shared_ptr<StatisticsRegistry> registry =
+      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  for (size_t i = 0; i < n_threads; ++i)
+  {
+    threads.push_back(boost::thread(
+        boost::bind(&registerThread, registry, std::to_string(i) + "_", n_variables,
+                    &var1_, static_cast<RegistrationsRAII *>(NULL))));
+  }
+  for (size_t i = 0; i < threads.size(); ++i)
+  {
+    threads[i].join();
+  }
+  threads.clear();
+
+
+  ROS_INFO_STREAM("Start thread mix");
+  RegistrationsRAII bookkeeping;
+  for (size_t i = 0; i < n_threads; ++i)
+  {
+    threads.push_back(boost::thread(
+        boost::bind(&unregisterThread, registry, std::to_string(i) + "_", n_variables)));
+    threads.push_back(boost::thread(boost::bind(&registerThread, registry,
+                                                std::to_string(i + n_threads) + "_",
+                                                n_variables, &var1_, &bookkeeping)));
+//    threads.push_back(boost::thread(boost::bind(&publish, registry, n_variables)));
+//    threads.push_back(boost::thread(boost::bind(&publishAsync, registry, n_variables)));
+  }
+  for (size_t i = 0; i < threads.size(); ++i)
+  {
+    threads[i].join();
+  }
+  ROS_INFO_STREAM("End thread mix");
+}
 
 
 }  // namespace pal

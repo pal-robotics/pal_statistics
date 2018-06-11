@@ -18,6 +18,10 @@ namespace pal
 {
 class StatisticsRegistry;
 
+/**
+ * @brief The Registration class is a handle to a registered variable, when out of scope
+ * unregisters the variable.
+ */
 class Registration
 {
 public:
@@ -29,30 +33,49 @@ public:
   boost::weak_ptr<StatisticsRegistry> obj_;
 };
 
+/**
+ * @brief The RegistrationsRAII class holds handles to registered variables and when it is
+ * destroyed, unregisters them automatically.
+ */
+class RegistrationsRAII
+{
+public:
+  void add(const boost::shared_ptr<Registration> &registration);
+  bool remove(const std::string &name);
+
+private:
+  boost::mutex mutex_;
+  std::vector<boost::shared_ptr<Registration> > registrations_;
+};
 
 /**
- * @brief The FooSingleton class
+ * @brief The StatisticsRegistry class reads the value of registered variables and
+ * publishes them on the specified topic.
  * @warning Functions are not real-time safe unless stated.
  */
 class StatisticsRegistry : public boost::enable_shared_from_this<StatisticsRegistry>
 {
 public:
-  typedef std::vector<boost::shared_ptr<Registration> > BookkeepingType;
-
   StatisticsRegistry(const std::string &topic);
-  
+
   virtual ~StatisticsRegistry();
 
+  /**
+   * @brief registerVariable adds the variable so its value is later published with the
+   * specified name
+   * @param bookkeeping Optional, if specified adds a handle to this variable
+   * registration, so registration is done when this object goes out of scope.
+   */
   void registerVariable(const std::string &name, double *variable,
-                        BookkeepingType *bookkeeping = NULL);
+                        RegistrationsRAII *bookkeeping = NULL);
 
   /**
    * Deprecated, required to maintain legacy code
    */
   void registerVariable(double *variable, const std::string &name,
-                        BookkeepingType *bookkeeping = NULL);
+                        RegistrationsRAII *bookkeeping = NULL);
 
-  void unregisterVariable(const std::string &name, BookkeepingType *bookkeeping = NULL);
+  void unregisterVariable(const std::string &name, RegistrationsRAII *bookkeeping = NULL);
 
   /**
    * @brief publish Reads the values of all registered variables and publishes them to the
@@ -71,34 +94,44 @@ public:
    */
   bool publishAsync();
 
+  /**
+   * @brief startPublishThread creates and starts the publisherThread. The user still has
+   * to call publishAsync each time a message must be publisher.
+   */
   void startPublishThread();
 
+  /**
+   * @brief createMsg creates a Statistics message from the registered variables, useful
+   * for debugging
+   * @return
+   */
   pal_statistics_msgs::Statistics createMsg();
 
 private:
   /**
-   * @brief fillMsgUnsafe Attempts to create a message without acquiring the mutex
-   * Should only be used if the mutex has already been acquired by the thread
+   * @brief updateMsgUnsafe Updates the internal message variable without acquiring the
+   * mutex Should only be used if the mutex has already been acquired by the thread
    * calling this
-   * @param statistics
-   * @return Tr
    */
-  void fillMsgUnsafe(pal_statistics_msgs::Statistics &msg) const;
+
+  void updateMsgUnsafe();
 
   void publisherThreadCycle();
 
   ros::NodeHandle nh_;
-  ros::Publisher pub_;
-  boost::shared_mutex variables_mutex_;
-  typedef std::vector<std::pair<std::string, double *> > VariablesType;
-  boost::shared_ptr<VariablesType> variables_;
-  boost::shared_ptr<VariablesType> variables_aux_;
 
-  // Async publisher data
-  boost::mutex async_pub_mutex_;
+  boost::mutex data_mutex_;
+  typedef std::vector<double *> VariablesType;
+  VariablesType variables_;
+  pal_statistics_msgs::Statistics msg_;
+
+  // To avoid deadlocks, should always be acquired after data_mutex_
+  boost::mutex pub_mutex_;
+  ros::Publisher pub_;
   boost::condition_variable data_ready_cond_;
   boost::shared_ptr<boost::thread> publisher_thread_;
-  pal_statistics_msgs::Statistics msg_;
+  double publish_async_attempts_;
+  double publish_async_failures_;
 };
 }  // namespace pal
 #endif
