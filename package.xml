@@ -49,15 +49,9 @@
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>Boost</build_depend>
-  <build_depend>pal_statistics_msgs</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_export_depend>Boost</build_export_depend>
-  <build_export_depend>pal_statistics_msgs</build_export_depend>
-  <build_export_depend>roscpp</build_export_depend>
-  <exec_depend>Boost</exec_depend>
-  <exec_depend>pal_statistics_msgs</exec_depend>
-  <exec_depend>roscpp</exec_depend>
+  <depend>boost</depend>
+  <depend>pal_statistics_msgs</depend>
+  <depend>roscpp</depend>
   <test_depend>rostest</test_depend>
   <test_depend>google-mock</test_depend>
 
