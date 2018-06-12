@@ -60,15 +60,28 @@ public:
   StatisticsRegistry(const std::string &topic);
 
   virtual ~StatisticsRegistry();
-
   /**
    * @brief registerVariable adds the variable so its value is later published with the
    * specified name
+   * @param variable its value must be static_castable to double
    * @param bookkeeping Optional, if specified adds a handle to this variable
    * registration, so registration is done when this object goes out of scope.
+   */  
+  template <typename T>
+  void registerVariable(const std::string &name, T *variable,
+                        RegistrationsRAII *bookkeeping = NULL)
+  {
+    boost::function<double ()> funct = [variable]{return static_cast<double>(*variable);};
+    registerFunction(name, funct, bookkeeping);
+  }
+  
+  /**
+   * @brief registerFunction Adds a function that returns double with the specified name
+   * @param bookkeeping same as in registerVariable
    */
-  void registerVariable(const std::string &name, double *variable,
-                        RegistrationsRAII *bookkeeping = NULL);
+  void registerFunction(const std::string &name,  const boost::function<double ()> &funct,
+  RegistrationsRAII *bookkeeping = NULL);
+  
 
   /**
    * Deprecated, required to maintain legacy code
@@ -114,15 +127,14 @@ private:
    * mutex Should only be used if the mutex has already been acquired by the thread
    * calling this
    */
-
   void updateMsgUnsafe();
 
   void publisherThreadCycle();
-
+  
   ros::NodeHandle nh_;
 
   boost::mutex data_mutex_;
-  typedef std::vector<double *> VariablesType;
+  typedef std::vector< boost::function<double ()> > VariablesType;
   VariablesType variables_;
   pal_statistics_msgs::Statistics msg_;
 

@@ -37,15 +37,12 @@ StatisticsRegistry::~StatisticsRegistry()
   }
 }
 
-void StatisticsRegistry::registerVariable(const std::string &name, double *variable,
+void StatisticsRegistry::registerFunction(const std::string &name,  const boost::function<double ()> &funct,
                                           RegistrationsRAII *bookkeeping)
 {
   {
-    
-  }
-  {
     boost::unique_lock<boost::mutex> data_lock(data_mutex_);
-    variables_.push_back(variable);  
+    variables_.push_back(funct);  
     pal_statistics_msgs::Statistic s;
     s.name = name;
     msg_.statistics.push_back(s);
@@ -131,7 +128,7 @@ void StatisticsRegistry::updateMsgUnsafe()
 {
   for (size_t i = 0; i < msg_.statistics.size(); ++i)
   {
-    msg_.statistics[i].value = *variables_[i];    
+    msg_.statistics[i].value = variables_[i]();    
   }
   msg_.header.stamp = ros::Time::now();
 }
