@@ -14,6 +14,8 @@
 #include <gmock/gmock.h>
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
+#include <climits>
+#include <cfloat>
 
 using ::testing::UnorderedElementsAre;
 namespace pal
@@ -100,6 +102,70 @@ TEST_F(PalStatisticsTest, checkValues)
   s = getVariableAndValues(msg);
   EXPECT_EQ(var1_, s["var1"]);
   EXPECT_EQ(var2_, s["var2"]);
+}
+
+TEST_F(PalStatisticsTest, typeTest)
+{
+  boost::shared_ptr<StatisticsRegistry> registry =
+      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+
+
+  short s = std::numeric_limits<short>::min();
+  unsigned short us = std::numeric_limits<unsigned short>::max();
+  char c = std::numeric_limits<char>::min();
+  unsigned char uc = std::numeric_limits<unsigned char>::max();
+  int i = std::numeric_limits<int>::min();
+  unsigned int ui = std::numeric_limits<unsigned int>::max();
+  long l = std::numeric_limits<long>::min();
+  unsigned long ul = std::numeric_limits<long>::max();
+  long long ll = std::numeric_limits<long long>::min();
+  unsigned long long ull = std::numeric_limits<unsigned long long>::max();
+  float min_f = std::numeric_limits<float>::min();
+  float max_f = std::numeric_limits<float>::max();
+  double min_d = std::numeric_limits<double>::min();
+  double max_d = std::numeric_limits<double>::max();
+  bool true_b = true;
+  bool false_b = false;
+
+
+
+  registry->registerVariable("s", &s);
+  registry->registerVariable("us", &us);
+  registry->registerVariable("c", &c);
+  registry->registerVariable("uc", &uc);
+  registry->registerVariable("i", &i);
+  registry->registerVariable("ui", &ui);
+  registry->registerVariable("l", &l);
+  registry->registerVariable("ul", &ul);
+  registry->registerVariable("ll", &ll);
+  registry->registerVariable("ull", &ull);
+  registry->registerVariable("min_f", &min_f);
+  registry->registerVariable("max_f", &max_f);
+  registry->registerVariable("min_d", &min_d);
+  registry->registerVariable("max_d", &max_d);
+  registry->registerVariable("true_b", &true_b);
+  registry->registerVariable("false_b", &false_b);
+  pal_statistics_msgs::Statistics msg = registry->createMsg();
+
+  auto values = getVariableAndValues(msg);
+  EXPECT_EQ(s, values["s"]);
+  EXPECT_EQ(us, values["us"]);
+  EXPECT_EQ(c, values["c"]);
+  EXPECT_EQ(uc, values["uc"]);
+  EXPECT_EQ(i, values["i"]);
+  EXPECT_EQ(ui, values["ui"]);
+  EXPECT_EQ(l, values["l"]);
+  EXPECT_EQ(ul, values["ul"]);
+  EXPECT_EQ(ll, values["ll"]);
+  EXPECT_EQ(ull, values["ull"]);
+  EXPECT_EQ(min_f, values["min_f"]);
+  EXPECT_EQ(max_f, values["max_f"]);
+  EXPECT_EQ(min_d, values["min_d"]);
+  EXPECT_EQ(max_d, values["max_d"]);
+  EXPECT_EQ(true_b, values["true_b"]);
+  EXPECT_EQ(false_b, values["false_b"]);
+
+  EXPECT_NE(l, values["ul"]);
 }
 
 TEST_F(PalStatisticsTest, manualRegistration)
@@ -227,9 +293,8 @@ TEST_F(PalStatisticsTest, macroTest)
   EXPECT_THAT(getVariables(*last_msg_), UnorderedElementsAre("macro_var1", "macro_var2"));
 }
 
-void registerThread(boost::shared_ptr<StatisticsRegistry> registry,
-                    const std::string &prefix, size_t iterations, double *variable,
-                    RegistrationsRAII *bookkeeping = NULL)
+void registerThread(boost::shared_ptr<StatisticsRegistry> registry, const std::string &prefix,
+                    size_t iterations, double *variable, RegistrationsRAII *bookkeeping = NULL)
 {
   for (size_t i = 0; i < iterations; ++i)
   {
@@ -278,9 +343,9 @@ TEST_F(PalStatisticsTest, concurrencyTest)
   ROS_INFO_STREAM("Start registration threads");
   for (size_t i = 0; i < n_threads; ++i)
   {
-    threads.push_back(boost::thread(
-        boost::bind(&registerThread, registry, std::to_string(i) + "_", n_variables,
-                    &var1_, static_cast<RegistrationsRAII *>(NULL))));
+    threads.push_back(boost::thread(boost::bind(&registerThread, registry,
+                                                std::to_string(i) + "_", n_variables, &var1_,
+                                                static_cast<RegistrationsRAII *>(NULL))));
   }
   for (size_t i = 0; i < n_threads; ++i)
   {
@@ -328,7 +393,6 @@ TEST_F(PalStatisticsTest, concurrencyTest)
   }
 
   threads.clear();
-
 }
 
 TEST_F(PalStatisticsTest, concurrencyMixTest)
@@ -340,9 +404,9 @@ TEST_F(PalStatisticsTest, concurrencyMixTest)
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
   for (size_t i = 0; i < n_threads; ++i)
   {
-    threads.push_back(boost::thread(
-        boost::bind(&registerThread, registry, std::to_string(i) + "_", n_variables,
-                    &var1_, static_cast<RegistrationsRAII *>(NULL))));
+    threads.push_back(boost::thread(boost::bind(&registerThread, registry,
+                                                std::to_string(i) + "_", n_variables, &var1_,
+                                                static_cast<RegistrationsRAII *>(NULL))));
   }
   for (size_t i = 0; i < threads.size(); ++i)
   {
@@ -360,8 +424,9 @@ TEST_F(PalStatisticsTest, concurrencyMixTest)
     threads.push_back(boost::thread(boost::bind(&registerThread, registry,
                                                 std::to_string(i + n_threads) + "_",
                                                 n_variables, &var1_, &bookkeeping)));
-//    threads.push_back(boost::thread(boost::bind(&publish, registry, n_variables)));
-//    threads.push_back(boost::thread(boost::bind(&publishAsync, registry, n_variables)));
+    //    threads.push_back(boost::thread(boost::bind(&publish, registry, n_variables)));
+    //    threads.push_back(boost::thread(boost::bind(&publishAsync, registry,
+    //    n_variables)));
   }
   for (size_t i = 0; i < threads.size(); ++i)
   {
