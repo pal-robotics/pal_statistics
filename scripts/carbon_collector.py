@@ -4,14 +4,14 @@ import rospy
 import graphitesend
 from pal_statistics_msgs.msg import Statistics
 
-STATISTICS_TOPIC = "pal_statistics"
-
 class CarbonCollector:
-    def __init__(self):
+    def __init__(self, topics):
         self.gs = graphitesend.GraphiteClient(prefix='', graphite_server='localhost')
 
-        self.statistics_sub = rospy.Subscriber(STATISTICS_TOPIC, Statistics, \
-                                               self.statistics_callback)
+        self.statistics_subs = []
+        for topic in topics:
+            statistics_sub = rospy.Subscriber(topic, Statistics, self.statistics_callback)
+            self.statistics_subs.append(statistics_sub)
 
     def statistics_callback(self, msg):
         timestamp = rospy.Time(msg.header.stamp.secs, msg.header.stamp.nsecs)
@@ -26,6 +26,8 @@ class CarbonCollector:
 if __name__ == "__main__":
     rospy.init_node("carbon_collector")
 
-    carbon_collector = CarbonCollector()
+    topics = rospy.get_param('~topics')
+
+    carbon_collector = CarbonCollector(topics)
 
     rospy.spin()
