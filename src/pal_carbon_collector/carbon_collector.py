@@ -5,9 +5,10 @@ import rospy
 from pal_statistics_msgs.msg import Statistics
 
 class CarbonCollector:
-    def __init__(self, topics, dry_run):
+    def __init__(self, topics, system_name=None, dry_run=False):
         self.dry_run = dry_run
-        self.gs = graphitesend.GraphiteClient(prefix='', graphite_server='localhost', dryrun=dry_run)
+        self.gs = graphitesend.GraphiteClient(prefix='', graphite_server='localhost', \
+                                              system_name=system_name, dryrun=dry_run)
 
         self.statistics_subs = []
         for topic in topics:
@@ -25,4 +26,6 @@ class CarbonCollector:
 
         if self.dry_run:
             print result
+
+        return result
 
