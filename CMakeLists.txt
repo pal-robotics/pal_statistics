@@ -7,6 +7,7 @@ find_package(catkin REQUIRED
         rospy
 )
 
+catkin_python_setup()
 
 ###################################
 ## catkin specific configuration ##
@@ -20,7 +21,7 @@ catkin_package()
 #############
 
 install(PROGRAMS
-    scripts/carbon_collector.py
+    scripts/carbon_collector_node.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
