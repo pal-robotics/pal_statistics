@@ -42,7 +42,7 @@ class RegistrationsRAII
 {
 public:
   void add(const boost::shared_ptr<Registration> &registration);
-  bool remove(const std::string &name); 
+  bool remove(const std::string &name);
   void removeAll();
 
 private:
@@ -67,22 +67,21 @@ public:
    * @param variable its value must be static_castable to double
    * @param bookkeeping Optional, if specified adds a handle to this variable
    * registration, so registration is done when this object goes out of scope.
-   */  
+   */
   template <typename T>
-  void registerVariable(const std::string &name, T *variable,
-                        RegistrationsRAII *bookkeeping = NULL)
+  void registerVariable(const std::string &name, T *variable, RegistrationsRAII *bookkeeping = NULL)
   {
-    boost::function<double ()> funct = [variable]{return static_cast<double>(*variable);};
+    boost::function<double()> funct = [variable] { return static_cast<double>(*variable); };
     registerFunction(name, funct, bookkeeping);
   }
-  
+
   /**
    * @brief registerFunction Adds a function that returns double with the specified name
    * @param bookkeeping same as in registerVariable
    */
-  void registerFunction(const std::string &name,  const boost::function<double ()> &funct,
-  RegistrationsRAII *bookkeeping = NULL);
-  
+  void registerFunction(const std::string &name, const boost::function<double()> &funct,
+                        RegistrationsRAII *bookkeeping = NULL);
+
 
   /**
    * Deprecated, required to maintain legacy code
@@ -131,11 +130,11 @@ private:
   void updateMsgUnsafe();
 
   void publisherThreadCycle();
-  
+
   ros::NodeHandle nh_;
 
   boost::mutex data_mutex_;
-  typedef std::vector< boost::function<double ()> > VariablesType;
+  typedef std::vector<boost::function<double()> > VariablesType;
   VariablesType variables_;
   pal_statistics_msgs::Statistics msg_;
 

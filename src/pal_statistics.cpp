@@ -26,7 +26,7 @@ StatisticsRegistry::StatisticsRegistry(const std::string &topic)
   pub_ = nh_.advertise<pal_statistics_msgs::Statistics>(topic, 10);
   publish_async_attempts_ = 0;
   publish_async_failures_ = 0;
-  last_async_pub_duration_ = 0.0;  
+  last_async_pub_duration_ = 0.0;
   registerVariable("publish_async_attempts", &publish_async_attempts_, &internal_stats_raii_);
   registerVariable("publish_async_failures", &publish_async_failures_, &internal_stats_raii_);
   registerVariable("last_async_pub_duration", &last_async_pub_duration_, &internal_stats_raii_);
@@ -35,7 +35,7 @@ StatisticsRegistry::StatisticsRegistry(const std::string &topic)
 StatisticsRegistry::~StatisticsRegistry()
 {
   data_ready_cond_.notify_all();
-  
+
   if (publisher_thread_)
   {
     publisher_thread_->interrupt();
@@ -43,12 +43,13 @@ StatisticsRegistry::~StatisticsRegistry()
   }
 }
 
-void StatisticsRegistry::registerFunction(const std::string &name,  const boost::function<double ()> &funct,
+void StatisticsRegistry::registerFunction(const std::string &name,
+                                          const boost::function<double()> &funct,
                                           RegistrationsRAII *bookkeeping)
 {
   {
     boost::unique_lock<boost::mutex> data_lock(data_mutex_);
-    variables_.push_back(funct);  
+    variables_.push_back(funct);
     pal_statistics_msgs::Statistic s;
     s.name = name;
     msg_.statistics.push_back(s);
@@ -57,20 +58,19 @@ void StatisticsRegistry::registerFunction(const std::string &name,  const boost:
     bookkeeping->add(boost::make_shared<Registration>(name, weak_from_this()));
 }
 
-void StatisticsRegistry::registerVariable(double *variable, const std::string &name, 
-                                    RegistrationsRAII *bookkeeping)
+void StatisticsRegistry::registerVariable(double *variable, const std::string &name,
+                                          RegistrationsRAII *bookkeeping)
 {
   registerVariable(name, variable, bookkeeping);
 }
 
-void StatisticsRegistry::unregisterVariable(const std::string &name,
-                                      RegistrationsRAII *bookkeeping)
+void StatisticsRegistry::unregisterVariable(const std::string &name, RegistrationsRAII *bookkeeping)
 {
   if (bookkeeping)
   {
     bookkeeping->remove(name);
   }
-  
+
   {
     boost::unique_lock<boost::mutex> data_lock(data_mutex_);
     for (size_t i = 0; i < msg_.statistics.size(); ++i)
@@ -90,7 +90,7 @@ void StatisticsRegistry::publish()
 {
   boost::unique_lock<boost::mutex> data_lock(data_mutex_);
   updateMsgUnsafe();
-  
+
   boost::unique_lock<boost::mutex> pub_lock(pub_mutex_);
   pub_.publish(msg_);
 }
@@ -106,12 +106,12 @@ bool StatisticsRegistry::publishAsync()
       ROS_WARN("Called publishAsync but publisher thread has not been started, starting it, this is not RT safe");
       startPublishThread();
     }
-    
+
     boost::unique_lock<boost::mutex> data_lock(data_mutex_, boost::adopt_lock);
     // Update stored message with latest data
     updateMsgUnsafe();
     data_ready_cond_.notify_one();
-    
+
     last_async_pub_duration_ = ros::Time::now().toSec() - begin;
     return true;
   }
@@ -138,7 +138,7 @@ void StatisticsRegistry::updateMsgUnsafe()
 {
   for (size_t i = 0; i < msg_.statistics.size(); ++i)
   {
-    msg_.statistics[i].value = variables_[i]();    
+    msg_.statistics[i].value = variables_[i]();
   }
   msg_.header.stamp = ros::Time::now();
 }
@@ -181,5 +181,4 @@ void RegistrationsRAII::removeAll()
 {
   registrations_.clear();
 }
-
 }
