@@ -42,7 +42,8 @@ class RegistrationsRAII
 {
 public:
   void add(const boost::shared_ptr<Registration> &registration);
-  bool remove(const std::string &name);
+  bool remove(const std::string &name); 
+  void removeAll();
 
 private:
   boost::mutex mutex_;
@@ -143,8 +144,10 @@ private:
   ros::Publisher pub_;
   boost::condition_variable data_ready_cond_;
   boost::shared_ptr<boost::thread> publisher_thread_;
-  double publish_async_attempts_;
-  double publish_async_failures_;
+  unsigned int publish_async_attempts_;
+  unsigned int publish_async_failures_;
+  double last_async_pub_duration_;
+  RegistrationsRAII internal_stats_raii_;
 };
 }  // namespace pal
 #endif

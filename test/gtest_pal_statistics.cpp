@@ -179,11 +179,11 @@ TEST_F(PalStatisticsTest, manualRegistration)
   pal_statistics_msgs::Statistics msg = registry->createMsg();
 
   EXPECT_NEAR(ros::Time::now().toSec(), msg.header.stamp.toSec(), 0.001);
-  EXPECT_THAT(getVariables(msg), UnorderedElementsAre("var1", "var2"));
+  EXPECT_THAT(getVariables(msg), UnorderedElementsAre("var1", "var2", "publish_async_attempts", "publish_async_failures", "last_async_pub_duration"));
 
   registry->unregisterVariable("var1");
   msg = registry->createMsg();
-  EXPECT_THAT(getVariables(msg), UnorderedElementsAre("var2"));
+  EXPECT_THAT(getVariables(msg), UnorderedElementsAre("var2", "publish_async_attempts", "publish_async_failures", "last_async_pub_duration"));
 }
 
 
@@ -201,11 +201,11 @@ TEST_F(PalStatisticsTest, automaticRegistration)
     msg = registry->createMsg();
 
     EXPECT_NEAR(ros::Time::now().toSec(), msg.header.stamp.toSec(), 0.001);
-    EXPECT_THAT(getVariables(msg), UnorderedElementsAre("var1", "var2"));
+    EXPECT_THAT(getVariables(msg), UnorderedElementsAre("var1", "var2", "publish_async_attempts", "publish_async_failures", "last_async_pub_duration"));
   }
 
   msg = registry->createMsg();
-  EXPECT_THAT(getVariables(msg), UnorderedElementsAre());
+  EXPECT_THAT(getVariables(msg), UnorderedElementsAre("publish_async_attempts", "publish_async_failures", "last_async_pub_duration"));
 }
 
 
@@ -268,7 +268,8 @@ TEST_F(PalStatisticsTest, asyncPublisher)
   registry->publishAsync();
   ros::Duration(0.1).sleep();
   ASSERT_TRUE(last_msg_.get());
-  EXPECT_EQ(0, last_msg_->statistics.size());
+  //Number of internal statistics
+  EXPECT_EQ(3, last_msg_->statistics.size());
 }
 
 TEST_F(PalStatisticsTest, macroTest)
@@ -285,12 +286,12 @@ TEST_F(PalStatisticsTest, macroTest)
     ros::Duration(0.1).sleep();
     ASSERT_TRUE(last_msg_.get());
     EXPECT_THAT(getVariables(*last_msg_),
-                UnorderedElementsAre("macro_var1", "macro_var1_bk", "macro_var2"));
+                UnorderedElementsAre("macro_var1", "macro_var1_bk", "macro_var2",  "publish_async_attempts", "publish_async_failures", "last_async_pub_duration"));
   }
   PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC)
   ros::Duration(0.1).sleep();
   ASSERT_TRUE(last_msg_.get());
-  EXPECT_THAT(getVariables(*last_msg_), UnorderedElementsAre("macro_var1", "macro_var2"));
+  EXPECT_THAT(getVariables(*last_msg_), UnorderedElementsAre("macro_var1", "macro_var2", "publish_async_attempts", "publish_async_failures", "last_async_pub_duration"));
 }
 
 void registerThread(boost::shared_ptr<StatisticsRegistry> registry, const std::string &prefix,
@@ -354,7 +355,7 @@ TEST_F(PalStatisticsTest, concurrencyTest)
   ROS_INFO_STREAM("Registration ended");
   pal_statistics_msgs::Statistics msg = registry->createMsg();
 
-  EXPECT_EQ(n_variables * n_threads, msg.statistics.size());
+  EXPECT_EQ(3 + n_variables * n_threads, msg.statistics.size());
   ROS_INFO_STREAM("Start publishAsync");
   ros::Time b = ros::Time::now();
   size_t iter = 100000;
@@ -362,7 +363,8 @@ TEST_F(PalStatisticsTest, concurrencyTest)
   {
     registry->publishAsync();
   }
-  ROS_INFO_STREAM("End publishAsync " << (100. * (ros::Time::now() - b).toSec()) / double(iter));
+  // Time to publish 1000 times the registered statistics
+  ROS_INFO_STREAM("End publishAsync " << (1000. * (ros::Time::now() - b).toSec()) / double(iter));
   ROS_INFO_STREAM("Start publish");
   for (size_t i = 0; i < n_variables; ++i)
   {
@@ -384,7 +386,9 @@ TEST_F(PalStatisticsTest, concurrencyTest)
   ROS_INFO_STREAM("Deregistration ended");
   msg = registry->createMsg();
   threads.clear();
-  EXPECT_EQ(0, msg.statistics.size());
+  
+  //Number of internal variables
+  EXPECT_EQ(3, msg.statistics.size());
 
 
   for (size_t i = 0; i < n_threads; ++i)

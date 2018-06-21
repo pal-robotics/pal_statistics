@@ -24,6 +24,12 @@ Registration::~Registration()
 StatisticsRegistry::StatisticsRegistry(const std::string &topic)
 {
   pub_ = nh_.advertise<pal_statistics_msgs::Statistics>(topic, 10);
+  publish_async_attempts_ = 0;
+  publish_async_failures_ = 0;
+  last_async_pub_duration_ = 0.0;  
+  registerVariable("publish_async_attempts", &publish_async_attempts_, &internal_stats_raii_);
+  registerVariable("publish_async_failures", &publish_async_failures_, &internal_stats_raii_);
+  registerVariable("last_async_pub_duration", &last_async_pub_duration_, &internal_stats_raii_);
 }
 
 StatisticsRegistry::~StatisticsRegistry()
@@ -91,7 +97,8 @@ void StatisticsRegistry::publish()
 
 bool StatisticsRegistry::publishAsync()
 {
-
+  double begin = ros::Time::now().toSec();
+  publish_async_attempts_++;
   if (data_mutex_.try_lock())
   {
     if (!publisher_thread_.get())
@@ -104,8 +111,11 @@ bool StatisticsRegistry::publishAsync()
     // Update stored message with latest data
     updateMsgUnsafe();
     data_ready_cond_.notify_one();
+    
+    last_async_pub_duration_ = ros::Time::now().toSec() - begin;
     return true;
   }
+  publish_async_failures_++;
   ROS_DEBUG("Missed publishRT opportunity because lock could not be acquired.");
   return false;
 }
@@ -165,6 +175,11 @@ bool RegistrationsRAII::remove(const std::string &name)
     }
   }
   return false;
+}
+
+void RegistrationsRAII::removeAll()
+{
+  registrations_.clear();
 }
 
 }
