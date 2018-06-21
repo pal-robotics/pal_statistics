@@ -347,8 +347,8 @@ void publishAsync(boost::shared_ptr<StatisticsRegistry> registry, size_t n_varia
 
 TEST_F(PalStatisticsTest, concurrencyTest)
 {
-  size_t n_variables = 2e4;
   size_t n_threads = 5;
+  size_t n_variables = 2e4/n_threads; //2e4 variables in total
   std::vector<boost::thread> threads;
   boost::shared_ptr<StatisticsRegistry> registry =
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
