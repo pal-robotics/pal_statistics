@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.1 (2018-06-21)
+------------------
 * Merge branch 'first-version' into 'erbium-devel'
   First version
   See merge request qa/pal_statistics!1
