@@ -15,14 +15,13 @@ find_package(catkin REQUIRED
 
 add_message_files(
     FILES
-        KeyValue.msg
+        Statistic.msg
         Statistics.msg
-        StatisticsArray.msg
 )
 
 generate_messages(
     DEPENDENCIES
-            std_msgs
+        std_msgs
 )
 
 
@@ -34,5 +33,4 @@ catkin_package(
         message_runtime
         std_msgs
 )
-
 
