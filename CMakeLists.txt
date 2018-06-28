@@ -7,7 +7,7 @@ find_package(catkin REQUIRED
         rospy
 )
 
-# catkin_python_setup()
+catkin_python_setup()
 
 ###################################
 ## catkin specific configuration ##
