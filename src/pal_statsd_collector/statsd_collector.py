@@ -6,11 +6,14 @@ import socket
 from pal_statistics_msgs.msg import Statistics
 
 class StatsdCollector:
-    def __init__(self):
+    def __init__(self, topics):
         self.fqdn = socket.getfqdn()
         self.pc = pystatsd.Client(prefix=self.fqdn)
 
-        self.statistics_sub = rospy.Subscriber('/pal_statistics', Statistics, self.statistics_callback)
+        self.statistics_subs = []
+        for topic in topics:
+            statistics_sub = rospy.Subscriber(topic, Statistics, self.statistics_callback)
+            self.statistics_subs.append(statistics_sub)
 
         self.stats_cfg = { 'pb18.temperature' : ['t'], 'pb17.temperature' : ['t'], 'pb17.charge' : ['g'] }
 
