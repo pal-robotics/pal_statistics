@@ -1,0 +1,4 @@
+<launch>
+  <rosparam command="load" ns="carbon_collector_node" file="$(find pal_carbon_collector)/config/topics.yaml" />
+  <node pkg="pal_carbon_collector" name="carbon_collector_node" type="carbon_collector_node.py" />
+</launch>
