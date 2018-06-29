@@ -1,0 +1,4 @@
+<launch>
+  <rosparam command="load" ns="statsd_collector_node" file="$(find pal_statsd_collector)/config/topics.yaml" />
+  <node pkg="pal_statsd_collector" name="statsd_collector_node" type="statsd_collector_node.py" />
+</launch>
