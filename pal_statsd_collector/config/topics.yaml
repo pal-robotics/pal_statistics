@@ -1,0 +1,10 @@
+topics:
+    - name: 'pal_statistics'
+      stats:
+          - name: 'stat1'
+            type: ['t']
+          - name: 'stat2'
+            type: ['t']
+          - name: 'stat3'
+            type: ['g']
+
