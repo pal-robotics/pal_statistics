@@ -11,11 +11,13 @@ class StatsdCollector:
         self.pc = pystatsd.Client(prefix=self.fqdn)
 
         self.statistics_subs = []
+        self.stats_cfg = {}
         for topic in topics:
-            statistics_sub = rospy.Subscriber(topic, Statistics, self.statistics_callback)
+            statistics_sub = rospy.Subscriber(topic['name'], Statistics, self.statistics_callback)
             self.statistics_subs.append(statistics_sub)
 
-        self.stats_cfg = { 'pb18.temperature' : ['t'], 'pb17.temperature' : ['t'], 'pb17.charge' : ['g'] }
+            for stat in topic['stats']:
+                self.stats_cfg[stat['name']] = stat['type']
 
     def statistics_callback(self, msg):
         for stat in msg.statistics:
