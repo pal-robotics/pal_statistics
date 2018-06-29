@@ -23,10 +23,10 @@ class StatsdCollector:
         for stat in msg.statistics:
             stat_type = self.stats_cfg.get(stat.name)
             if stat_type != None:
-                if 'c' in stat_type:
+                if 'c' in stat_type or 'counter' in stat_type:
                     self.pc.increment(stat.name, stat.value)
-                if 'g' in stat_type:
+                if 'g' in stat_type or 'gauge' in stat_type:
                     self.pc.gauge(stat.name, stat.value)
-                if 't' in stat_type:
+                if 't' in stat_type or 'timer' in stat_type:
                     self.pc.timing(stat.name, stat.value)
 
