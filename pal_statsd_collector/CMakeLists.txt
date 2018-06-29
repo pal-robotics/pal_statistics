@@ -35,10 +35,10 @@ endforeach(dir)
 ## Testing ##
 #############
 
-# if (CATKIN_ENABLE_TESTING)
-# 
-#     find_package(rostest REQUIRED)
-# 
-#     add_rostest(test/carbon_collector.test)
-# 
-# endif()
+if (CATKIN_ENABLE_TESTING)
+
+    find_package(rostest REQUIRED)
+
+    add_rostest(test/statsd_collector.test)
+
+endif()

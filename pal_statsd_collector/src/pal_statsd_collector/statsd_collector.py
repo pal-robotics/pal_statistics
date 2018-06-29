@@ -18,11 +18,8 @@ class StatsdCollector:
             self.statistics_subs.append(statistics_sub)
 
     def stat_match(self, stat_name, stat_regex):
-        obj = re.search(stat_regex, stat_name)
-        if obj:
-            return obj.group() == stat_name
-        else:
-            return False
+        obj = re.match(stat_regex, stat_name)
+        return obj
 
     def statistics_callback(self, msg, stats_rules):
         for stat in msg.statistics:
