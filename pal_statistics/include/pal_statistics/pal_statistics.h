@@ -120,6 +120,21 @@ public:
    * @return
    */
   pal_statistics_msgs::Statistics createMsg();
+  
+  /**
+   * @brief publishStatistic publishes a one-time statistic
+   */
+  template <typename T>
+  void publishStatistic(const std::string &name, T value)
+  {
+    pal_statistics_msgs::Statistics msg;
+    pal_statistics_msgs::Statistic stat;
+    stat.name = name;
+    stat.value = static_cast<double>(value);
+    msg.statistics.push_back(stat);
+    msg.header.stamp = ros::Time::now();
+    pub_.publish(msg);
+  }
 
 private:
   /**

@@ -451,6 +451,25 @@ TEST_F(PalStatisticsTest, concurrencyMixTest)
   ROS_INFO_STREAM("End thread mix");
 }
 
+TEST_F(PalStatisticsTest, singlePublish)
+{
+  boost::shared_ptr<StatisticsRegistry> registry =
+      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  double d = 0.123;
+  registry->publishStatistic("single_stat", d);
+  //Wait for message
+  ros::Duration(0.5).sleep();
+     
+  
+  EXPECT_TRUE(last_msg_.get());
+  ASSERT_EQ(1, last_msg_->statistics.size());
+  EXPECT_EQ("single_stat", last_msg_->statistics[0].name);
+  EXPECT_DOUBLE_EQ(d, last_msg_->statistics[0].value);
+  
+  
+  
+}
+
 
 }  // namespace pal
 
