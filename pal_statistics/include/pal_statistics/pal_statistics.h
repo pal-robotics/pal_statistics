@@ -82,6 +82,16 @@ public:
   void registerFunction(const std::string &name, const boost::function<double()> &funct,
                         RegistrationsRAII *bookkeeping = NULL);
 
+  template <typename T>
+  void registerFunction(const std::string &name, const boost::function<T()> &funct,
+                        RegistrationsRAII *bookkeeping = NULL)
+  {
+    boost::function<double()> double_funct = [funct] {
+      return static_cast<double>(funct());
+    };
+    registerFunction(name, double_funct, bookkeeping);
+  }
+
 
   /**
    * Deprecated, required to maintain legacy code
@@ -122,10 +132,10 @@ public:
   pal_statistics_msgs::Statistics createMsg();
   
   /**
-   * @brief publishStatistic publishes a one-time statistic
+   * @brief publishCustomStatistic publishes a one-time statistic
    */
   template <typename T>
-  void publishStatistic(const std::string &name, T value)
+  void publishCustomStatistic(const std::string &name, T value)
   {
     pal_statistics_msgs::Statistics msg;
     pal_statistics_msgs::Statistic stat;
@@ -134,6 +144,14 @@ public:
     msg.statistics.push_back(stat);
     msg.header.stamp = ros::Time::now();
     pub_.publish(msg);
+  }
+  
+  /**
+   * @brief publishCustomStatistic publishes a one-time statistics msg
+   */
+  void publishCustomStatistics(const pal_statistics_msgs::Statistics &msg)
+  {
+    pub_.publish(msg);    
   }
 
 private:
