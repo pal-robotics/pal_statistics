@@ -11,6 +11,8 @@
 
 #define DEFAULT_STATISTICS_TOPIC "pal_statistics"
 
+namespace pal
+{
 boost::shared_ptr<pal::StatisticsRegistry> getRegistry(const std::string &topic)
 {
   typedef std::map<std::string, boost::shared_ptr<pal::StatisticsRegistry> > RegistryMap;
@@ -30,9 +32,10 @@ boost::shared_ptr<pal::StatisticsRegistry> getRegistry(const std::string &topic)
     return cit->second;
   }
 }
+} //namespace pal
 
 #define REGISTER_VARIABLE(TOPIC, ID, VARIABLE, BOOKKEEPING)                              \
-  getRegistry(TOPIC)->registerVariable(ID, VARIABLE, BOOKKEEPING);
+  pal::getRegistry(TOPIC)->registerVariable(ID, VARIABLE, BOOKKEEPING);
 
 #define REGISTER_VARIABLE_BK(ID, VARIABLE, BOOKKEEPING)                                  \
   REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, ID, VARIABLE, BOOKKEEPING)
@@ -44,16 +47,20 @@ boost::shared_ptr<pal::StatisticsRegistry> getRegistry(const std::string &topic)
 #define SIMPLE_REGISTER(ID, VARIABLE)                                                    \
   REGISTER_VARIABLE_TOPIC(DEFAULT_STATISTICS_TOPIC, ID, VARIABLE)
 
-#define PUBLISH_STATISTICS(TOPIC) getRegistry(TOPIC)->publish();
+#define PUBLISH_STATISTICS(TOPIC) pal::getRegistry(TOPIC)->publish();
 
-#define PUBLISH_ASYNC_STATISTICS(TOPIC) getRegistry(TOPIC)->publishAsync();
+#define PUBLISH_ASYNC_STATISTICS(TOPIC) pal::getRegistry(TOPIC)->publishAsync();
 
 #define SIMPLE_PUBLISH_STATISTICS() PUBLISH_STATISTICS(DEFAULT_STATISTICS_TOPIC)
 
 #define SIMPLE_PUBLISH_ASYNC_STATISTICS() PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC)
 
-#define START_PUBLISH_THREAD(TOPIC) getRegistry(TOPIC)->startPublishThread();
+#define START_PUBLISH_THREAD(TOPIC) pal::getRegistry(TOPIC)->startPublishThread();
 
 #define SIMPLE_START_PUBLISH_THREAD() START_PUBLISH_THREAD(DEFAULT_STATISTICS_TOPIC)
+
+#define PUBLISH_STATISTIC(ID, VALUE) pal::getRegistry(DEFAULT_STATISTICS_TOPIC)->publishStatistic(ID, VALUE)
+
+#define PUBLISH_STATISTIC_TOPIC(TOPIC, ID, VALUE) pal::getRegistry(TOPIC)->publishStatistic(ID, VALUE)
 
 #endif  // PAL_STATISTICS_MACROS_H
