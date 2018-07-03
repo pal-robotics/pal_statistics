@@ -4,7 +4,6 @@ project(pal_carbon_collector)
 find_package(catkin REQUIRED
     COMPONENTS
         pal_statistics_msgs
-        rospy
 )
 
 catkin_python_setup()
