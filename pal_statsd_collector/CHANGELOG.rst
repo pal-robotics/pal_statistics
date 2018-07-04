@@ -2,8 +2,8 @@
 Changelog for package pal_statsd_collector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.2 (2018-07-04)
+------------------
 * Merge branch 'statsd_regex' into 'erbium-devel'
   pal_statsd_collector should accept regex for statistics names
   See merge request qa/pal_statistics!2

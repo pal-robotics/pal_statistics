@@ -2,8 +2,8 @@
 Changelog for package pal_statistics_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.2 (2018-07-04)
+------------------
 * Updated license
 * Unified versions
 * Merge branch 'erbium-devel' of gitlab:qa/pal_statistics_msgs into erbium-devel

@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.2 (2018-07-04)
+------------------
 * Merge branch 'add-single-publish' into 'erbium-devel'
   Add publishStatistic function
   See merge request qa/pal_statistics!3
