@@ -27,6 +27,7 @@ public:
   {
     var1_ = 0.0;
     var2_ = 0.5;
+    container_.resize(5);
 
     nh_.setCallbackQueue(&queue_);
     sub_ = nh_.subscribe(DEFAULT_STATISTICS_TOPIC, 1, &PalStatisticsTest::topicCb, this);
@@ -41,6 +42,7 @@ public:
 protected:
   double var1_;
   double var2_;
+  std::vector<int> container_;
   ros::NodeHandle nh_;
   ros::CallbackQueue queue_;
   ros::AsyncSpinner spinner_;
@@ -145,6 +147,8 @@ TEST_F(PalStatisticsTest, typeTest)
   registry->registerVariable("max_d", &max_d);
   registry->registerVariable("true_b", &true_b);
   registry->registerVariable("false_b", &false_b);
+  registry->registerFunction("container_size", boost::bind(&std::vector<int>::size, 
+                                                           &container_));
   pal_statistics_msgs::Statistics msg = registry->createMsg();
 
   auto values = getVariableAndValues(msg);
@@ -164,6 +168,7 @@ TEST_F(PalStatisticsTest, typeTest)
   EXPECT_EQ(max_d, values["max_d"]);
   EXPECT_EQ(true_b, values["true_b"]);
   EXPECT_EQ(false_b, values["false_b"]);
+  EXPECT_EQ(container_.size(), values["container_size"]);
 
   EXPECT_NE(l, values["ul"]);
 }
@@ -175,18 +180,20 @@ TEST_F(PalStatisticsTest, manualRegistration)
 
   registry->registerVariable("var1", &var1_);
   registry->registerVariable("var2", &var2_);
+  registry->registerFunction("container_size", boost::bind(&std::vector<int>::size, 
+                                                           &container_));
 
   pal_statistics_msgs::Statistics msg = registry->createMsg();
 
   EXPECT_NEAR(ros::Time::now().toSec(), msg.header.stamp.toSec(), 0.001);
   EXPECT_THAT(getVariables(msg),
-              UnorderedElementsAre("var1", "var2", "publish_async_attempts",
+              UnorderedElementsAre("var1", "var2", "container_size", "publish_async_attempts",
                                    "publish_async_failures", "last_async_pub_duration"));
 
   registry->unregisterVariable("var1");
   msg = registry->createMsg();
   EXPECT_THAT(getVariables(msg),
-              UnorderedElementsAre("var2", "publish_async_attempts",
+              UnorderedElementsAre("var2", "container_size", "publish_async_attempts",
                                    "publish_async_failures", "last_async_pub_duration"));
 }
 
@@ -449,6 +456,22 @@ TEST_F(PalStatisticsTest, concurrencyMixTest)
     threads[i].join();
   }
   ROS_INFO_STREAM("End thread mix");
+}
+
+TEST_F(PalStatisticsTest, singlePublish)
+{
+  boost::shared_ptr<StatisticsRegistry> registry =
+      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  double d = 0.123;
+  registry->publishCustomStatistic("single_stat", d);
+  //Wait for message
+  ros::Duration(0.5).sleep();
+     
+  
+  EXPECT_TRUE(last_msg_.get());
+  ASSERT_EQ(1, last_msg_->statistics.size());
+  EXPECT_EQ("single_stat", last_msg_->statistics[0].name);
+  EXPECT_DOUBLE_EQ(d, last_msg_->statistics[0].value);  
 }
 
 
