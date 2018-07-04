@@ -1,0 +1,23 @@
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package pal_statsd_collector
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Forthcoming
+-----------
+* Merge branch 'statsd_regex' into 'erbium-devel'
+  pal_statsd_collector should accept regex for statistics names
+  See merge request qa/pal_statistics!2
+* Added test for statistics callback
+* Added execution permissions to both nodes
+* Removed rospy from CMakeLists
+* Added testing and fixed some cases the regex matcher failed
+* Topics names can now be passed as regular expressions
+* Added synonym for counter, gauge and timer
+* Updated license
+* Unified versions
+* Merge branch 'master' of gitlab:qa/pal_statsd_collector into erbium-devel
+* Moved files to their own package directory
+* Contributors: Jordan Palacios, Victor Lopez
+
+0.0.1 (2018-06-21)
+------------------

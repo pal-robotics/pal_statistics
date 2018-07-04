@@ -2,26 +2,17 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'add-single-publish' into 'erbium-devel'
+  Add publishStatistic function
+  See merge request qa/pal_statistics!3
+* Add registerFunction and publishCustomStatistics
+* Add namespace to getRegistry
+* Add publishStatistic function
+* Updated license
+* Moved files to their own package directory
+* Contributors: Jordan Palacios, Victor Lopez
+
 0.0.1 (2018-06-21)
 ------------------
-* Merge branch 'first-version' into 'erbium-devel'
-  First version
-  See merge request qa/pal_statistics!1
-* Reduce total number of variables in test
-* Increase test time limit
-* rostest fix
-* Formatting
-* Add self statistics
-* Add more SIMPLE macros
-* Add typeTest
-* Add register for all castable to double variables
-* Export project name library
-* Add install rules
-* Remove unused includes
-* package.xml fixes
-* Major rework of how data is stored for better performance
-* Rename variable
-* Improve documentation, reduce the chance of publishAsync failing to lock
-* First version
-* Initial commit
-* Contributors: Victor Lopez
