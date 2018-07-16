@@ -1,0 +1,3 @@
+<launch>
+  <test test-name="pal_statistics_py_test" pkg="pal_statistics" type="test_pal_statistics.py" time-limit="30.0"/>
+</launch>

@@ -4,7 +4,9 @@ project(pal_statistics)
 find_package(catkin REQUIRED COMPONENTS
   pal_statistics_msgs
   roscpp
+  rospy
 )
+catkin_python_setup()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS thread)
@@ -99,6 +101,8 @@ if (CATKIN_ENABLE_TESTING)
     target_link_libraries(pal_statistics-test
                                 ${PROJECT_NAME}
                                 ${catkin_LIBRARIES})
+
+    add_rostest(test/pal_statistics_py.test)
 endif(CATKIN_ENABLE_TESTING)
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_pal_statistics.cpp)
