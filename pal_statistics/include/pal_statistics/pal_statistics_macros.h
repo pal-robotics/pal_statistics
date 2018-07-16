@@ -13,25 +13,7 @@
 
 namespace pal
 {
-boost::shared_ptr<pal::StatisticsRegistry> getRegistry(const std::string &topic)
-{
-  typedef std::map<std::string, boost::shared_ptr<pal::StatisticsRegistry> > RegistryMap;
-  static RegistryMap registries;
-
-  RegistryMap::const_iterator cit = registries.find(topic);
-
-  if (cit == registries.end())
-  {
-    boost::shared_ptr<pal::StatisticsRegistry> ptr =
-        boost::make_shared<pal::StatisticsRegistry>(topic);
-    registries[topic] = ptr;
-    return ptr;
-  }
-  else
-  {
-    return cit->second;
-  }
-}
+boost::shared_ptr<pal::StatisticsRegistry> getRegistry(const std::string &topic);
 } //namespace pal
 
 #define REGISTER_VARIABLE(TOPIC, ID, VARIABLE, BOOKKEEPING)                              \

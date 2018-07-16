@@ -27,9 +27,9 @@ StatisticsRegistry::StatisticsRegistry(const std::string &topic)
   publish_async_attempts_ = 0;
   publish_async_failures_ = 0;
   last_async_pub_duration_ = 0.0;
-  registerVariable("publish_async_attempts", &publish_async_attempts_, &internal_stats_raii_);
-  registerVariable("publish_async_failures", &publish_async_failures_, &internal_stats_raii_);
-  registerVariable("last_async_pub_duration", &last_async_pub_duration_, &internal_stats_raii_);
+  registerVariable("topic_stats." + topic + ".publish_async_attempts", &publish_async_attempts_, &internal_stats_raii_);
+  registerVariable("topic_stats." + topic + ".publish_async_failures", &publish_async_failures_, &internal_stats_raii_);
+  registerVariable("topic_stats." + topic + ".last_async_pub_duration", &last_async_pub_duration_, &internal_stats_raii_);
 }
 
 StatisticsRegistry::~StatisticsRegistry()

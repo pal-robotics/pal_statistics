@@ -26,6 +26,7 @@ include_directories(include)
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
   src/pal_statistics.cpp
+  src/pal_statistics_macros.cpp
 )
 
 ## Specify libraries to link a library or executable target against
