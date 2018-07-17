@@ -163,6 +163,8 @@ private:
   void updateMsgUnsafe();
 
   void publisherThreadCycle();
+  
+  void startPublishThreadImpl();
 
   ros::NodeHandle nh_;
 

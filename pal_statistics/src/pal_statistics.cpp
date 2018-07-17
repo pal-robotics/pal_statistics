@@ -104,7 +104,7 @@ bool StatisticsRegistry::publishAsync()
     if (!publisher_thread_.get())
     {
       ROS_WARN("Called publishAsync but publisher thread has not been started, starting it, this is not RT safe");
-      startPublishThread();
+      startPublishThreadImpl();
     }
 
     boost::unique_lock<boost::mutex> data_lock(data_mutex_, boost::adopt_lock);
@@ -122,6 +122,11 @@ bool StatisticsRegistry::publishAsync()
 }
 
 void StatisticsRegistry::startPublishThread()
+{
+  boost::unique_lock<boost::mutex> data_lock(data_mutex_);
+  startPublishThreadImpl();
+}
+void StatisticsRegistry::startPublishThreadImpl()
 {
   publisher_thread_.reset(new boost::thread(&StatisticsRegistry::publisherThreadCycle, this));
 }
