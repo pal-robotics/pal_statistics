@@ -116,7 +116,8 @@ bool StatisticsRegistry::publishAsync()
     return true;
   }
   publish_async_failures_++;
-  ROS_DEBUG("Missed publishRT opportunity because lock could not be acquired.");
+  // Commented for RT safety
+  // ROS_DEBUG("Missed publishRT opportunity because lock could not be acquired.");
   return false;
 }
 
