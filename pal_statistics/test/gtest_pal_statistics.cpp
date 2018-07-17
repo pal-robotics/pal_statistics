@@ -1,12 +1,10 @@
-/**************************************************************************
-**
-**  File: gtest_smach_c
-**
-**  Author: victor
-**  Created on: 2017/4/13
-**
-**  Copyright (c) 2017 PAL Robotics SL. All Rights Reserved
-**************************************************************************/
+/*
+  @file
+
+  @author victor
+
+  @copyright (c) 2018 PAL Robotics SL. All Rights Reserved
+*/
 
 #include <pal_statistics/pal_statistics_macros.h>
 #include <pal_statistics/pal_statistics.h>
@@ -147,7 +145,7 @@ TEST_F(PalStatisticsTest, typeTest)
   registry->registerVariable("max_d", &max_d);
   registry->registerVariable("true_b", &true_b);
   registry->registerVariable("false_b", &false_b);
-  registry->registerFunction("container_size", boost::bind(&std::vector<int>::size, 
+  registry->registerFunction("container_size", boost::bind(&std::vector<int>::size,
                                                            &container_));
   pal_statistics_msgs::Statistics msg = registry->createMsg();
 
@@ -180,7 +178,7 @@ TEST_F(PalStatisticsTest, manualRegistration)
 
   registry->registerVariable("var1", &var1_);
   registry->registerVariable("var2", &var2_);
-  registry->registerFunction("container_size", boost::bind(&std::vector<int>::size, 
+  registry->registerFunction("container_size", boost::bind(&std::vector<int>::size,
                                                            &container_));
 
   pal_statistics_msgs::Statistics msg = registry->createMsg();
@@ -475,12 +473,12 @@ TEST_F(PalStatisticsTest, singlePublish)
   registry->publishCustomStatistic("single_stat", d);
   //Wait for message
   ros::Duration(0.5).sleep();
-     
-  
+
+
   EXPECT_TRUE(last_msg_.get());
   ASSERT_EQ(1, last_msg_->statistics.size());
   EXPECT_EQ("single_stat", last_msg_->statistics[0].name);
-  EXPECT_DOUBLE_EQ(d, last_msg_->statistics[0].value);  
+  EXPECT_DOUBLE_EQ(d, last_msg_->statistics[0].value);
 }
 
 
