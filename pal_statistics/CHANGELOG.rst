@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.3 (2018-07-25)
+------------------
 * Fix copyright notice on test
 * Acquire mutex when creating publisher thread
 * Disable logs for RT safety
