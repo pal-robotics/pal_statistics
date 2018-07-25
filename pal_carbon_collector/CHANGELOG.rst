@@ -2,6 +2,9 @@
 Changelog for package pal_carbon_collector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.0.2 (2018-07-04)
 ------------------
 * Merge branch 'statsd_regex' into 'erbium-devel'
