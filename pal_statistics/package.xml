@@ -52,6 +52,7 @@
   <depend>boost</depend>
   <depend>pal_statistics_msgs</depend>
   <depend>roscpp</depend>
+  <depend>rospy</depend>
   <test_depend>rostest</test_depend>
   <test_depend>google-mock</test_depend>
 
