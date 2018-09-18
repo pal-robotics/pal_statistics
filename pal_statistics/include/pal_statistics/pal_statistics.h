@@ -15,6 +15,8 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/thread.hpp>
 #include <pal_statistics_msgs/Statistics.h>
+#include <pal_statistics/static_circular_buffer.h>
+
 namespace pal
 {
 class StatisticsRegistry;
@@ -50,6 +52,57 @@ private:
   std::vector<boost::shared_ptr<Registration> > registrations_;
 };
 
+class VariableHolder
+{
+public:
+  VariableHolder(double *pointer) : is_double_(true), pointer_(pointer)
+  {
+  }
+
+  VariableHolder(const boost::function<double()> &function)
+    : is_double_(false), function_(function)
+  {
+  }
+
+  VariableHolder(const VariableHolder &other) = delete;
+  void operator=(const VariableHolder &other) = delete;
+
+  VariableHolder(const VariableHolder &&other)
+  {
+    *this = std::move(other);
+  }
+
+  void operator=(const VariableHolder &&other)
+  {
+    is_double_ = std::move(other.is_double_);
+    if (other.is_double_)
+    {
+      pointer_ = std::move(other.pointer_);
+    }
+    else
+    {
+      function_ = std::move(other.function_);
+    }
+  }
+  ~VariableHolder()
+  {
+  }
+
+  double getValue() const
+  {
+    if (is_double_)
+      return *pointer_;
+    else
+      return function_();
+  }
+
+private:
+  bool is_double_;
+
+  double *pointer_;
+  boost::function<double()> function_;
+};
+
 /**
  * @brief The StatisticsRegistry class reads the value of registered variables and
  * publishes them on the specified topic.
@@ -73,6 +126,15 @@ public:
   {
     boost::function<double()> funct = [variable] { return static_cast<double>(*variable); };
     registerFunction(name, funct, bookkeeping);
+  }
+
+  /**
+   * @brief registerVariable Specialization for double*, the most common case, to avoid
+   * going through a boost function call to read the variable
+   */
+  void registerVariable(const std::string &name, double *variable, RegistrationsRAII *bookkeeping = NULL)
+  {
+    registerInternal(name, VariableHolder(variable), bookkeeping);
   }
 
   /**
@@ -161,18 +223,20 @@ private:
    * calling this
    */
   void updateMsgUnsafe();
+  
+  void updateMsg(pal_statistics_msgs::Statistics &msg);
 
   void publisherThreadCycle();
   
   void startPublishThreadImpl();
 
+  void registerInternal(const std::string &name, VariableHolder &&variable, RegistrationsRAII *bookkeeping);
   ros::NodeHandle nh_;
 
   boost::mutex data_mutex_;
-  typedef std::vector<boost::function<double()> > VariablesType;
+  typedef std::vector<VariableHolder> VariablesType;
   VariablesType variables_;
   pal_statistics_msgs::Statistics msg_;
-
   // To avoid deadlocks, should always be acquired after data_mutex_
   boost::mutex pub_mutex_;
   ros::Publisher pub_;
@@ -181,7 +245,10 @@ private:
   unsigned int publish_async_attempts_;
   unsigned int publish_async_failures_;
   double last_async_pub_duration_;
+  unsigned int async_messages_lost_;
   RegistrationsRAII internal_stats_raii_;
+  typedef StaticCircularBuffer<pal_statistics_msgs::Statistics> MsgBuffer;
+  MsgBuffer msg_buffer_;
 };
 }  // namespace pal
 #endif

@@ -98,6 +98,11 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 if (CATKIN_ENABLE_TESTING)
     find_package(rostest REQUIRED)
+    catkin_add_gtest(buffer-test test/gtest_buffer.cpp)
+    target_link_libraries(buffer-test
+                                ${PROJECT_NAME}
+                                ${catkin_LIBRARIES})
+
     add_rostest_gmock(pal_statistics-test test/pal_statistics.test test/gtest_pal_statistics.cpp)
     target_link_libraries(pal_statistics-test
                                 ${PROJECT_NAME}

@@ -68,6 +68,7 @@ std::map<std::string, double> getVariableAndValues(const pal_statistics_msgs::St
   }
   return m;
 }
+
 TEST_F(PalStatisticsTest, misUse)
 {
   boost::shared_ptr<StatisticsRegistry> registry =
@@ -358,6 +359,43 @@ void publishAsync(boost::shared_ptr<StatisticsRegistry> registry, size_t n_varia
   }
 }
 
+TEST_F(PalStatisticsTest, stressAsync)
+{
+  double d = 5.0;
+  boost::shared_ptr<StatisticsRegistry> registry =
+      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  registry->startPublishThread();
+  registry->registerVariable(&d, "test_variable");
+  registry->registerVariable(&d, "test_variabl2e");
+  size_t received_messages = 0;
+  
+  ros::NodeHandle async_nh;
+  ros::CallbackQueue async_queue;
+  async_nh.setCallbackQueue(&async_queue);
+  ros::AsyncSpinner spinner(1, &async_queue);  
+  spinner.start();
+  ros::Subscriber sub = async_nh.subscribe<pal_statistics_msgs::Statistics>(
+      DEFAULT_STATISTICS_TOPIC, 1000000,
+      [&](const pal_statistics_msgs::StatisticsConstPtr &) { received_messages++; });
+  while (sub.getNumPublishers() == 0)
+  {
+    ros::Duration(0.1).sleep();
+  }
+  
+  ros::Rate rate(1e3);
+  size_t num_messages = 1e4;
+  size_t success_async = 0;
+  for (size_t i = 0; i < num_messages; ++i)
+  {
+    success_async += registry->publishAsync();
+    rate.sleep();
+  }
+  
+  //Allow time for everything to arrive
+  ros::Duration(0.5).sleep();
+  
+  EXPECT_EQ(success_async, received_messages);  
+}
 
 TEST_F(PalStatisticsTest, concurrencyTest)
 {
@@ -384,10 +422,12 @@ TEST_F(PalStatisticsTest, concurrencyTest)
   EXPECT_EQ(3 + n_variables * n_threads, msg.statistics.size());
   ROS_INFO_STREAM("Start publishAsync");
   ros::Time b = ros::Time::now();
-  size_t iter = 100000;
+  size_t iter = 10000;
+//  ros::Rate rate(1e3);
   for (size_t i = 0; i < iter; ++i)
   {
     registry->publishAsync();
+//    rate.sleep();
   }
   // Time to publish 1000 times the registered statistics
   ROS_INFO_STREAM("End publishAsync " << (1000. * (ros::Time::now() - b).toSec()) / double(iter));
