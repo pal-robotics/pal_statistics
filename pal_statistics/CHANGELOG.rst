@@ -2,6 +2,14 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'python-api' into 'erbium-devel'
+  First version of Python API
+  See merge request qa/pal_statistics!6
+* First version of Python API
+* Contributors: Jordan Palacios, Victor Lopez
+
 0.0.3 (2018-07-25)
 ------------------
 * Fix copyright notice on test
