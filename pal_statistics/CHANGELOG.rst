@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2018-09-20)
+------------------
 * Merge branch 'python-api' into 'erbium-devel'
   First version of Python API
   See merge request qa/pal_statistics!6
