@@ -18,24 +18,24 @@ catkin_package(
 #  DEPENDS Boost
 )
 
-include_directories( SYSTEM
-  ${catkin_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-)
+#include_directories( SYSTEM
+  #${catkin_INCLUDE_DIRS}
+  #${Boost_INCLUDE_DIRS}
+#)
 
-include_directories(include)
+#include_directories(include)
 
-## Declare a C++ library
-add_library(${PROJECT_NAME}
-  src/pal_statistics.cpp
-  src/pal_statistics_macros.cpp
-)
+### Declare a C++ library
+#add_library(${PROJECT_NAME}
+  #src/pal_statistics.cpp
+  #src/pal_statistics_macros.cpp
+#)
 
-## Specify libraries to link a library or executable target against
- target_link_libraries(${PROJECT_NAME}
-   ${catkin_LIBRARIES}
-   ${Boost_LIBRARIES}
- )
+### Specify libraries to link a library or executable target against
+ #target_link_libraries(${PROJECT_NAME}
+   #${catkin_LIBRARIES}
+   #${Boost_LIBRARIES}
+ #)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -73,17 +73,17 @@ add_library(${PROJECT_NAME}
 # )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#install(TARGETS ${PROJECT_NAME}
+  #ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  #LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  #RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
 ## Mark cpp header files for installation
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.h"
-)
+#install(DIRECTORY include/${PROJECT_NAME}/
+  #DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  #FILES_MATCHING PATTERN "*.h"
+#)
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES
@@ -98,10 +98,10 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 if (CATKIN_ENABLE_TESTING)
     find_package(rostest REQUIRED)
-    add_rostest_gmock(pal_statistics-test test/pal_statistics.test test/gtest_pal_statistics.cpp)
-    target_link_libraries(pal_statistics-test
-                                ${PROJECT_NAME}
-                                ${catkin_LIBRARIES})
+    #add_rostest_gmock(pal_statistics-test test/pal_statistics.test test/gtest_pal_statistics.cpp)
+    #target_link_libraries(pal_statistics-test
+                                #${PROJECT_NAME}
+                                #${catkin_LIBRARIES})
 
     add_rostest(test/pal_statistics_py.test)
 endif(CATKIN_ENABLE_TESTING)
