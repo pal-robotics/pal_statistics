@@ -31,6 +31,7 @@ StatisticsRegistry::StatisticsRegistry(const std::string &topic)
   last_async_pub_duration_ = 0.0;
   registerVariable("topic_stats." + topic + ".publish_async_attempts", &publish_async_attempts_, &internal_stats_raii_);
   registerVariable("topic_stats." + topic + ".publish_async_failures", &publish_async_failures_, &internal_stats_raii_);
+  registerVariable("topic_stats." + topic + ".publish_buffer_full_errors", &async_messages_lost_, &internal_stats_raii_);
   registerVariable("topic_stats." + topic + ".last_async_pub_duration", &last_async_pub_duration_, &internal_stats_raii_);
 }
 
@@ -152,7 +153,7 @@ void StatisticsRegistry::registerInternal(const std::string &name, VariableHolde
     if (msg_.statistics.capacity() > old_capacity)
     {
       //Bulk Resize buffer so it contains copies of msg_
-      msg_buffer_.set_capacity(1000, msg_);
+      msg_buffer_.set_capacity(10, msg_);
     }
     else
     {
