@@ -6,13 +6,10 @@
   @copyright (c) 2018 PAL Robotics SL. All Rights Reserved
 */
 
-#include <pal_statistics/pal_statistics_macros.h>
-#include <pal_statistics/pal_statistics.h>
+#include <pal_statistics/static_circular_buffer.h>
 #include <boost/circular_buffer.hpp>
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <ros/ros.h>
-#include <ros/callback_queue.h>
 #include <climits>
 #include <cfloat>
 #include <memory>
