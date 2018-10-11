@@ -14,6 +14,7 @@
 #include <boost/bimap/set_of.hpp>
 #include <boost/thread/lock_guard.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/variant.hpp>
 #include <atomic>
 #include <vector>
 #include <map>
@@ -110,7 +111,6 @@ private:
 };
 
 
-/// @todo use std::variant
 class VariableHolder
 {
 public:
@@ -121,12 +121,11 @@ public:
     throw std::runtime_error("VariableHolder default constructor should never be called");
   }
 
-  VariableHolder(double *pointer) : is_double_(true), pointer_(pointer)
+  VariableHolder(double *pointer) : variable_(pointer)
   {
   }
 
-  VariableHolder(const boost::function<double()> &function)
-    : is_double_(false), function_(function)
+  VariableHolder(const boost::function<double()> &function) : variable_(function)
   {
   }
 
@@ -140,15 +139,7 @@ public:
 
   void operator=(const VariableHolder &&other)
   {
-    is_double_ = std::move(other.is_double_);
-    if (other.is_double_)
-    {
-      pointer_ = std::move(other.pointer_);
-    }
-    else
-    {
-      function_ = std::move(other.function_);
-    }
+    variable_ = std::move(other.variable_);
   }
   ~VariableHolder()
   {
@@ -156,17 +147,14 @@ public:
 
   double getValue() const
   {
-    if (is_double_)
-      return *pointer_;
+    if (variable_.type() == typeid(double *))
+      return *boost::get<double *>(variable_);
     else
-      return function_();
+      return boost::get<boost::function<double()>>(variable_)();
   }
 
 private:
-  bool is_double_;
-
-  double *pointer_;
-  boost::function<double()> function_;
+  boost::variant<double *, boost::function<double()>> variable_;
 };
 
 
