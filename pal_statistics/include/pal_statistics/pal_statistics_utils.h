@@ -196,6 +196,11 @@ public:
    * @return the number of variables registered
    */
   size_t size() const;
+  
+  
+  //temporary
+  unsigned int overwritten_data_count_;
+  bool new_data_;
 
 private:
   void deleteElement(size_t index);

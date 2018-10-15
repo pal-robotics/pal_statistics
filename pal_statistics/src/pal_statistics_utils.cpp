@@ -12,6 +12,8 @@ namespace pal
 {
 RegistrationList::RegistrationList() : last_id_(0), registrations_changed_(true)
 {
+  overwritten_data_count_ = 0;
+  new_data_ = false;
 }
 
 void RegistrationList::unregisterVariable(const IdType &id)
@@ -64,6 +66,9 @@ void RegistrationList::unregisterVariable(const std::string &name)
 
 void RegistrationList::doUpdate()
 {
+  if (new_data_)
+    overwritten_data_count_++;
+  new_data_ = true;
   last_values_.clear();
   assert(last_values_.capacity() >= ids_.size());
   for (size_t i = 0; i < ids_.size(); ++i)
@@ -88,6 +93,7 @@ void RegistrationList::fillMsg(pal_statistics_msgs::Statistics &msg)
     s.value = it.second;
     msg.statistics.push_back(s);
   }
+  new_data_ = false;
 }
 
 void RegistrationList::smartFillMsg(pal_statistics_msgs::Statistics &msg)
@@ -104,6 +110,7 @@ void RegistrationList::smartFillMsg(pal_statistics_msgs::Statistics &msg)
   {
     msg.statistics[i].value = last_values_[i].second;
   }
+  new_data_ = false;
 }
 
 size_t RegistrationList::size() const
