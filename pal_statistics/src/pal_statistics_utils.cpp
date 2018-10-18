@@ -77,7 +77,7 @@ void RegistrationList::doUpdate()
     {
       // Should never allocate memory because it's capacity is able to hold all
       // variables
-      last_values_.push_back(std::make_pair(ids_[i], references_[i].getValue()));
+      last_values_.emplace_back(ids_[i], references_[i].getValue());
     }
   }
 }

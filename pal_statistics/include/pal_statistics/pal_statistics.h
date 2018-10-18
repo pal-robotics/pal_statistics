@@ -188,7 +188,6 @@ private:
 
   boost::mutex data_mutex_;
   RegistrationList registration_list_;
-  pal_statistics_msgs::Statistics msg_;
     
   struct EnabledId
   {
@@ -215,6 +214,7 @@ private:
   ros::Publisher pub_;
   boost::condition_variable data_ready_cond_;
   boost::shared_ptr<boost::thread> publisher_thread_;
+  pal_statistics_msgs::Statistics msg_;
   
   // Internal stats
   unsigned int publish_async_attempts_;

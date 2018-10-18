@@ -89,9 +89,11 @@ void StatisticsRegistry::publish()
 {
   boost::unique_lock<boost::mutex> data_lock(data_mutex_);
   handlePendingDisables(data_lock);
-  updateMsg(msg_, true);
-
+  
   boost::unique_lock<boost::mutex> pub_lock(pub_mutex_);
+  updateMsg(msg_, true);
+  data_lock.unlock(); //msg_ is covered by pub_mutex_
+
   pub_.publish(msg_);
 }
 
@@ -106,10 +108,12 @@ bool StatisticsRegistry::publishAsync()
       ROS_WARN_STREAM_ONCE("Called publishAsync but publisher thread has not been started, nothing will be published");
     }
 
-    boost::unique_lock<boost::mutex> data_lock(data_mutex_, boost::adopt_lock);
-    handlePendingDisables(data_lock);
-    
-    registration_list_.doUpdate();    
+    {
+      boost::unique_lock<boost::mutex> data_lock(data_mutex_, boost::adopt_lock);
+      handlePendingDisables(data_lock);
+      
+      registration_list_.doUpdate();    
+    }
     data_ready_cond_.notify_one();
 
     last_async_pub_duration_ = ros::Time::now().toSec() - begin;
@@ -203,10 +207,13 @@ void StatisticsRegistry::publisherThreadCycle()
   boost::unique_lock<boost::mutex> data_lock(data_mutex_);
   while (!publisher_thread_->interruption_requested() && ros::ok())
   {
+    if (!data_lock.owns_lock())
+      data_lock.lock();
     data_ready_cond_.wait(data_lock);
     boost::unique_lock<boost::mutex> pub_lock(pub_mutex_);
     
     updateMsg(msg_, true);
+    data_lock.unlock(); //Mutex is not needed for publishing
     pub_.publish(msg_);
   }
 }
