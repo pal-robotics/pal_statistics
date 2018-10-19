@@ -212,7 +212,7 @@ private:
   // To avoid deadlocks, should always be acquired after data_mutex_
   boost::mutex pub_mutex_;
   ros::Publisher pub_;
-  boost::condition_variable data_ready_cond_;
+  bool is_data_ready_;
   boost::shared_ptr<boost::thread> publisher_thread_;
   pal_statistics_msgs::Statistics msg_;
   

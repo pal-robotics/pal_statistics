@@ -38,7 +38,7 @@ StatisticsRegistry::StatisticsRegistry(const std::string &topic)
 
 StatisticsRegistry::~StatisticsRegistry()
 {
-  data_ready_cond_.notify_all();
+  is_data_ready_ = true; //To let the thread exit nicely
 
   if (publisher_thread_)
   {
@@ -115,7 +115,7 @@ bool StatisticsRegistry::publishAsync()
       
       registration_list_.doUpdate();    
     }
-    data_ready_cond_.notify_one();
+    is_data_ready_ = true;
 
     last_async_pub_duration_ = ros::Time::now().toSec() - begin;
     return true;
@@ -205,17 +205,29 @@ void StatisticsRegistry::updateMsg(pal_statistics_msgs::Statistics &msg, bool sm
 
 void StatisticsRegistry::publisherThreadCycle()
 {
-  while (!publisher_thread_->interruption_requested() && ros::ok())
+  //wait until the variable is set
+  while (!publisher_thread_.get())
+    ros::Duration(1e-4).sleep();
+  
+  
+  while (ros::ok() && !publisher_thread_->interruption_requested())
   {
+    while (!is_data_ready_ && !publisher_thread_->interruption_requested())
+      ros::Duration(1e-4).sleep();
+    
     boost::unique_lock<boost::mutex> data_lock(data_mutex_);
-    if (!registration_list_.hasPendingData())
-      data_ready_cond_.wait(data_lock);
-
-    boost::unique_lock<boost::mutex> pub_lock(pub_mutex_);
-    updateMsg(msg_, true);
-
-    data_lock.unlock();  // Mutex is not needed for publishing
-    pub_.publish(msg_);
+    
+    while (registration_list_.hasPendingData())
+    {
+      updateMsg(msg_, true);
+      
+      data_lock.unlock();
+      boost::unique_lock<boost::mutex> pub_lock(pub_mutex_);
+      pub_.publish(msg_);
+      pub_lock.unlock();
+      data_lock.lock();
+    }
+    is_data_ready_ = false;
   }
 }
 }
