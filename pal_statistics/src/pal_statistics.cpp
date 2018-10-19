@@ -204,18 +204,17 @@ void StatisticsRegistry::updateMsg(pal_statistics_msgs::Statistics &msg, bool sm
 
 void StatisticsRegistry::publisherThreadCycle()
 {
-  boost::unique_lock<boost::mutex> data_lock(data_mutex_);
   while (!publisher_thread_->interruption_requested() && ros::ok())
   {
-    if (!data_lock.owns_lock())
-      data_lock.lock();
-    data_ready_cond_.wait(data_lock);
+    boost::unique_lock<boost::mutex> data_lock(data_mutex_);
+    if (!registration_list_.hasPendingData())
+      data_ready_cond_.wait(data_lock);
+
     boost::unique_lock<boost::mutex> pub_lock(pub_mutex_);
-    
     updateMsg(msg_, true);
-    data_lock.unlock(); //Mutex is not needed for publishing
+
+    data_lock.unlock();  // Mutex is not needed for publishing
     pub_.publish(msg_);
   }
 }
-
 }

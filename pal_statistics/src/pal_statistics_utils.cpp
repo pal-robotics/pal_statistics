@@ -10,10 +10,10 @@
 
 namespace pal
 {
-RegistrationList::RegistrationList() : last_id_(0), registrations_changed_(true)
+RegistrationList::RegistrationList(size_t internal_buffer_capacity)
+  : last_id_(0), registrations_changed_(true), buffer_size_(internal_buffer_capacity)
 {
   overwritten_data_count_ = 0;
-  new_data_ = false;
 }
 
 void RegistrationList::unregisterVariable(const IdType &id)
@@ -66,18 +66,19 @@ void RegistrationList::unregisterVariable(const std::string &name)
 
 void RegistrationList::doUpdate()
 {
-  if (new_data_)
+  if (last_values_buffer_.size() == last_values_buffer_.capacity())
     overwritten_data_count_++;
-  new_data_ = true;
-  last_values_.clear();
-  assert(last_values_.capacity() >= ids_.size());
+  
+  auto &last_values = last_values_buffer_.push_back();
+  last_values.clear();
+  assert(last_values.capacity() >= ids_.size());
   for (size_t i = 0; i < ids_.size(); ++i)
   {
     if (enabled_[i])
     {
-      // Should never allocate memory because it's capacity is able to hold all
+      // Should never allocate memory because its capacity is able to hold all
       // variables
-      last_values_.emplace_back(ids_[i], references_[i].getValue());
+      last_values.emplace_back(ids_[i], references_[i].getValue());
     }
   }
 }
@@ -85,7 +86,7 @@ void RegistrationList::doUpdate()
 void RegistrationList::fillMsg(pal_statistics_msgs::Statistics &msg)
 {
   msg.statistics.clear();
-  for (auto it : last_values_)
+  for (auto it : last_values_buffer_.front())
   {
     IdType id = it.first;
     pal_statistics_msgs::Statistic s;
@@ -93,7 +94,7 @@ void RegistrationList::fillMsg(pal_statistics_msgs::Statistics &msg)
     s.value = it.second;
     msg.statistics.push_back(s);
   }
-  new_data_ = false;
+  last_values_buffer_.pop_front();
 }
 
 void RegistrationList::smartFillMsg(pal_statistics_msgs::Statistics &msg)
@@ -105,17 +106,22 @@ void RegistrationList::smartFillMsg(pal_statistics_msgs::Statistics &msg)
     return;
   }
   
-  assert(msg.statistics.size() == last_values_.size());
+  assert(msg.statistics.size() == last_values_buffer_.front().size());
   for (size_t i = 0; i < msg.statistics.size(); ++i)
   {
-    msg.statistics[i].value = last_values_[i].second;
+    msg.statistics[i].value = last_values_buffer_.front()[i].second;
   }
-  new_data_ = false;
+  last_values_buffer_.pop_front();
 }
 
 size_t RegistrationList::size() const
 {
   return ids_.size();
+}
+
+bool RegistrationList::hasPendingData() const
+{
+  return last_values_buffer_.size() > 0;
 }
 
 void RegistrationList::deleteElement(size_t index)
@@ -140,10 +146,11 @@ void RegistrationList::deleteElement(size_t index)
   registrations_changed_ = true;
 }
 
-
 int RegistrationList::registerVariable(const std::string &name, VariableHolder &&holder, bool enabled)
 {
   registrations_changed_ = true;
+  
+  bool needs_more_capacity = (names_.size() == names_.capacity());
   int id = last_id_++;
   name_id_.left.insert(std::make_pair(name, id));
   names_.push_back(name);
@@ -151,7 +158,14 @@ int RegistrationList::registerVariable(const std::string &name, VariableHolder &
   references_.push_back(std::move(holder));
   enabled_.push_back(enabled);
   // reserve memory for values
-  last_values_.reserve(ids_.size());
+  if (needs_more_capacity )
+  {
+    // Reset last_values_buffer_ size to be able to contain buffer_size_ copies 
+    // of the last values vector with the same capacity as the names vector
+    // But the buffer's number of elements is set to 0
+    last_values_buffer_.set_capacity(buffer_size_, 
+                                     LastValuesType(names_.capacity(), std::make_pair(0, 0.)));
+  }
   return id;
 }
 std::vector<boost::shared_ptr<Registration> >::iterator RegistrationsRAII::find(const std::string &name)

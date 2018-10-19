@@ -20,6 +20,7 @@
 #include <map>
 #include <ros/ros.h>
 #include <pal_statistics_msgs/Statistics.h>
+#include <pal_statistics/static_circular_buffer.h>
 namespace pal
 {
 typedef unsigned int IdType;
@@ -166,7 +167,7 @@ private:
 class RegistrationList
 {
 public:
-  RegistrationList();
+  RegistrationList(size_t internal_buffer_capacity = 100);
   int registerVariable(const std::string &name, VariableHolder &&holder, bool enabled = true);
 
 
@@ -197,11 +198,11 @@ public:
    */
   size_t size() const;
   
+  bool hasPendingData() const;
   
-  //temporary
+  
+  // How many messages where lost because the buffer was full
   unsigned int overwritten_data_count_;
-  bool new_data_;
-
 private:
   void deleteElement(size_t index);
 
@@ -213,56 +214,16 @@ private:
 
   NameIdBiMap name_id_;
 
-
+  size_t buffer_size_;
   std::vector<std::string> names_;
   std::vector<IdType> ids_;
   std::vector<VariableHolder> references_;
   std::vector<bool> enabled_;
 
-
-  /// @todo apply static circular buffer here
-  std::vector<std::pair<IdType, double>> last_values_;
+  typedef std::vector<std::pair<IdType, double>> LastValuesType; 
+  StaticCircularBuffer<LastValuesType> last_values_buffer_;
 
   bool registrations_changed_;
-
-  // Initial value
-  //  pal_statistics_msgs::Statistic s;
-  //  s.name = name;
-  //  s.value = variables_.back().getValue();
-  //  size_t old_capacity = msg_.statistics.capacity();
-  //  msg_.statistics.push_back(s);
-  //  disabled_ids_.set_capacity(msg_.statistics.size());
-  //  if (msg_.statistics.capacity() > old_capacity)
-  //  {
-  //    //Bulk Resize buffer so it contains copies of msg_
-  //    msg_buffer_.set_capacity(10, msg_);
-  //  }
-  //  else
-  //  {
-  //    MsgBuffer::VectorType &internal_buffer = msg_buffer_.getBuffer();
-  //    for (size_t i = 0; i < internal_buffer.size(); ++i)
-  //    {
-  //      internal_buffer[i].statistics.push_back(s);
-  //    }
-  //  }
-  //}
-
-
-
-  //  if (msg_buffer_.size() == msg_buffer_.capacity())
-  //    async_messages_lost_++;
-
-
-
-  //  while (msg_buffer_.size() > 0)
-  //  {
-  //    pub_.publish(msg_buffer_.front());
-  //    msg_buffer_.pop_front();
-  //  }
-  
-  
-//  typedef StaticCircularBuffer<pal_statistics_msgs::Statistics> MsgBuffer;
-//  MsgBuffer msg_buffer_; 
 };
 }
 
