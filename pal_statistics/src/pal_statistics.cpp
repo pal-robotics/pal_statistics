@@ -89,6 +89,7 @@ void StatisticsRegistry::publish()
 {
   boost::unique_lock<boost::mutex> data_lock(data_mutex_);
   handlePendingDisables(data_lock);
+  registration_list_.doUpdate();   
   
   boost::unique_lock<boost::mutex> pub_lock(pub_mutex_);
   updateMsg(msg_, true);
