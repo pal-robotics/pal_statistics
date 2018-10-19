@@ -422,8 +422,7 @@ void publishAsync(boost::shared_ptr<StatisticsRegistry> registry, size_t n_varia
     registry->publishAsync();
   }
 }
-/* This test fails because the current implementation cannot handle that the 
- * publish thread goes slower than the publishAsync thread and messages are not published
+
 TEST_F(PalStatisticsTest, stressAsync)
 {
   double d = 5.0;
@@ -461,7 +460,6 @@ TEST_F(PalStatisticsTest, stressAsync)
   
   EXPECT_EQ(success_async, received_messages);  
 }
-*/
 
 TEST_F(PalStatisticsTest, concurrencyTest)
 {
