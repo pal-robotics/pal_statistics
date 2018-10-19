@@ -25,7 +25,7 @@ class StaticCircularBuffer
 public:
  typedef std::vector<T, Allocator> VectorType;
  
-  StaticCircularBuffer(size_t max_size, T& val, const Allocator& alloc = Allocator())
+  StaticCircularBuffer(size_t max_size, const T& val, const Allocator& alloc = Allocator())
     : buffer_(alloc)
   {
     set_capacity(max_size, val);
@@ -41,7 +41,7 @@ public:
    * @param Resets the beginning and end iterators, which reduces the size of the buffer
    * to zero
    */
-  void set_capacity(size_t max_size, T& val)
+  void set_capacity(size_t max_size, const T& val)
   {
     buffer_.assign(max_size, val);
     begin_iterator_ = buffer_.begin();
@@ -49,12 +49,12 @@ public:
     full_ = false;
   }
 
-  size_t capacity()
+  size_t capacity() const
   {
     return buffer_.size();
   }
 
-  size_t size()
+  size_t size() const
   {
     if (full_)
       return capacity();
@@ -72,8 +72,10 @@ public:
   }
 
   /**
-   * @brief push_back Increases the buffer size by one, and returns a reference
-   * to the last item in the buffer.
+   * @brief push_back Increases the buffer size (not capacity) by one, and returns a
+   * reference to the last item in the buffer.
+   * 
+   * If the buffer becomes full, the returned reference already contains an item
    */
   T& push_back()
   {
