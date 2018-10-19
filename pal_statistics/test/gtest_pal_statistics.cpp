@@ -353,6 +353,7 @@ TEST_F(PalStatisticsTest, macroTest)
                                      "topic_stats.pal_statistics.publish_async_failures",
                                      "topic_stats.pal_statistics.publish_buffer_full_errors",
                                      "topic_stats.pal_statistics.last_async_pub_duration"));
+    last_msg_.reset();
   }
   PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC)
   ros::Duration(0.1).sleep();
@@ -363,6 +364,25 @@ TEST_F(PalStatisticsTest, macroTest)
                                    "topic_stats.pal_statistics.publish_async_failures",
                                    "topic_stats.pal_statistics.publish_buffer_full_errors",
                                    "topic_stats.pal_statistics.last_async_pub_duration"));
+  last_msg_.reset();
+  
+  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var2_bis", &var2_, NULL);
+  UNREGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var2", NULL);
+  var1_ = 123.456;
+  PUBLISH_STATISTICS(DEFAULT_STATISTICS_TOPIC);
+  ros::Duration(0.1).sleep();
+  ASSERT_TRUE(last_msg_.get());
+  EXPECT_THAT(getVariables(*last_msg_),
+              UnorderedElementsAre("macro_var1", "macro_var2_bis",
+                                   "topic_stats.pal_statistics.publish_async_attempts",
+                                   "topic_stats.pal_statistics.publish_async_failures",
+                                   "topic_stats.pal_statistics.publish_buffer_full_errors",
+                                   "topic_stats.pal_statistics.last_async_pub_duration"));
+  EXPECT_EQ(var1_, getVariableAndValues(*last_msg_)["macro_var1"]);
+  
+  
+  
+  
 }
 
 void registerThread(boost::shared_ptr<StatisticsRegistry> registry, const std::string &prefix,
