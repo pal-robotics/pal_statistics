@@ -38,21 +38,7 @@ public:
   StatisticsRegistry(const std::string &topic);
 
   virtual ~StatisticsRegistry();
-  /**
-   * @brief registerVariable adds the variable so its value is later published with the
-   * specified name
-   * @param variable its value must be static_castable to double
-   * @param bookkeeping Optional, if specified adds a handle to this variable
-   * registration, so registration is done when this object goes out of scope.
-   */
-  template <typename T>
-  IdType registerVariable(const std::string &name, T *variable, RegistrationsRAII *bookkeeping = NULL,
-                          bool enabled = true)
-  {
-    boost::function<double()> funct = [variable] { return static_cast<double>(*variable); };
-    return registerFunction(name, funct, bookkeeping, enabled);
-  }
-
+  
   /**
    * @brief registerVariable Specialization for double*, the most common case, to avoid
    * going through a boost function call to read the variable
@@ -70,24 +56,6 @@ public:
   IdType registerFunction(const std::string &name, const boost::function<double()> &funct,
                         RegistrationsRAII *bookkeeping = NULL, bool enabled = true);
 
-  template <typename T>
-  IdType registerFunction(const std::string &name, const boost::function<T()> &funct,
-                        RegistrationsRAII *bookkeeping = NULL, bool enabled = true)
-  {
-    boost::function<double()> double_funct = [funct] {
-      return static_cast<double>(funct());
-    };
-    return registerFunction(name, double_funct, bookkeeping, enabled);
-  }
-
-
-  /**
-   * Deprecated, required to maintain legacy code
-   * @todo remove
-   */
-  IdType registerVariable(double *variable, const std::string &name,
-                        RegistrationsRAII *bookkeeping = NULL,
-                          bool enabled = true);
 
   void unregisterVariable(const std::string &name, RegistrationsRAII *bookkeeping = NULL);
   void unregisterVariable(IdType id, RegistrationsRAII *bookkeeping = NULL);

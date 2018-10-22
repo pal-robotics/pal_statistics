@@ -7,6 +7,7 @@
 */
 
 #include <pal_statistics/pal_statistics.h>
+#include <pal_statistics/registration_utils.h>
 namespace pal
 {
 
@@ -29,11 +30,11 @@ StatisticsRegistry::StatisticsRegistry(const std::string &topic)
   publish_async_failures_ = 0;
   async_messages_lost_ = 0;
   last_async_pub_duration_ = 0.0;
-  registerVariable("topic_stats." + topic + ".publish_async_attempts", &publish_async_attempts_, &internal_stats_raii_);
-  registerVariable("topic_stats." + topic + ".publish_async_failures", &publish_async_failures_, &internal_stats_raii_);
-//  registerVariable("topic_stats." + topic + ".publish_buffer_full_errors", &async_messages_lost_, &internal_stats_raii_);
-  registerVariable("topic_stats." + topic + ".publish_buffer_full_errors", &registration_list_.overwritten_data_count_, &internal_stats_raii_);
-  registerVariable("topic_stats." + topic + ".last_async_pub_duration", &last_async_pub_duration_, &internal_stats_raii_);
+  customRegister(*this, "topic_stats." + topic + ".publish_async_attempts", &publish_async_attempts_, &internal_stats_raii_);
+  customRegister(*this, "topic_stats." + topic + ".publish_async_failures", &publish_async_failures_, &internal_stats_raii_);
+//  customRegister("topic_stats." + topic + ".publish_buffer_full_errors", &async_messages_lost_, &internal_stats_raii_);
+  customRegister(*this, "topic_stats." + topic + ".publish_buffer_full_errors", &registration_list_.overwritten_data_count_, &internal_stats_raii_);
+  customRegister(*this, "topic_stats." + topic + ".last_async_pub_duration", &last_async_pub_duration_, &internal_stats_raii_);
 }
 
 StatisticsRegistry::~StatisticsRegistry()
@@ -54,12 +55,6 @@ IdType StatisticsRegistry::registerFunction(const std::string &name,
                                           RegistrationsRAII *bookkeeping, bool enabled)
 {
   return registerInternal(name, VariableHolder(funct), bookkeeping, enabled);
-}
-
-IdType StatisticsRegistry::registerVariable(double *variable, const std::string &name,
-                                          RegistrationsRAII *bookkeeping, bool enabled)
-{
-  return registerVariable(name, variable, bookkeeping, enabled);
 }
 
 void StatisticsRegistry::unregisterVariable(IdType id, RegistrationsRAII *bookkeeping)

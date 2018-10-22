@@ -86,8 +86,8 @@ TEST_F(PalStatisticsTest, misUse)
   boost::shared_ptr<StatisticsRegistry> registry =
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
   registry->unregisterVariable("foo");
-  registry->registerVariable("var1", &var1_);
-  registry->registerVariable("var1", &var1_);
+  customRegister(*registry, "var1", &var1_);
+  customRegister(*registry, "var1", &var1_);
   registry->unregisterVariable("var1");
   registry->unregisterVariable("var1");
 }
@@ -97,8 +97,8 @@ TEST_F(PalStatisticsTest, checkValues)
   boost::shared_ptr<StatisticsRegistry> registry =
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
 
-  registry->registerVariable("var1", &var1_);
-  registry->registerVariable("var2", &var2_);
+  customRegister(*registry, "var1", &var1_);
+  customRegister(*registry, "var2", &var2_);
 
   var1_ = 1.0;
   var2_ = 2.0;
@@ -142,24 +142,24 @@ TEST_F(PalStatisticsTest, typeTest)
 
 
 
-  registry->registerVariable("s", &s);
-  registry->registerVariable("us", &us);
-  registry->registerVariable("c", &c);
-  registry->registerVariable("uc", &uc);
-  registry->registerVariable("i", &i);
-  registry->registerVariable("ui", &ui);
-  registry->registerVariable("l", &l);
-  registry->registerVariable("ul", &ul);
-  registry->registerVariable("ll", &ll);
-  registry->registerVariable("ull", &ull);
-  registry->registerVariable("min_f", &min_f);
-  registry->registerVariable("max_f", &max_f);
-  registry->registerVariable("min_d", &min_d);
-  registry->registerVariable("max_d", &max_d);
-  registry->registerVariable("true_b", &true_b);
-  registry->registerVariable("false_b", &false_b);
-  registry->registerFunction("container_size", boost::bind(&std::vector<int>::size,
-                                                           &container_));
+  customRegister(*registry, "s", &s);
+  customRegister(*registry, "us", &us);
+  customRegister(*registry, "c", &c);
+  customRegister(*registry, "uc", &uc);
+  customRegister(*registry, "i", &i);
+  customRegister(*registry, "ui", &ui);
+  customRegister(*registry, "l", &l);
+  customRegister(*registry, "ul", &ul);
+  customRegister(*registry, "ll", &ll);
+  customRegister(*registry, "ull", &ull);
+  customRegister(*registry, "min_f", &min_f);
+  customRegister(*registry, "max_f", &max_f);
+  customRegister(*registry, "min_d", &min_d);
+  customRegister(*registry, "max_d", &max_d);
+  customRegister(*registry, "true_b", &true_b);
+  customRegister(*registry, "false_b", &false_b);
+  customRegister(*registry, "container_size", boost::function<size_t ()>(boost::bind(&std::vector<int>::size,
+                                                           &container_)));
   pal_statistics_msgs::Statistics msg = registry->createMsg();
 
   auto values = getVariableAndValues(msg);
@@ -189,10 +189,10 @@ TEST_F(PalStatisticsTest, manualRegistration)
   boost::shared_ptr<StatisticsRegistry> registry =
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
 
-  IdType var1_id = registry->registerVariable("var1", &var1_);
-  registry->registerVariable("var2", &var2_);
-  registry->registerFunction("container_size", boost::bind(&std::vector<int>::size,
-                                                           &container_));
+  IdType var1_id = customRegister(*registry, "var1", &var1_);
+  customRegister(*registry, "var2", &var2_);
+  customRegister(*registry, "container_size", boost::function<size_t ()>(boost::bind(&std::vector<int>::size,
+                                                           &container_)));
 
   pal_statistics_msgs::Statistics msg = registry->createMsg();
 
@@ -242,8 +242,8 @@ TEST_F(PalStatisticsTest, automaticRegistration)
   {
     RegistrationsRAII bookkeeping;
 
-    registry->registerVariable("var1", &var1_, &bookkeeping);
-    registry->registerVariable("var2", &var2_, &bookkeeping);
+    customRegister(*registry, "var1", &var1_, &bookkeeping);
+    customRegister(*registry, "var2", &var2_, &bookkeeping);
 
     msg = registry->createMsg();
 
@@ -290,8 +290,8 @@ TEST_F(PalStatisticsTest, automaticRegistrationDestruction)
   {
     RegistrationsRAII bookkeeping;
 
-    registry->registerVariable("var1", &var1_, &bookkeeping);
-    registry->registerVariable("var2", &var2_, &bookkeeping);
+    customRegister(*registry, "var1", &var1_, &bookkeeping);
+    customRegister(*registry, "var2", &var2_, &bookkeeping);
 
     registry->createMsg();
 
@@ -311,8 +311,8 @@ TEST_F(PalStatisticsTest, asyncPublisher)
 
     // Time for publisher to connect to subscriber
     ros::Duration(0.5).sleep();
-    registry->registerVariable("var1", &var1_, &bookkeeping);
-    registry->registerVariable("var2", &var2_, &bookkeeping);
+    customRegister(*registry, "var1", &var1_, &bookkeeping);
+    customRegister(*registry, "var2", &var2_, &bookkeeping);
 
     registry->publishAsync();
     ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
@@ -398,7 +398,7 @@ void registerThread(boost::shared_ptr<StatisticsRegistry> registry, const std::s
   for (size_t i = 0; i < iterations; ++i)
   {
     ros::Time b = ros::Time::now();
-    registry->registerVariable(prefix + std::to_string(i), variable, bookkeeping);
+    customRegister(*registry, prefix + std::to_string(i), variable, bookkeeping);
     //    ROS_INFO_STREAM(i << " " << (ros::Time::now() - b).toSec());
   }
 }
@@ -436,8 +436,8 @@ TEST_F(PalStatisticsTest, stressAsync)
   boost::shared_ptr<StatisticsRegistry> registry =
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
   registry->startPublishThread();
-  registry->registerVariable(&d, "test_variable");
-  registry->registerVariable(&d, "test_variabl2e");
+  customRegister(*registry, "test_variable", &d);
+  customRegister(*registry, "test_variabl2e", &d);
   size_t received_messages = 0;
   
   ros::NodeHandle async_nh;
