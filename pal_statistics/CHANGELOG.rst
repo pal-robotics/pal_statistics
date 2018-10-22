@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.2 (2018-10-22)
+------------------
 * Increase sleep time to reduce cpu load
 * Contributors: Victor Lopez
 
