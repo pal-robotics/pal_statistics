@@ -15,45 +15,22 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/thread.hpp>
 #include <pal_statistics_msgs/Statistics.h>
+#include <pal_statistics/pal_statistics_utils.h>
+
 namespace pal
 {
-class StatisticsRegistry;
-
-/**
- * @brief The Registration class is a handle to a registered variable, when out of scope
- * unregisters the variable.
- */
-class Registration
-{
-public:
-  Registration(const std::string &name, const boost::weak_ptr<StatisticsRegistry> &obj);
-
-  ~Registration();
-
-  std::string name_;
-  boost::weak_ptr<StatisticsRegistry> obj_;
-};
-
-/**
- * @brief The RegistrationsRAII class holds handles to registered variables and when it is
- * destroyed, unregisters them automatically.
- */
-class RegistrationsRAII
-{
-public:
-  void add(const boost::shared_ptr<Registration> &registration);
-  bool remove(const std::string &name);
-  void removeAll();
-
-private:
-  boost::mutex mutex_;
-  std::vector<boost::shared_ptr<Registration> > registrations_;
-};
-
 /**
  * @brief The StatisticsRegistry class reads the value of registered variables and
  * publishes them on the specified topic.
+ *
  * @warning Functions are not real-time safe unless stated.
+ *
+ * @warning Registering and enabling more than one variable with the same name is not
+ * supported. Multiple variables with the same name can be registered, only if there's
+ * only one of them enabled at any time.
+ *
+ * If you are using repeated names, it's better to use the Id of the registered variables
+ * or the RegistratonRAII for unregister/disable
  */
 class StatisticsRegistry : public boost::enable_shared_from_this<StatisticsRegistry>
 {
@@ -69,37 +46,51 @@ public:
    * registration, so registration is done when this object goes out of scope.
    */
   template <typename T>
-  void registerVariable(const std::string &name, T *variable, RegistrationsRAII *bookkeeping = NULL)
+  IdType registerVariable(const std::string &name, T *variable, RegistrationsRAII *bookkeeping = NULL,
+                          bool enabled = true)
   {
     boost::function<double()> funct = [variable] { return static_cast<double>(*variable); };
-    registerFunction(name, funct, bookkeeping);
+    return registerFunction(name, funct, bookkeeping, enabled);
+  }
+
+  /**
+   * @brief registerVariable Specialization for double*, the most common case, to avoid
+   * going through a boost function call to read the variable
+   */
+  IdType registerVariable(const std::string &name, double *variable, RegistrationsRAII *bookkeeping = NULL,
+                          bool enabled = true)
+  {
+    return registerInternal(name, VariableHolder(variable), bookkeeping, enabled);
   }
 
   /**
    * @brief registerFunction Adds a function that returns double with the specified name
    * @param bookkeeping same as in registerVariable
    */
-  void registerFunction(const std::string &name, const boost::function<double()> &funct,
-                        RegistrationsRAII *bookkeeping = NULL);
+  IdType registerFunction(const std::string &name, const boost::function<double()> &funct,
+                        RegistrationsRAII *bookkeeping = NULL, bool enabled = true);
 
   template <typename T>
-  void registerFunction(const std::string &name, const boost::function<T()> &funct,
-                        RegistrationsRAII *bookkeeping = NULL)
+  IdType registerFunction(const std::string &name, const boost::function<T()> &funct,
+                        RegistrationsRAII *bookkeeping = NULL, bool enabled = true)
   {
     boost::function<double()> double_funct = [funct] {
       return static_cast<double>(funct());
     };
-    registerFunction(name, double_funct, bookkeeping);
+    return registerFunction(name, double_funct, bookkeeping, enabled);
   }
 
 
   /**
    * Deprecated, required to maintain legacy code
+   * @todo remove
    */
-  void registerVariable(double *variable, const std::string &name,
-                        RegistrationsRAII *bookkeeping = NULL);
+  IdType registerVariable(double *variable, const std::string &name,
+                        RegistrationsRAII *bookkeeping = NULL,
+                          bool enabled = true);
 
   void unregisterVariable(const std::string &name, RegistrationsRAII *bookkeeping = NULL);
+  void unregisterVariable(IdType id, RegistrationsRAII *bookkeeping = NULL);
 
   /**
    * @brief publish Reads the values of all registered variables and publishes them to the
@@ -153,6 +144,22 @@ public:
   {
     pub_.publish(msg);    
   }
+  
+  /**
+   * These functions disable/enable the publication of one or more variables
+   * 
+   * They are RT safe and thread safe.
+   * They guarantee that on the next publish (or publishAsync) call, the specified variables will 
+   * or will not be read and published.
+   * 
+   * @warning If a publish is being executed while this function is being run, 
+   * it will not take into account these modifications.
+   * 
+   * If you need a deterministic way of preventing a variable from being published, 
+   * you need to unregister it, but it is not RT safe.
+   */
+  bool enable(const IdType &id);  
+  bool disable(const IdType &id);
 
 private:
   /**
@@ -161,27 +168,61 @@ private:
    * calling this
    */
   void updateMsgUnsafe();
+  
+  void updateMsg(pal_statistics_msgs::Statistics &msg, bool smart_fill = false);
 
   void publisherThreadCycle();
   
   void startPublishThreadImpl();
 
+  IdType registerInternal(const std::string &name, VariableHolder &&variable, RegistrationsRAII *bookkeeping, bool enabled);
+  
+  bool setEnabledmpl(const IdType &id, bool enabled);
+  
+  /**
+   * @brief handlePendingDisables Empties by handling the queue of disabled/enabled ids.
+   */
+  void handlePendingDisables(const boost::unique_lock<boost::mutex> &data_lock);
+  
   ros::NodeHandle nh_;
 
   boost::mutex data_mutex_;
-  typedef std::vector<boost::function<double()> > VariablesType;
-  VariablesType variables_;
-  pal_statistics_msgs::Statistics msg_;
-
+  RegistrationList registration_list_;
+    
+  struct EnabledId
+  {
+    //Can't use a pair because it's not trivially copiable
+    IdType id;
+    bool enabled;
+  };
+  
+  /**
+   * @brief disabled_ids_ this is used to keep track of enabled/disabled variables in a
+   * lock free way
+   *
+   * enable/disable need to write, but they cannot be locked, and cannot be
+   * skipped if they fail to acquire a mutex. 
+   * Therefore they write to a lockfree  structure. 
+   * This structure is processed in the next publish or publishAsync that has
+   * the write lock and can modify shared structures.
+   */
+  LockFreeQueue<EnabledId> enabled_ids_;
+  
+  
   // To avoid deadlocks, should always be acquired after data_mutex_
   boost::mutex pub_mutex_;
   ros::Publisher pub_;
-  boost::condition_variable data_ready_cond_;
+  bool is_data_ready_;
   boost::shared_ptr<boost::thread> publisher_thread_;
+  pal_statistics_msgs::Statistics msg_;
+  
+  // Internal stats
   unsigned int publish_async_attempts_;
   unsigned int publish_async_failures_;
   double last_async_pub_duration_;
+  unsigned int async_messages_lost_;
   RegistrationsRAII internal_stats_raii_;
+  
 };
 }  // namespace pal
 #endif

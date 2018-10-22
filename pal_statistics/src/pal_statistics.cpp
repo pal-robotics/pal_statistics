@@ -9,8 +9,9 @@
 #include <pal_statistics/pal_statistics.h>
 namespace pal
 {
-Registration::Registration(const std::string &name, const boost::weak_ptr<StatisticsRegistry> &obj)
-  : name_(name), obj_(obj)
+
+Registration::Registration(const std::string &name, IdType id, const boost::weak_ptr<StatisticsRegistry> &obj)
+  : name_(name), id_(id), obj_(obj)
 {
 }
 
@@ -18,50 +19,58 @@ Registration::~Registration()
 {
   boost::shared_ptr<StatisticsRegistry> lock = obj_.lock();
   if (lock.get())
-    lock->unregisterVariable(name_);
+    lock->unregisterVariable(id_);
 }
 
 StatisticsRegistry::StatisticsRegistry(const std::string &topic)
 {
-  pub_ = nh_.advertise<pal_statistics_msgs::Statistics>(topic, 10);
+  pub_ = nh_.advertise<pal_statistics_msgs::Statistics>(topic, 10000);
   publish_async_attempts_ = 0;
   publish_async_failures_ = 0;
+  async_messages_lost_ = 0;
   last_async_pub_duration_ = 0.0;
   registerVariable("topic_stats." + topic + ".publish_async_attempts", &publish_async_attempts_, &internal_stats_raii_);
   registerVariable("topic_stats." + topic + ".publish_async_failures", &publish_async_failures_, &internal_stats_raii_);
+//  registerVariable("topic_stats." + topic + ".publish_buffer_full_errors", &async_messages_lost_, &internal_stats_raii_);
+  registerVariable("topic_stats." + topic + ".publish_buffer_full_errors", &registration_list_.overwritten_data_count_, &internal_stats_raii_);
   registerVariable("topic_stats." + topic + ".last_async_pub_duration", &last_async_pub_duration_, &internal_stats_raii_);
 }
 
 StatisticsRegistry::~StatisticsRegistry()
 {
-  data_ready_cond_.notify_all();
+  is_data_ready_ = true; //To let the thread exit nicely
 
   if (publisher_thread_)
   {
     publisher_thread_->interrupt();
     publisher_thread_->join();
   }
+  ROS_INFO_STREAM("Async messages lost " << async_messages_lost_);
+  ROS_INFO_STREAM("publish_async_failures_ " << publish_async_failures_);
 }
 
-void StatisticsRegistry::registerFunction(const std::string &name,
+IdType StatisticsRegistry::registerFunction(const std::string &name,
                                           const boost::function<double()> &funct,
-                                          RegistrationsRAII *bookkeeping)
+                                          RegistrationsRAII *bookkeeping, bool enabled)
 {
-  {
-    boost::unique_lock<boost::mutex> data_lock(data_mutex_);
-    variables_.push_back(funct);
-    pal_statistics_msgs::Statistic s;
-    s.name = name;
-    msg_.statistics.push_back(s);
-  }
-  if (bookkeeping)
-    bookkeeping->add(boost::make_shared<Registration>(name, weak_from_this()));
+  return registerInternal(name, VariableHolder(funct), bookkeeping, enabled);
 }
 
-void StatisticsRegistry::registerVariable(double *variable, const std::string &name,
-                                          RegistrationsRAII *bookkeeping)
+IdType StatisticsRegistry::registerVariable(double *variable, const std::string &name,
+                                          RegistrationsRAII *bookkeeping, bool enabled)
 {
-  registerVariable(name, variable, bookkeeping);
+  return registerVariable(name, variable, bookkeeping, enabled);
+}
+
+void StatisticsRegistry::unregisterVariable(IdType id, RegistrationsRAII *bookkeeping)
+{
+  if (bookkeeping)
+  {
+    bookkeeping->remove(id);
+  }
+
+  boost::unique_lock<boost::mutex> data_lock(data_mutex_);
+  registration_list_.unregisterVariable(id);
 }
 
 void StatisticsRegistry::unregisterVariable(const std::string &name, RegistrationsRAII *bookkeeping)
@@ -71,27 +80,21 @@ void StatisticsRegistry::unregisterVariable(const std::string &name, Registratio
     bookkeeping->remove(name);
   }
 
-  {
-    boost::unique_lock<boost::mutex> data_lock(data_mutex_);
-    for (size_t i = 0; i < msg_.statistics.size(); ++i)
-    {
-      if (msg_.statistics[i].name == name)
-      {
-        msg_.statistics.erase(msg_.statistics.begin() + i);
-        variables_.erase(variables_.begin() + i);
-        return;
-      }
-    }
-    ROS_ERROR_STREAM("Tried to unregister variable " << name << " but it is not registered.");
-  }
+  boost::unique_lock<boost::mutex> data_lock(data_mutex_);
+  registration_list_.unregisterVariable(name);
 }
+
 
 void StatisticsRegistry::publish()
 {
   boost::unique_lock<boost::mutex> data_lock(data_mutex_);
-  updateMsgUnsafe();
-
+  handlePendingDisables(data_lock);
+  registration_list_.doUpdate();   
+  
   boost::unique_lock<boost::mutex> pub_lock(pub_mutex_);
+  updateMsg(msg_, true);
+  data_lock.unlock(); //msg_ is covered by pub_mutex_
+
   pub_.publish(msg_);
 }
 
@@ -103,14 +106,16 @@ bool StatisticsRegistry::publishAsync()
   {
     if (!publisher_thread_.get())
     {
-      ROS_WARN("Called publishAsync but publisher thread has not been started, starting it, this is not RT safe");
-      startPublishThreadImpl();
+      ROS_WARN_STREAM_ONCE("Called publishAsync but publisher thread has not been started, nothing will be published");
     }
 
-    boost::unique_lock<boost::mutex> data_lock(data_mutex_, boost::adopt_lock);
-    // Update stored message with latest data
-    updateMsgUnsafe();
-    data_ready_cond_.notify_one();
+    {
+      boost::unique_lock<boost::mutex> data_lock(data_mutex_, boost::adopt_lock);
+      handlePendingDisables(data_lock);
+      
+      registration_list_.doUpdate();    
+    }
+    is_data_ready_ = true;
 
     last_async_pub_duration_ = ros::Time::now().toSec() - begin;
     return true;
@@ -131,60 +136,98 @@ void StatisticsRegistry::startPublishThreadImpl()
   publisher_thread_.reset(new boost::thread(&StatisticsRegistry::publisherThreadCycle, this));
 }
 
+IdType StatisticsRegistry::registerInternal(const std::string &name, VariableHolder &&variable,
+                                          RegistrationsRAII *bookkeeping, bool enabled)
+{
+  IdType id;
+  {
+    boost::unique_lock<boost::mutex> data_lock(data_mutex_);
+    id = registration_list_.registerVariable(name, std::move(variable), enabled);
+    enabled_ids_.set_capacity(registration_list_.size());
+  } 
+    
+  if (bookkeeping)
+    bookkeeping->add(boost::make_shared<Registration>(name, id, weak_from_this()));
+  return id;
+}
+
+bool StatisticsRegistry::setEnabledmpl(const IdType &id, bool enabled)
+{
+  EnabledId aux;
+  aux.enabled = enabled;
+  aux.id = id;
+  
+  return enabled_ids_.bounded_push(aux);
+}
+
+void StatisticsRegistry::handlePendingDisables(const boost::unique_lock<boost::mutex> &data_lock)
+{
+  if (!data_lock.owns_lock() || data_lock.mutex() != &data_mutex_)
+  {
+    throw ros::Exception("Called handlePendingDisables without proper lock");
+  }
+  
+  EnabledId elem;
+  while (enabled_ids_.pop(elem))
+  {
+    registration_list_.setEnabled(elem.id, elem.enabled);
+  }  
+}
+
 pal_statistics_msgs::Statistics StatisticsRegistry::createMsg()
 {
   boost::unique_lock<boost::mutex> data_lock(data_mutex_);
-  updateMsgUnsafe();
-  pal_statistics_msgs::Statistics msg = msg_;
+  handlePendingDisables(data_lock);
+  registration_list_.doUpdate();
+  pal_statistics_msgs::Statistics msg;
+  updateMsg(msg, false);
   return msg;
 }
 
-
-void StatisticsRegistry::updateMsgUnsafe()
+bool StatisticsRegistry::enable(const IdType &id)
 {
-  for (size_t i = 0; i < msg_.statistics.size(); ++i)
-  {
-    msg_.statistics[i].value = variables_[i]();
-  }
-  msg_.header.stamp = ros::Time::now();
+  return setEnabledmpl(id, true);  
+}
+
+bool StatisticsRegistry::disable(const IdType &id)
+{
+  return setEnabledmpl(id, false);  
+}
+
+void StatisticsRegistry::updateMsg(pal_statistics_msgs::Statistics &msg, bool smart_fill)
+{
+  if (smart_fill)
+    registration_list_.smartFillMsg(msg);
+  else
+    registration_list_.fillMsg(msg);
+  msg.header.stamp = ros::Time::now();
 }
 
 void StatisticsRegistry::publisherThreadCycle()
 {
-  boost::unique_lock<boost::mutex> data_lock(data_mutex_);
-  while (!publisher_thread_->interruption_requested() && ros::ok())
+  //wait until the variable is set
+  while (!publisher_thread_.get())
+    ros::Duration(1e-4).sleep();
+  
+  
+  while (ros::ok() && !publisher_thread_->interruption_requested())
   {
-    data_ready_cond_.wait(data_lock);
-    boost::unique_lock<boost::mutex> pub_lock(pub_mutex_);
-    if (pub_.getNumSubscribers() > 0)
+    while (!is_data_ready_ && !publisher_thread_->interruption_requested())
+      ros::Duration(1e-4).sleep();
+    
+    boost::unique_lock<boost::mutex> data_lock(data_mutex_);
+    
+    while (registration_list_.hasPendingData())
     {
+      updateMsg(msg_, true);
+      
+      data_lock.unlock();
+      boost::unique_lock<boost::mutex> pub_lock(pub_mutex_);
       pub_.publish(msg_);
+      pub_lock.unlock();
+      data_lock.lock();
     }
+    is_data_ready_ = false;
   }
-}
-
-void RegistrationsRAII::add(const boost::shared_ptr<Registration> &registration)
-{
-  boost::unique_lock<boost::mutex> guard(mutex_);
-  registrations_.push_back(registration);
-}
-
-bool RegistrationsRAII::remove(const std::string &name)
-{
-  boost::unique_lock<boost::mutex> guard(mutex_);
-  for (auto it = registrations_.begin(); it != registrations_.end(); ++it)
-  {
-    if ((*it)->name_ == name)
-    {
-      registrations_.erase(it);
-      return true;
-    }
-  }
-  return false;
-}
-
-void RegistrationsRAII::removeAll()
-{
-  registrations_.clear();
 }
 }

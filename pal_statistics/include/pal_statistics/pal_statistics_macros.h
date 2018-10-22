@@ -9,7 +9,7 @@
 #define PAL_STATISTICS_MACROS_H
 #include <pal_statistics/pal_statistics.h>
 
-#define DEFAULT_STATISTICS_TOPIC "pal_statistics"
+constexpr char DEFAULT_STATISTICS_TOPIC[] = "pal_statistics";
 
 namespace pal
 {
@@ -25,6 +25,11 @@ boost::shared_ptr<pal::StatisticsRegistry> getRegistry(const std::string &topic)
 
 #define REGISTER_VARIABLE_TOPIC(TOPIC, ID, VARIABLE)                                     \
   REGISTER_VARIABLE(TOPIC, ID, VARIABLE, NULL)
+
+
+#define UNREGISTER_VARIABLE(TOPIC, ID_OR_NAME, BOOKKEEPING)                              \
+  pal::getRegistry(TOPIC)->unregisterVariable(ID_OR_NAME, BOOKKEEPING);
+
 
 #define SIMPLE_REGISTER(ID, VARIABLE)                                                    \
   REGISTER_VARIABLE_TOPIC(DEFAULT_STATISTICS_TOPIC, ID, VARIABLE)
