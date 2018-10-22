@@ -2,6 +2,27 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'add-enable' into 'erbium-devel'
+  Add enable
+  See merge request qa/pal_statistics!8
+* Fix RT loss due to condition_variable, extend tests
+* Reenable stressAsync test
+* Fix publish() not publishing updated data
+* Add buffer to last_values\_
+* Improve const-correctness of methods
+* Extend macroTest
+* Add unregister variable macro and use constexpr
+* Restructure mutex and other optimizations
+* Add debug metrics
+* Use boost variant in VariableHolder
+* Remove nodehandle from buffer test
+* Add enable/disable
+* Add debuginfo of messages lost and set buffer size to 10
+* Add message queue buffer
+* Contributors: Victor Lopez
+
 1.0.0 (2018-09-20)
 ------------------
 * Merge branch 'python-api' into 'erbium-devel'
