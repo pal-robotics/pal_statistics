@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.1 (2018-10-22)
+------------------
 * Merge branch 'add-enable' into 'erbium-devel'
   Add enable
   See merge request qa/pal_statistics!8
