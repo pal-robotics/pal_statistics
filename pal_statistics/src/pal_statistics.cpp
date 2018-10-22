@@ -207,13 +207,13 @@ void StatisticsRegistry::publisherThreadCycle()
 {
   //wait until the variable is set
   while (!publisher_thread_.get())
-    ros::Duration(1e-4).sleep();
+    ros::Duration(5e-4).sleep();
   
   
   while (ros::ok() && !publisher_thread_->interruption_requested())
   {
     while (!is_data_ready_ && !publisher_thread_->interruption_requested())
-      ros::Duration(1e-4).sleep();
+      ros::Duration(5e-4).sleep();
     
     boost::unique_lock<boost::mutex> data_lock(data_mutex_);
     
