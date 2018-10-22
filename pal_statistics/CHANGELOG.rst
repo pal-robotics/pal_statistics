@@ -2,6 +2,11 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Increase sleep time to reduce cpu load
+* Contributors: Victor Lopez
+
 1.0.1 (2018-10-22)
 ------------------
 * Merge branch 'add-enable' into 'erbium-devel'
