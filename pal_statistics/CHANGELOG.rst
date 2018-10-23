@@ -2,6 +2,14 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'add-extendable-registration' into 'erbium-devel'
+  Add the option to customize registration
+  See merge request qa/pal_statistics!9
+* Add the option to customize registration
+* Contributors: Victor Lopez
+
 1.0.2 (2018-10-22)
 ------------------
 * Increase sleep time to reduce cpu load
