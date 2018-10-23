@@ -2,6 +2,14 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'auto-start-thread' into 'erbium-devel'
+  Auto start thread and use steady clock for time diff
+  See merge request qa/pal_statistics!10
+* Auto start thread and use steady clock for time diff
+* Contributors: Victor Lopez
+
 1.0.3 (2018-10-23)
 ------------------
 * Merge branch 'add-extendable-registration' into 'erbium-devel'
