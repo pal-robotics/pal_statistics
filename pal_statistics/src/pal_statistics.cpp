@@ -95,13 +95,14 @@ void StatisticsRegistry::publish()
 
 bool StatisticsRegistry::publishAsync()
 {
-  double begin = ros::Time::now().toSec();
+  double begin = ros::SteadyTime::now().toSec();
   publish_async_attempts_++;
   if (data_mutex_.try_lock())
   {
     if (!publisher_thread_.get())
     {
-      ROS_WARN_STREAM_ONCE("Called publishAsync but publisher thread has not been started, nothing will be published");
+      ROS_WARN_STREAM_ONCE("Called publishAsync but publisher thread has not been started, THIS IS NOT RT safe. You should start it yourself.");
+      startPublishThreadImpl();
     }
 
     {
@@ -112,7 +113,7 @@ bool StatisticsRegistry::publishAsync()
     }
     is_data_ready_ = true;
 
-    last_async_pub_duration_ = ros::Time::now().toSec() - begin;
+    last_async_pub_duration_ = ros::SteadyTime::now().toSec() - begin;
     return true;
   }
   publish_async_failures_++;
