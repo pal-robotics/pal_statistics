@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.3 (2018-10-23)
+------------------
 * Merge branch 'add-extendable-registration' into 'erbium-devel'
   Add the option to customize registration
   See merge request qa/pal_statistics!9
