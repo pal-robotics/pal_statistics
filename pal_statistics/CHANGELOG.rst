@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.6 (2018-10-24)
+------------------
 * Merge branch 'improve-constness' into 'erbium-devel'
   Change namespace to pal_statistics and and const to double *
   Closes #5
