@@ -16,7 +16,7 @@
 #include <cfloat>
 
 using ::testing::UnorderedElementsAre;
-namespace pal
+namespace pal_statistics
 {
 class PalStatisticsTest : public ::testing::Test
 {
@@ -124,18 +124,18 @@ TEST_F(PalStatisticsTest, typeTest)
 
 
   short s = std::numeric_limits<short>::min();
-  unsigned short us = std::numeric_limits<unsigned short>::max();
-  char c = std::numeric_limits<char>::min();
-  unsigned char uc = std::numeric_limits<unsigned char>::max();
+  const unsigned short us = std::numeric_limits<unsigned short>::max();
+  const char c = std::numeric_limits<char>::min();
+  const unsigned char uc = std::numeric_limits<unsigned char>::max();
   int i = std::numeric_limits<int>::min();
-  unsigned int ui = std::numeric_limits<unsigned int>::max();
+  const unsigned int ui = std::numeric_limits<unsigned int>::max();
   long l = std::numeric_limits<long>::min();
-  unsigned long ul = std::numeric_limits<long>::max();
+  const unsigned long ul = std::numeric_limits<long>::max();
   long long ll = std::numeric_limits<long long>::min();
-  unsigned long long ull = std::numeric_limits<unsigned long long>::max();
+  const unsigned long long ull = std::numeric_limits<unsigned long long>::max();
   float min_f = std::numeric_limits<float>::min();
-  float max_f = std::numeric_limits<float>::max();
-  double min_d = std::numeric_limits<double>::min();
+  const float max_f = std::numeric_limits<float>::max();
+  const double min_d = std::numeric_limits<double>::min();
   double max_d = std::numeric_limits<double>::max();
   bool true_b = true;
   bool false_b = false;
@@ -349,6 +349,7 @@ TEST_F(PalStatisticsTest, macroTest)
     REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var1", &var1_, NULL);
     REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var1_bk", &var1_, &bookkeeping);
     REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var2", &var2_, NULL);
+    REGISTER_VARIABLE_SIMPLE(DEFAULT_STATISTICS_TOPIC, &var2_, &bookkeeping);
     START_PUBLISH_THREAD(DEFAULT_STATISTICS_TOPIC);
     // Time for publisher to connect to subscriber
     ros::Duration(0.5).sleep();
@@ -593,7 +594,7 @@ TEST_F(PalStatisticsTest, singlePublish)
 }
 
 
-}  // namespace pal
+}  // namespace pal_statistics
 
 int main(int argc, char **argv)
 {
@@ -601,7 +602,7 @@ int main(int argc, char **argv)
   // first nodehandle created of an app must exist until the end of the life of the node
   // If not, you'll have funny stuff such as no logs printed
   ros::NodeHandle nh;
-
+  ros::Time::waitForValid();
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

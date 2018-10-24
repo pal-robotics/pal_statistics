@@ -17,7 +17,7 @@
 #include <pal_statistics_msgs/Statistics.h>
 #include <pal_statistics/pal_statistics_utils.h>
 
-namespace pal
+namespace pal_statistics
 {
 /**
  * @brief The StatisticsRegistry class reads the value of registered variables and
@@ -43,7 +43,7 @@ public:
    * @brief registerVariable Specialization for double*, the most common case, to avoid
    * going through a boost function call to read the variable
    */
-  IdType registerVariable(const std::string &name, double *variable, RegistrationsRAII *bookkeeping = NULL,
+  IdType registerVariable(const std::string &name, const double * variable, RegistrationsRAII *bookkeeping = NULL,
                           bool enabled = true)
   {
     return registerInternal(name, VariableHolder(variable), bookkeeping, enabled);
@@ -192,5 +192,5 @@ private:
   RegistrationsRAII internal_stats_raii_;
   
 };
-}  // namespace pal
+}  // namespace pal_statistics
 #endif

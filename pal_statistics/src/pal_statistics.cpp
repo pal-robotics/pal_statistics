@@ -8,7 +8,7 @@
 
 #include <pal_statistics/pal_statistics.h>
 #include <pal_statistics/registration_utils.h>
-namespace pal
+namespace pal_statistics
 {
 
 Registration::Registration(const std::string &name, IdType id, const boost::weak_ptr<StatisticsRegistry> &obj)

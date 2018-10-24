@@ -8,7 +8,7 @@
 #include <pal_statistics/pal_statistics_utils.h>
 #include <pal_statistics/pal_statistics.h>
 
-namespace pal
+namespace pal_statistics
 {
 RegistrationList::RegistrationList(size_t internal_buffer_capacity)
   : last_id_(0), registrations_changed_(true), buffer_size_(internal_buffer_capacity)

@@ -15,7 +15,7 @@
 #include <memory>
 using namespace std;
 
-namespace pal
+namespace pal_statistics
 {
 template <class T>
 class MyAlloc
@@ -325,7 +325,7 @@ TEST(BufferTest, circularBuffer)
 
   ROS_WARN_STREAM("Destructor");
 }
-}  // namespace pal
+}  // namespace pal_statistics
 
 int main(int argc, char** argv)
 {
