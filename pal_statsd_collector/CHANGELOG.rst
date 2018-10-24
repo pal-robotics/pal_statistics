@@ -2,6 +2,9 @@
 Changelog for package pal_statsd_collector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.0.5 (2018-10-24)
 ------------------
 

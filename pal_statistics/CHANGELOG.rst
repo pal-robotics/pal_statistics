@@ -2,6 +2,17 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'improve-constness' into 'erbium-devel'
+  Change namespace to pal_statistics and and const to double *
+  Closes #5
+  See merge request qa/pal_statistics!11
+* Add tests for registration modification between pubAsync and publishing
+* Change namespace to pal_statistics and and const to double *
+  Fixes https://gitlab/qa/pal_statistics/issues/5
+* Contributors: Victor Lopez
+
 1.0.5 (2018-10-24)
 ------------------
 * Fix bug when changing registrations and publsihing before a pubAsync
