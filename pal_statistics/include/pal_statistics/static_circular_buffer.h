@@ -30,10 +30,22 @@ public:
   {
     set_capacity(max_size, val);
   }
+  
   StaticCircularBuffer()
   {
    begin_iterator_ = buffer_.begin();
    end_iterator_ = begin_iterator_;    
+  }
+  
+  /**
+   * @brief clear Change the size of the buffer to 0 (not capacity)
+   *              Only modifies internal iterators
+   */
+  void clear()
+  {
+    begin_iterator_ = buffer_.begin();
+    end_iterator_ = begin_iterator_;
+    full_ = false;
   }
 
   /**
@@ -44,10 +56,9 @@ public:
   void set_capacity(size_t max_size, const T& val)
   {
     buffer_.assign(max_size, val);
-    begin_iterator_ = buffer_.begin();
-    end_iterator_ = begin_iterator_;
-    full_ = false;
+    clear();
   }
+  
 
   size_t capacity() const
   {
@@ -73,7 +84,7 @@ public:
 
   /**
    * @brief push_back Increases the buffer size (not capacity) by one, and returns a
-   * reference to the last item in the buffer.
+   * reference to the last item in the buffer. This item may have been used in the past
    * 
    * If the buffer becomes full, the returned reference already contains an item
    */

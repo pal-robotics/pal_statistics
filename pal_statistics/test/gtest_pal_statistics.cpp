@@ -355,7 +355,7 @@ TEST_F(PalStatisticsTest, macroTest)
     PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC)
     ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
     EXPECT_THAT(getVariables(*last_msg_),
-                UnorderedElementsAre("macro_var1", "macro_var1_bk", "macro_var2",
+                UnorderedElementsAre("macro_var1", "macro_var1_bk", "macro_var2", "&var2_",
                                      "topic_stats.pal_statistics.publish_async_attempts",
                                      "topic_stats.pal_statistics.publish_async_failures",
                                      "topic_stats.pal_statistics.publish_buffer_full_errors",

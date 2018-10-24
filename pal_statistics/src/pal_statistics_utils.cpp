@@ -30,7 +30,7 @@ void RegistrationList::unregisterVariable(const IdType &id)
 
 void RegistrationList::setEnabled(const IdType &id, bool enabled)
 {
-  registrations_changed_ = true;
+  registrationsChanged();
   for (size_t i = 0; i < ids_.size(); ++i)
   {
     if (ids_[i] == id)
@@ -90,6 +90,7 @@ void RegistrationList::fillMsg(pal_statistics_msgs::Statistics &msg)
   {
     IdType id = it.first;
     pal_statistics_msgs::Statistic s;
+    assert(name_id_.right.find(id) != name_id_.right.end());
     s.name = name_id_.right.find(id)->second;
     s.value = it.second;
     msg.statistics.push_back(s);
@@ -143,12 +144,18 @@ void RegistrationList::deleteElement(size_t index)
   std::swap(enabled_[index], enabled_.back());
   enabled_.resize(enabled_.size() - 1);
   
+  registrationsChanged();
+}
+
+void RegistrationList::registrationsChanged()
+{
   registrations_changed_ = true;
+  last_values_buffer_.clear();
 }
 
 int RegistrationList::registerVariable(const std::string &name, VariableHolder &&holder, bool enabled)
 {
-  registrations_changed_ = true;
+  registrationsChanged();
   
   bool needs_more_capacity = (names_.size() == names_.capacity());
   int id = last_id_++;

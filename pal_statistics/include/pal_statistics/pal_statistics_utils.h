@@ -205,6 +205,7 @@ public:
   unsigned int overwritten_data_count_;
 private:
   void deleteElement(size_t index);
+  void registrationsChanged();
 
   int last_id_;
 
