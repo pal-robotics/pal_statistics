@@ -2,6 +2,11 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix bug when changing registrations and publsihing before a pubAsync
+* Contributors: Victor Lopez
+
 1.0.4 (2018-10-23)
 ------------------
 * Merge branch 'auto-start-thread' into 'erbium-devel'
