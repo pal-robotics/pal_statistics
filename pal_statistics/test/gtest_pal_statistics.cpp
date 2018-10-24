@@ -594,6 +594,67 @@ TEST_F(PalStatisticsTest, singlePublish)
 }
 
 
+
+TEST_F(PalStatisticsTest, chaosTest)
+{
+  // Tests the registration of a variable and publication by the nonrt thread
+  // before a publish_async has been performed
+  RegistrationsRAII bookkeeping;
+  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var1", &var1_, &bookkeeping);
+  PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC);
+  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var2", &var2_, &bookkeeping);
+  ros::Duration(0.2).sleep();
+  PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC);
+  ros::Duration(0.2).sleep();  
+}
+
+TEST_F(PalStatisticsTest, chaosTest2)
+{
+  // Tests the unregistration of a variable and publication by the nonrt thread
+  // before a publish_async has been performed
+  RegistrationsRAII bookkeeping;
+  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var1", &var1_, nullptr);
+  PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC);
+  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var2", &var2_, &bookkeeping);
+  UNREGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var1", nullptr);
+  ros::Duration(0.2).sleep();
+  PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC);
+  
+  last_msg_.reset();
+  ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
+  EXPECT_THAT(getVariables(*last_msg_),
+              UnorderedElementsAre("var2",
+                                   "topic_stats.pal_statistics.publish_async_attempts",
+                                   "topic_stats.pal_statistics.publish_async_failures",
+                                   "topic_stats.pal_statistics.publish_buffer_full_errors",
+                                   "topic_stats.pal_statistics.last_async_pub_duration"));
+}
+
+TEST_F(PalStatisticsTest, chaosTest3)
+{
+  // Tests the disabling of a variable and publication by the nonrt thread
+  // before a publish_async has been performed
+  RegistrationsRAII bookkeeping;
+  auto var1id = REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var1", &var1_, nullptr);
+  PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC);
+  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var2", &var2_, &bookkeeping);
+  getRegistry(DEFAULT_STATISTICS_TOPIC)->disable(var1id);
+  ros::Duration(0.2).sleep();
+  PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC);
+  
+  last_msg_.reset();
+  ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
+  EXPECT_THAT(getVariables(*last_msg_),
+              UnorderedElementsAre("var2",
+                                   "topic_stats.pal_statistics.publish_async_attempts",
+                                   "topic_stats.pal_statistics.publish_async_failures",
+                                   "topic_stats.pal_statistics.publish_buffer_full_errors",
+                                   "topic_stats.pal_statistics.last_async_pub_duration"));
+}
+
+
+
+
 }  // namespace pal_statistics
 
 int main(int argc, char **argv)
