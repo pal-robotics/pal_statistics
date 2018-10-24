@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.5 (2018-10-24)
+------------------
 * Fix bug when changing registrations and publsihing before a pubAsync
 * Contributors: Victor Lopez
 
