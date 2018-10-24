@@ -21,7 +21,7 @@
 #include <ros/ros.h>
 #include <pal_statistics_msgs/Statistics.h>
 #include <pal_statistics/static_circular_buffer.h>
-namespace pal
+namespace pal_statistics
 {
 typedef unsigned int IdType;
 
@@ -122,7 +122,7 @@ public:
     throw std::runtime_error("VariableHolder default constructor should never be called");
   }
 
-  VariableHolder(double *pointer) : variable_(pointer)
+  VariableHolder(const double *const pointer) : variable_(pointer)
   {
   }
 
@@ -148,14 +148,14 @@ public:
 
   double getValue() const
   {
-    if (variable_.type() == typeid(double *))
-      return *boost::get<double *>(variable_);
+    if (variable_.type() == typeid(const double *))
+      return *boost::get<const double *>(variable_);
     else
       return boost::get<boost::function<double()>>(variable_)();
   }
 
 private:
-  boost::variant<double *, boost::function<double()>> variable_;
+  boost::variant<const double *, boost::function<double()>> variable_;
 };
 
 

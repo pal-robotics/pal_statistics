@@ -12,48 +12,31 @@
 
 constexpr char DEFAULT_STATISTICS_TOPIC[] = "pal_statistics";
 
-namespace pal
+namespace pal_statistics
 {
-boost::shared_ptr<pal::StatisticsRegistry> getRegistry(const std::string &topic);
-} //namespace pal
+boost::shared_ptr<StatisticsRegistry> getRegistry(const std::string &topic);
+} //namespace pal_statistics
 
 #define REGISTER_VARIABLE(TOPIC, ID, VARIABLE, BOOKKEEPING)                              \
-  customRegister(*pal::getRegistry(TOPIC), ID, VARIABLE, BOOKKEEPING);
+  customRegister(*pal_statistics::getRegistry(TOPIC), ID, VARIABLE, BOOKKEEPING);
 
-#define REGISTER_VARIABLE_BK(ID, VARIABLE, BOOKKEEPING)                                  \
-  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, ID, VARIABLE, BOOKKEEPING)
-
-
-#define REGISTER_VARIABLE_TOPIC(TOPIC, ID, VARIABLE)                                     \
-  REGISTER_VARIABLE(TOPIC, ID, VARIABLE, NULL)
-
+// Register the variable with the same name as the variable name
+#define REGISTER_VARIABLE_SIMPLE(TOPIC, VARIABLE, BOOKKEEPING)                              \
+  customRegister(*pal_statistics::getRegistry(TOPIC), #VARIABLE, VARIABLE, BOOKKEEPING);
 
 #define UNREGISTER_VARIABLE(TOPIC, ID_OR_NAME, BOOKKEEPING)                              \
-  pal::getRegistry(TOPIC)->unregisterVariable(ID_OR_NAME, BOOKKEEPING);
+  pal_statistics::getRegistry(TOPIC)->unregisterVariable(ID_OR_NAME, BOOKKEEPING);
 
+#define PUBLISH_STATISTICS(TOPIC) pal_statistics::getRegistry(TOPIC)->publish();
 
-#define SIMPLE_REGISTER(ID, VARIABLE)                                                    \
-  REGISTER_VARIABLE_TOPIC(DEFAULT_STATISTICS_TOPIC, ID, VARIABLE)
+#define PUBLISH_ASYNC_STATISTICS(TOPIC) pal_statistics::getRegistry(TOPIC)->publishAsync();
 
-#define PUBLISH_STATISTICS(TOPIC) pal::getRegistry(TOPIC)->publish();
+#define START_PUBLISH_THREAD(TOPIC) pal_statistics::getRegistry(TOPIC)->startPublishThread();
 
-#define PUBLISH_ASYNC_STATISTICS(TOPIC) pal::getRegistry(TOPIC)->publishAsync();
+#define PUBLISH_CUSTOM_STATISTIC(TOPIC, ID, VALUE) pal_statistics::getRegistry(TOPIC)->publishCustomStatistic(ID, VALUE)
 
-#define SIMPLE_PUBLISH_STATISTICS() PUBLISH_STATISTICS(DEFAULT_STATISTICS_TOPIC)
+#define PUBLISH_CUSTOM_STATISTICS_MSG(TOPIC, MSG) pal_statistics::getRegistry(TOPIC)->publishCustomStatistics(MSG)
 
-#define SIMPLE_PUBLISH_ASYNC_STATISTICS() PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC)
-
-#define START_PUBLISH_THREAD(TOPIC) pal::getRegistry(TOPIC)->startPublishThread();
-
-#define SIMPLE_START_PUBLISH_THREAD() START_PUBLISH_THREAD(DEFAULT_STATISTICS_TOPIC)
-
-#define PUBLISH_CUSTOM_STATISTIC_TOPIC(TOPIC, ID, VALUE) pal::getRegistry(TOPIC)->publishCustomStatistic(ID, VALUE)
-
-#define PUBLISH_CUSTOM_STATISTIC(ID, VALUE) PUBLISH_CUSTOM_STATISTIC_TOPIC(DEFAULT_STATISTICS_TOPIC, ID, VALUE)
-
-#define PUBLISH_CUSTOM_STATISTICS_TOPIC(TOPIC, MSG) pal::getRegistry(TOPIC)->publishCustomStatistics(MSG)
-
-#define PUBLISH_CUSTOM_STATISTICS(MSG) PUBLISH_CUSTOM_STATISTIC_TOPIC(DEFAULT_STATISTICS_TOPIC, MSG)
 
 
 #endif  // PAL_STATISTICS_MACROS_H

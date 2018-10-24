@@ -10,14 +10,14 @@
 
 #include <pal_statistics/pal_statistics.h>
 
-namespace pal
+namespace pal_statistics
 {
 /**
  * @brief Default implementation that accepts anything variable that can be casted to a
  * double
  */
 template <typename T>
-inline IdType customRegister(StatisticsRegistry &registry, const std::string &name, T *variable,
+inline IdType customRegister(StatisticsRegistry &registry, const std::string &name, const T * variable,
                         RegistrationsRAII *bookkeeping = NULL, bool enabled = true)
 {
   boost::function<double()> funct = [variable] { return static_cast<double>(*variable); };
@@ -29,7 +29,7 @@ inline IdType customRegister(StatisticsRegistry &registry, const std::string &na
  * function
  */
 template <>
-inline IdType customRegister(StatisticsRegistry &registry, const std::string &name, double *variable,
+inline IdType customRegister(StatisticsRegistry &registry, const std::string &name, const double * variable,
                         RegistrationsRAII *bookkeeping, bool enabled)
 {
   return registry.registerVariable(name, variable, bookkeeping, enabled);
@@ -68,6 +68,6 @@ inline IdType customRegister(StatisticsRegistry &registry, const std::string &na
  * Just include the files that extend these functions before the REGISTER_VARIABLE_MACROS
  */
 
-}  // namespace pal
+}  // namespace pal_statistics
 
 #endif  // REGISTRATION_UTILS_H
