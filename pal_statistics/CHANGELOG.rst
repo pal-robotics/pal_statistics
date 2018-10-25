@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.7 (2018-10-25)
+------------------
 * Change Sleep to WallSleep
   When sim time stops being published. The thread can get stuck and never
   end.
