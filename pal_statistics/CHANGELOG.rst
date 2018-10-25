@@ -2,6 +2,11 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix some issues with copyable object that shouldn't be
+* Contributors: Victor Lopez
+
 1.0.7 (2018-10-25)
 ------------------
 * Change Sleep to WallSleep
