@@ -10,6 +10,26 @@
 
 namespace pal_statistics
 {
+
+Registration::Registration(const std::string &name, IdType id, const boost::weak_ptr<StatisticsRegistry> &obj)
+  : name_(name), id_(id), obj_(obj)
+{
+}
+
+//Registration::Registration(const Registration &&other)
+//{
+//  name_ = std::move(other.name_);
+//  id_ = std::move(other.id_);
+//  obj_ = std::move(other.obj_);
+//}
+
+Registration::~Registration()
+{
+  boost::shared_ptr<StatisticsRegistry> lock = obj_.lock();
+  if (lock.get())
+    lock->unregisterVariable(id_);
+}
+
 RegistrationList::RegistrationList(size_t internal_buffer_capacity)
   : last_id_(0), registrations_changed_(true), buffer_size_(internal_buffer_capacity)
 {
@@ -175,11 +195,11 @@ int RegistrationList::registerVariable(const std::string &name, VariableHolder &
   }
   return id;
 }
-std::vector<boost::shared_ptr<Registration> >::iterator RegistrationsRAII::find(const std::string &name)
+std::vector<Registration>::iterator RegistrationsRAII::find(const std::string &name)
 {
   for (auto it = registrations_.begin(); it != registrations_.end(); ++it)
   {
-    if ((*it)->name_ == name)
+    if ((*it).name_ == name)
     {
       return it;
     }
@@ -187,11 +207,11 @@ std::vector<boost::shared_ptr<Registration> >::iterator RegistrationsRAII::find(
   throw std::runtime_error("Unable to find registration with name " + name);
 }
 
-std::vector<boost::shared_ptr<Registration> >::iterator RegistrationsRAII::find(IdType id)
+std::vector<Registration>::iterator RegistrationsRAII::find(IdType id)
 {
   for (auto it = registrations_.begin(); it != registrations_.end(); ++it)
   {
-    if ((*it)->id_ == id)
+    if ((*it).id_ == id)
     {
       return it;
     }
@@ -200,10 +220,15 @@ std::vector<boost::shared_ptr<Registration> >::iterator RegistrationsRAII::find(
 }
 
 
-void RegistrationsRAII::add(const boost::shared_ptr<Registration> &registration)
+RegistrationsRAII::RegistrationsRAII()
+{
+  
+}
+
+void RegistrationsRAII::add(Registration &&registration)
 {
   boost::unique_lock<boost::mutex> guard(mutex_);
-  registrations_.push_back(registration);
+  registrations_.push_back(std::move(registration));
 }
 
 bool RegistrationsRAII::remove(const std::string &name)
@@ -242,14 +267,14 @@ void RegistrationsRAII::removeAll()
 
 bool RegistrationsRAII::enable(const std::string &name)
 {
-  boost::shared_ptr<Registration> &reg = *find(name);
-  return reg->obj_.lock()->enable(reg->id_);
+  Registration&reg = *find(name);
+  return reg.obj_.lock()->enable(reg.id_);
 }
 
 bool RegistrationsRAII::enable(IdType id)
 {
-  boost::shared_ptr<Registration> &reg = *find(id);
-  return reg->obj_.lock()->enable(reg->id_);  
+  Registration&reg = *find(id);
+  return reg.obj_.lock()->enable(reg.id_);  
 }
 
 bool RegistrationsRAII::enableAll()
@@ -257,21 +282,21 @@ bool RegistrationsRAII::enableAll()
   bool result = true;
   for (auto it = registrations_.begin(); it != registrations_.end(); ++it)
   {
-    result &= (*it)->obj_.lock()->enable((*it)->id_);
+    result &= (*it).obj_.lock()->enable((*it).id_);
   }
   return result;
 }
 
 bool RegistrationsRAII::disable(const std::string &name)
 {
-  boost::shared_ptr<Registration> &reg = *find(name);
-  return reg->obj_.lock()->disable(reg->id_);
+  Registration&reg = *find(name);
+  return reg.obj_.lock()->disable(reg.id_);
 }
 
 bool RegistrationsRAII::disable(IdType id)
 {
-  boost::shared_ptr<Registration> &reg = *find(id);
-  return reg->obj_.lock()->disable(reg->id_);  
+  Registration&reg = *find(id);
+  return reg.obj_.lock()->disable(reg.id_);  
 }
 
 bool RegistrationsRAII::disableAll()
@@ -279,7 +304,7 @@ bool RegistrationsRAII::disableAll()
   bool result = true;
   for (auto it = registrations_.begin(); it != registrations_.end(); ++it)
   {
-    result |= (*it)->obj_.lock()->disable((*it)->id_);
+    result |= (*it).obj_.lock()->disable((*it).id_);
   }
   return result;
 }

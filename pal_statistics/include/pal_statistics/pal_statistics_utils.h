@@ -74,23 +74,31 @@ class StatisticsRegistry;
 class Registration
 {
 public:
-  Registration(const std::string &name, IdType id, const boost::weak_ptr<StatisticsRegistry> &obj);
+  Registration(const std::string &name, IdType id,
+               const boost::weak_ptr<StatisticsRegistry> &obj);
+  Registration(Registration &&other) = default;
+  Registration &operator=(Registration &&) = default;
 
   ~Registration();
 
   std::string name_;
   IdType id_;
   boost::weak_ptr<StatisticsRegistry> obj_;
+private:
+  // This object should not be copied, because we may unregister variables prematurely
+  Registration( const Registration& ) = delete; // non construction-copyable
+  Registration& operator=( const Registration& ) = delete; // non copyable
 };
 
 /**
  * @brief The RegistrationsRAII class holds handles to registered variables and when it is
  * destroyed, unregisters them automatically.
  */
-class RegistrationsRAII
+class RegistrationsRAII 
 {
 public:
-  void add(const boost::shared_ptr<Registration> &registration);
+  RegistrationsRAII();
+  void add(Registration &&registration);
   bool remove(const std::string &name);
   bool remove(IdType id);
   void removeAll();
@@ -104,11 +112,15 @@ public:
   bool disableAll();
   
 private:
-  std::vector<boost::shared_ptr<Registration> >::iterator find(const std::string &name);  
-  std::vector<boost::shared_ptr<Registration> >::iterator find(IdType id);
+  // This object should not be copied, because Registration is not copiable
+  RegistrationsRAII( const RegistrationsRAII& ) = delete; // non construction-copyable
+  RegistrationsRAII& operator=( const RegistrationsRAII& ) = delete; // non copyable
+  
+  std::vector<Registration>::iterator find(const std::string &name);  
+  std::vector<Registration>::iterator find(IdType id);
   
   boost::mutex mutex_;
-  std::vector<boost::shared_ptr<Registration> > registrations_;
+  std::vector<Registration> registrations_;
 };
 
 

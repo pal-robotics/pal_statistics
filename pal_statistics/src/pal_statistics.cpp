@@ -11,18 +11,6 @@
 namespace pal_statistics
 {
 
-Registration::Registration(const std::string &name, IdType id, const boost::weak_ptr<StatisticsRegistry> &obj)
-  : name_(name), id_(id), obj_(obj)
-{
-}
-
-Registration::~Registration()
-{
-  boost::shared_ptr<StatisticsRegistry> lock = obj_.lock();
-  if (lock.get())
-    lock->unregisterVariable(id_);
-}
-
 StatisticsRegistry::StatisticsRegistry(const std::string &topic)
 {
   pub_ = nh_.advertise<pal_statistics_msgs::Statistics>(topic, 10000);
@@ -145,7 +133,7 @@ IdType StatisticsRegistry::registerInternal(const std::string &name, VariableHol
   } 
     
   if (bookkeeping)
-    bookkeeping->add(boost::make_shared<Registration>(name, id, weak_from_this()));
+    bookkeeping->add(Registration(name, id, weak_from_this()));
   return id;
 }
 
