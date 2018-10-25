@@ -2,6 +2,14 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Change Sleep to WallSleep
+  When sim time stops being published. The thread can get stuck and never
+  end.
+* Fix unitialized variable
+* Contributors: Victor Lopez
+
 1.0.6 (2018-10-24)
 ------------------
 * Merge branch 'improve-constness' into 'erbium-devel'

@@ -31,6 +31,7 @@ StatisticsRegistry::StatisticsRegistry(const std::string &topic)
   async_messages_lost_ = 0;
   last_async_pub_duration_ = 0.0;
   is_data_ready_ = false;
+  
   customRegister(*this, "topic_stats." + topic + ".publish_async_attempts", &publish_async_attempts_, &internal_stats_raii_);
   customRegister(*this, "topic_stats." + topic + ".publish_async_failures", &publish_async_failures_, &internal_stats_raii_);
 //  customRegister("topic_stats." + topic + ".publish_buffer_full_errors", &async_messages_lost_, &internal_stats_raii_);
