@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.8 (2018-10-25)
+------------------
 * Fix some issues with copyable object that shouldn't be
 * Contributors: Victor Lopez
 
