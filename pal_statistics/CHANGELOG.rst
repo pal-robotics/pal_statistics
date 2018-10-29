@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2018-10-29)
+------------------
 * Merge branch 'fix-test' into 'erbium-devel'
   Fix spurious test failure when buffer was filled
   See merge request qa/pal_statistics!12
