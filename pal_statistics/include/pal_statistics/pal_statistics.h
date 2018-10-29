@@ -16,6 +16,7 @@
 #include <boost/thread/thread.hpp>
 #include <pal_statistics_msgs/Statistics.h>
 #include <pal_statistics/pal_statistics_utils.h>
+#include <gtest/gtest_prod.h>
 
 namespace pal_statistics
 {
@@ -188,9 +189,9 @@ private:
   unsigned int publish_async_attempts_;
   unsigned int publish_async_failures_;
   double last_async_pub_duration_;
-  unsigned int async_messages_lost_;
   RegistrationsRAII internal_stats_raii_;
-  
+
+  FRIEND_TEST(PalStatisticsTest, stressAsync);
 };
 }  // namespace pal_statistics
 #endif

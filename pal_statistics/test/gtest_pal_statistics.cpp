@@ -438,7 +438,7 @@ TEST_F(PalStatisticsTest, stressAsync)
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
   registry->startPublishThread();
   customRegister(*registry, "test_variable", &d);
-  customRegister(*registry, "test_variabl2e", &d);
+  customRegister(*registry, "test_variable2", &d);
   size_t received_messages = 0;
   
   ros::NodeHandle async_nh;
@@ -466,7 +466,7 @@ TEST_F(PalStatisticsTest, stressAsync)
   //Allow time for everything to arrive
   ros::Duration(0.5).sleep();
   
-  EXPECT_EQ(success_async, received_messages);  
+  EXPECT_EQ(success_async - registry->registration_list_.overwritten_data_count_, received_messages);  
 }
 
 TEST_F(PalStatisticsTest, concurrencyTest)
