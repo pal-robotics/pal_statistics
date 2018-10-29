@@ -2,6 +2,11 @@
 Changelog for package pal_carbon_collector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Rename dependency to python-graphitesend-pip
+* Contributors: Victor Lopez
+
 1.0.8 (2018-10-25)
 ------------------
 
