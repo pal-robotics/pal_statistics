@@ -184,7 +184,6 @@ void StatisticsRegistry::updateMsg(pal_statistics_msgs::Statistics &msg, bool sm
     registration_list_.smartFillMsg(msg);
   else
     registration_list_.fillMsg(msg);
-  msg.header.stamp = ros::Time::now();
 }
 
 void StatisticsRegistry::publisherThreadCycle()
