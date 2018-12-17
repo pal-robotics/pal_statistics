@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import pystatsd
+import statsd
 import re
 import rospy
 import socket
@@ -9,7 +9,7 @@ from pal_statistics_msgs.msg import Statistics
 class StatsdCollector:
     def __init__(self, topics):
         self.fqdn = socket.getfqdn()
-        self.pc = pystatsd.Client(prefix=self.fqdn)
+        self.pc = statsd.Client(prefix=self.fqdn)
 
         self.statistics_subs = []
         for topic in topics:
