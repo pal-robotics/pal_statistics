@@ -1,4 +1,6 @@
-#PAL Statistics Frameowrk
+# PAL Statistics Framework
+
+[![Build Status](https://travis-ci.org/pal-robotics/pal_statistics.svg?branch=kinetic-devel)](https://travis-ci.org/pal-robotics/pal_statistics)
 
 The PAL Statistics Framework provides a way of gathering, aggregating, storing and visualizing statistics from arbitrary sources in a flexible and real-time safe way in ROS. From internal variables values to high level statistics about, but not limited to, robot performance.
 
