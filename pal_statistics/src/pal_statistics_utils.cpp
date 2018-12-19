@@ -90,15 +90,16 @@ void RegistrationList::doUpdate()
     overwritten_data_count_++;
   
   auto &last_values = last_values_buffer_.push_back();
-  last_values.clear();
-  assert(last_values.capacity() >= ids_.size());
+  last_values.first.clear();
+  last_values.second = ros::Time::now();
+  assert(last_values.first.capacity() >= ids_.size());
   for (size_t i = 0; i < ids_.size(); ++i)
   {
     if (enabled_[i])
     {
       // Should never allocate memory because its capacity is able to hold all
       // variables
-      last_values.emplace_back(ids_[i], references_[i].getValue());
+      last_values.first.emplace_back(ids_[i], references_[i].getValue());
     }
   }
 }
@@ -106,7 +107,7 @@ void RegistrationList::doUpdate()
 void RegistrationList::fillMsg(pal_statistics_msgs::Statistics &msg)
 {
   msg.statistics.clear();
-  for (auto it : last_values_buffer_.front())
+  for (auto it : last_values_buffer_.front().first)
   {
     IdType id = it.first;
     pal_statistics_msgs::Statistic s;
@@ -115,6 +116,7 @@ void RegistrationList::fillMsg(pal_statistics_msgs::Statistics &msg)
     s.value = it.second;
     msg.statistics.push_back(s);
   }
+  msg.header.stamp = last_values_buffer_.front().second;
   last_values_buffer_.pop_front();
 }
 
@@ -127,11 +129,12 @@ void RegistrationList::smartFillMsg(pal_statistics_msgs::Statistics &msg)
     return;
   }
   
-  assert(msg.statistics.size() == last_values_buffer_.front().size());
+  assert(msg.statistics.size() == last_values_buffer_.front().first.size());
   for (size_t i = 0; i < msg.statistics.size(); ++i)
   {
-    msg.statistics[i].value = last_values_buffer_.front()[i].second;
+    msg.statistics[i].value = last_values_buffer_.front().first[i].second;
   }
+  msg.header.stamp = last_values_buffer_.front().second;
   last_values_buffer_.pop_front();
 }
 
@@ -191,7 +194,8 @@ int RegistrationList::registerVariable(const std::string &name, VariableHolder &
     // of the last values vector with the same capacity as the names vector
     // But the buffer's number of elements is set to 0
     last_values_buffer_.set_capacity(buffer_size_, 
-                                     LastValuesType(names_.capacity(), std::make_pair(0, 0.)));
+                                     LastValuesStamped(LastValues(names_.capacity(), std::make_pair(0, 0.)), 
+                                                       ros::Time(0)));
   }
   return id;
 }

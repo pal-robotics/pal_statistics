@@ -233,8 +233,9 @@ private:
   std::vector<VariableHolder> references_;
   std::vector<bool> enabled_;
 
-  typedef std::vector<std::pair<IdType, double>> LastValuesType; 
-  StaticCircularBuffer<LastValuesType> last_values_buffer_;
+  typedef std::vector<std::pair<IdType, double>> LastValues; 
+  typedef std::pair<LastValues, ros::Time> LastValuesStamped;
+  StaticCircularBuffer<LastValuesStamped> last_values_buffer_;
 
   bool registrations_changed_;
 };
