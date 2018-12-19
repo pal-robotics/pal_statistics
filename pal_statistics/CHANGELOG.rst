@@ -2,6 +2,16 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'correct-stamp' into 'erbium-devel'
+  Correct stamp
+  See merge request qa/pal_statistics!14
+* Add macros with variable argument count
+* Set time stamp from main thread
+* Fix maintainer
+* Contributors: Victor Lopez
+
 1.1.0 (2018-10-29)
 ------------------
 * Merge branch 'fix-test' into 'erbium-devel'
