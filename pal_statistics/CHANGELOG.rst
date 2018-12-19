@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.1 (2018-12-19)
+------------------
 * Merge branch 'correct-stamp' into 'erbium-devel'
   Correct stamp
   See merge request qa/pal_statistics!14
