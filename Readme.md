@@ -39,6 +39,9 @@ Data can be visualized with any tools that display ROS topics, but we recommend 
 Or you can view historic data via [Grafana](https://grafana.com/)
 ![](imgs/grafana.png)
 
+## Tutorials
+
+The tutorials are hosted on the [ROS wiki](http://wiki.ros.org/pal_statistics/Tutorials/Registering%20and%20publishing%20variables)
 
 ## Acknowledgements
 ***
