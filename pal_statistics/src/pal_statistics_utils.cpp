@@ -88,18 +88,21 @@ void RegistrationList::doUpdate()
 {
   if (last_values_buffer_.size() == last_values_buffer_.capacity())
     overwritten_data_count_++;
-  
+
   auto &last_values = last_values_buffer_.push_back();
-  last_values.first.clear();
+  last_values.first.names.clear();
+  last_values.first.values.clear();
   last_values.second = ros::Time::now();
-  assert(last_values.first.capacity() >= ids_.size());
+  assert(last_values.first.names.capacity() >= ids_.size());
+  assert(last_values.first.values.capacity() >= ids_.size());
   for (size_t i = 0; i < ids_.size(); ++i)
   {
     if (enabled_[i])
     {
       // Should never allocate memory because its capacity is able to hold all
       // variables
-      last_values.first.emplace_back(ids_[i], references_[i].getValue());
+      last_values.first.names.emplace_back(ids_[i]);
+      last_values.first.values.emplace_back(references_[i].getValue());
     }
   }
 }
@@ -107,13 +110,13 @@ void RegistrationList::doUpdate()
 void RegistrationList::fillMsg(pal_statistics_msgs::Statistics &msg)
 {
   msg.statistics.clear();
-  for (auto it : last_values_buffer_.front().first)
+  for (size_t i = 0; i < last_values_buffer_.front().first.names.size(); ++i)
   {
-    IdType id = it.first;
+    const IdType &id = last_values_buffer_.front().first.names[i];
     pal_statistics_msgs::Statistic s;
     assert(name_id_.right.find(id) != name_id_.right.end());
     s.name = name_id_.right.find(id)->second;
-    s.value = it.second;
+    s.value = last_values_buffer_.front().first.values[i];
     msg.statistics.push_back(s);
   }
   msg.header.stamp = last_values_buffer_.front().second;
@@ -128,11 +131,12 @@ void RegistrationList::smartFillMsg(pal_statistics_msgs::Statistics &msg)
     registrations_changed_ = false;
     return;
   }
-  
-  assert(msg.statistics.size() == last_values_buffer_.front().first.size());
+
+  assert(msg.statistics.size() == last_values_buffer_.front().first.names.size());
+  assert(msg.statistics.size() == last_values_buffer_.front().first.values.size());
   for (size_t i = 0; i < msg.statistics.size(); ++i)
   {
-    msg.statistics[i].value = last_values_buffer_.front().first[i].second;
+    msg.statistics[i].value = last_values_buffer_.front().first.values[i];
   }
   msg.header.stamp = last_values_buffer_.front().second;
   last_values_buffer_.pop_front();
@@ -190,11 +194,11 @@ int RegistrationList::registerVariable(const std::string &name, VariableHolder &
   // reserve memory for values
   if (needs_more_capacity )
   {
-    // Reset last_values_buffer_ size to be able to contain buffer_size_ copies 
+    // Reset last_values_buffer_ size to be able to contain buffer_size_ copies
     // of the last values vector with the same capacity as the names vector
     // But the buffer's number of elements is set to 0
-    last_values_buffer_.set_capacity(buffer_size_, 
-                                     LastValuesStamped(LastValues(names_.capacity(), std::make_pair(0, 0.)), 
+    last_values_buffer_.set_capacity(buffer_size_,
+                                     LastValuesStamped(NameValues(names_.capacity()),
                                                        ros::Time(0)));
   }
   return id;

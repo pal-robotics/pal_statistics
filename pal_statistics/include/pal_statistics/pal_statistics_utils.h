@@ -20,6 +20,8 @@
 #include <map>
 #include <ros/ros.h>
 #include <pal_statistics_msgs/Statistics.h>
+#include <pal_statistics_msgs/StatisticsNames.h>
+#include <pal_statistics_msgs/StatisticsValues.h>
 #include <pal_statistics/static_circular_buffer.h>
 namespace pal_statistics
 {
@@ -233,8 +235,17 @@ private:
   std::vector<VariableHolder> references_;
   std::vector<bool> enabled_;
 
-  typedef std::vector<std::pair<IdType, double>> LastValues; 
-  typedef std::pair<LastValues, ros::Time> LastValuesStamped;
+  struct NameValues
+  {
+    NameValues(size_t capacity)
+      : names(capacity, IdType(0)), values(capacity, 0.)
+    {}
+    
+    std::vector<IdType> names;
+    std::vector<double> values;
+  };
+
+  typedef std::pair<NameValues, ros::Time> LastValuesStamped;
   StaticCircularBuffer<LastValuesStamped> last_values_buffer_;
 
   bool registrations_changed_;
