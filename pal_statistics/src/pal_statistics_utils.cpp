@@ -1,8 +1,8 @@
 /*
   @file
-  
+
   @author victor
-  
+
   @copyright (c) 2018 PAL Robotics SL. All Rights Reserved
 */
 #include <pal_statistics/pal_statistics_utils.h>
@@ -31,7 +31,7 @@ Registration::~Registration()
 }
 
 RegistrationList::RegistrationList(size_t internal_buffer_capacity)
-  : last_id_(0), registrations_changed_(true), buffer_size_(internal_buffer_capacity)
+  : last_id_(0), names_version_(0), buffer_size_(internal_buffer_capacity), registrations_changed_(true)
 {
   overwritten_data_count_ = 0;
 }
@@ -107,39 +107,48 @@ void RegistrationList::doUpdate()
   }
 }
 
-void RegistrationList::fillMsg(pal_statistics_msgs::Statistics &msg)
+void RegistrationList::fillMsg(pal_statistics_msgs::StatisticsNames &names, pal_statistics_msgs::StatisticsValues &value)
 {
-  msg.statistics.clear();
+  names.names.clear();
+  names.names.resize(last_values_buffer_.front().first.names.size());
   for (size_t i = 0; i < last_values_buffer_.front().first.names.size(); ++i)
   {
     const IdType &id = last_values_buffer_.front().first.names[i];
-    pal_statistics_msgs::Statistic s;
     assert(name_id_.right.find(id) != name_id_.right.end());
-    s.name = name_id_.right.find(id)->second;
-    s.value = last_values_buffer_.front().first.values[i];
-    msg.statistics.push_back(s);
+    names.names[i] = name_id_.right.find(id)->second;;
   }
-  msg.header.stamp = last_values_buffer_.front().second;
+  names.header.stamp = last_values_buffer_.front().second;
+  value.header = names.header; 
+  names.names_version = ++names_version_;
+  value.names_version = names.names_version;
+  
+  // Even though we're going to swap it later, we should have the same capacity
+  // because the RT part assumes it has enough capacity
+  value.values.reserve(last_values_buffer_.front().first.values.capacity());
+  // Swap for efficiency since we're going to pop it anyway
+  value.values.swap(last_values_buffer_.front().first.values);
   last_values_buffer_.pop_front();
 }
 
-void RegistrationList::smartFillMsg(pal_statistics_msgs::Statistics &msg)
+bool RegistrationList::smartFillMsg(pal_statistics_msgs::StatisticsNames &names, pal_statistics_msgs::StatisticsValues &values)
 {
-  if (msg.statistics.empty() || registrations_changed_)
+  if (names.names.empty() || registrations_changed_)
   {
-    fillMsg(msg);
+    fillMsg(names, values);
     registrations_changed_ = false;
-    return;
+    return false;
   }
 
-  assert(msg.statistics.size() == last_values_buffer_.front().first.names.size());
-  assert(msg.statistics.size() == last_values_buffer_.front().first.values.size());
-  for (size_t i = 0; i < msg.statistics.size(); ++i)
-  {
-    msg.statistics[i].value = last_values_buffer_.front().first.values[i];
-  }
-  msg.header.stamp = last_values_buffer_.front().second;
+  assert(names.names.size() == last_values_buffer_.front().first.names.size());
+  assert(values.values.size() == last_values_buffer_.front().first.values.size());
+  assert(values.values.capacity() == last_values_buffer_.front().first.values.capacity());
+  assert(names.names_version == names_version_);
+  assert(values.names_version == names_version_);
+  
+  values.header.stamp = last_values_buffer_.front().second;
+  values.values.swap(last_values_buffer_.front().first.values);
   last_values_buffer_.pop_front();
+  return true;
 }
 
 size_t RegistrationList::size() const
@@ -157,9 +166,9 @@ void RegistrationList::deleteElement(size_t index)
   IdType id = ids_[index];
   if (name_id_.right.count(id) == 0)
     ROS_ERROR_STREAM("Didn't find index " << index << " in <name, index> multimap");
-  
+
   name_id_.right.erase(id);
-  
+
   // Faster way of removing an object of a vector if we don't care about the
   // internal ordering. We just care that they all have the same order
   std::swap(names_[index], names_.back());
@@ -170,7 +179,7 @@ void RegistrationList::deleteElement(size_t index)
   references_.resize(references_.size() - 1);
   std::swap(enabled_[index], enabled_.back());
   enabled_.resize(enabled_.size() - 1);
-  
+
   registrationsChanged();
 }
 
@@ -183,7 +192,7 @@ void RegistrationList::registrationsChanged()
 int RegistrationList::registerVariable(const std::string &name, VariableHolder &&holder, bool enabled)
 {
   registrationsChanged();
-  
+
   bool needs_more_capacity = (names_.size() == names_.capacity());
   int id = last_id_++;
   name_id_.left.insert(std::make_pair(name, id));
@@ -230,7 +239,7 @@ std::vector<Registration>::iterator RegistrationsRAII::find(IdType id)
 
 RegistrationsRAII::RegistrationsRAII()
 {
-  
+
 }
 
 void RegistrationsRAII::add(Registration &&registration)
@@ -282,7 +291,7 @@ bool RegistrationsRAII::enable(const std::string &name)
 bool RegistrationsRAII::enable(IdType id)
 {
   Registration&reg = *find(id);
-  return reg.obj_.lock()->enable(reg.id_);  
+  return reg.obj_.lock()->enable(reg.id_);
 }
 
 bool RegistrationsRAII::enableAll()
@@ -304,11 +313,11 @@ bool RegistrationsRAII::disable(const std::string &name)
 bool RegistrationsRAII::disable(IdType id)
 {
   Registration&reg = *find(id);
-  return reg.obj_.lock()->disable(reg.id_);  
+  return reg.obj_.lock()->disable(reg.id_);
 }
 
 bool RegistrationsRAII::disableAll()
-{  
+{
   bool result = true;
   for (auto it = registrations_.begin(); it != registrations_.end(); ++it)
   {
