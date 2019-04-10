@@ -28,7 +28,7 @@ public:
     container_.resize(5);
 
     nh_.setCallbackQueue(&queue_);
-    sub_ = nh_.subscribe(std::string(DEFAULT_STATISTICS_TOPIC) + "_full", 1, &PalStatisticsTest::fullTopicCb, this);
+    sub_ = nh_.subscribe(std::string(DEFAULT_STATISTICS_TOPIC) + "/full", 1, &PalStatisticsTest::fullTopicCb, this);
     names_sub_ = nh_.subscribe(std::string(DEFAULT_STATISTICS_TOPIC) + "/names", 1, &PalStatisticsTest::namesTopicCb, this);
     values_sub_ = nh_.subscribe(std::string(DEFAULT_STATISTICS_TOPIC) + "/values", 1, &PalStatisticsTest::valuesTopicCb, this);
   }
@@ -467,7 +467,7 @@ TEST_F(PalStatisticsTest, stressAsync)
   ros::AsyncSpinner spinner(1, &async_queue);  
   spinner.start();
   ros::Subscriber sub = async_nh.subscribe<pal_statistics_msgs::Statistics>(
-      std::string(DEFAULT_STATISTICS_TOPIC) + "_full", 1000000,
+      std::string(DEFAULT_STATISTICS_TOPIC) + "/full", 1000000,
       [&](const pal_statistics_msgs::StatisticsConstPtr &) { received_messages++; });
   while (sub.getNumPublishers() == 0)
   {

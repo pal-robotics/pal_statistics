@@ -13,14 +13,14 @@ namespace pal_statistics
 
 StatisticsRegistry::StatisticsRegistry(const std::string &topic)
 {
-  pub_ = nh_.advertise<pal_statistics_msgs::Statistics>(topic + "_full", 10000);
+  pub_ = nh_.advertise<pal_statistics_msgs::Statistics>(topic + "/full", 10000);
   pub_names_ = nh_.advertise<pal_statistics_msgs::StatisticsNames>(topic + "/names", 10000, true);
   pub_values_ = nh_.advertise<pal_statistics_msgs::StatisticsValues>(topic + "/values", 10000);
   publish_async_attempts_ = 0;
   publish_async_failures_ = 0;
   last_async_pub_duration_ = 0.0;
   is_data_ready_ = false;
-  
+
   customRegister(*this, "topic_stats." + topic + ".publish_async_attempts", &publish_async_attempts_, &internal_stats_raii_);
   customRegister(*this, "topic_stats." + topic + ".publish_async_failures", &publish_async_failures_, &internal_stats_raii_);
   customRegister(*this, "topic_stats." + topic + ".publish_buffer_full_errors", &registration_list_.overwritten_data_count_, &internal_stats_raii_);
