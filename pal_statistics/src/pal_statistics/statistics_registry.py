@@ -23,7 +23,7 @@
 
 
 import rospy
-from pal_statistics_msgs.msg import Statistics, Statistic
+from pal_statistics_msgs.msg import Statistics, Statistic, StatisticsValues, StatisticsNames
 
 
 class Registration:
@@ -44,7 +44,11 @@ class StatisticsRegistry:
     def __init__(self, topic):
         self.topic = topic
         self.functions = {}
-        self.pub = rospy.Publisher(topic, Statistics, queue_size=1)
+        self.full_pub = rospy.Publisher(topic + "/full", Statistics, queue_size=1)
+        self.names_pub = rospy.Publisher(topic + "/names", StatisticsNames, queue_size=1, latch=True)
+        self.values_pub = rospy.Publisher(topic + "/values", StatisticsValues, queue_size=1)
+        self.names_changed = True
+        self.last_names_version = 1
 
     # Python will copy the value of variables of simple types
     # such as numbers, we cannot store them as such
@@ -67,7 +71,8 @@ class StatisticsRegistry:
         """
         self.functions[name] = func
         if registration_list is not None:
-            registration_list .append(Registration(name, self))
+            registration_list.append(Registration(name, self))
+        self.names_changed = True
 
     def unregister(self, name):
         """
@@ -77,9 +82,20 @@ class StatisticsRegistry:
             self.functions.pop(name)
         except KeyError as e:
             rospy.logerr("Error unregistering " + name + e.what())
+        self.names_changed = True
 
     def publish(self):
-        self.pub.publish(self.createMsg())
+        if self.full_pub.get_num_connections() > 0:
+            self.full_pub.publish(self.createFullMsg())
+
+        #When name changes, we need to publish to keep the latched topic in the latest version
+        if self.names_changed or self.values_pub.get_num_connections() > 0:
+            names_msg, values_msg = self.createOptimizedMsgs()
+            if names_msg:
+                self.names_pub.publish(names_msg)
+            if values_msg:
+                self.values_pub.publish(values_msg)
+
 
     def publishCustomStatistic(self, name, value):
         """
@@ -91,15 +107,15 @@ class StatisticsRegistry:
         s.name = name
         s.value = value
         msg.statistics.append(s)
-        self.pub.publish(msg)
+        self.full_pub.publish(msg)
 
     def publishCustomStatistics(self, msg):
         """
         Publishes a one-time statistics msg
         """
-        self.pub.publish(msg)
+        self.full_pub.publish(msg)
 
-    def createMsg(self):
+    def createFullMsg(self):
         """
         Create and return a message after reading all registrations
         """
@@ -111,3 +127,25 @@ class StatisticsRegistry:
             s.value = func()
             msg.statistics.append(s)
         return msg
+
+    def createOptimizedMsgs(self):
+        """
+        Create and return a names, values message after reading all registrations
+        """
+        values_msg = StatisticsValues()
+        values_msg.header.stamp = rospy.Time.now()
+        if self.names_changed:
+            names_msg = StatisticsNames()
+            names_msg.header.stamp = values_msg.header.stamp
+            self.last_names_version += 1
+            names_msg.names_version = self.last_names_version
+        else:
+            names_msg = None
+        values_msg.names_version = self.last_names_version
+
+        for name, func in self.functions.iteritems():
+            if names_msg:
+                names_msg.names.append(name)
+            values_msg.values.append(func())
+        self.names_changed = False
+        return names_msg, values_msg
