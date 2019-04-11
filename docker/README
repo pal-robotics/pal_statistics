@@ -1,0 +1,8 @@
+Build with:
+docker build -t pal_graphite .
+
+Run with:
+docker run -it -p 3000:3000 pal_graphite bash
+
+An inside the docker:
+service grafana-server start
