@@ -14,7 +14,8 @@ Persistent storage
 
 Create volumens
 
+docker volume create grafana
 docker volume create graphite
 
-docker run -d -p 80:80 -p 3000:3000 -v graphite:/var/lib/graphite pal_statistics
+docker run -d -p 80:80 -p 3000:3000 -v graphite:/var/lib/graphite -v grafana:/var/lib/grafana pal_statistics
 
