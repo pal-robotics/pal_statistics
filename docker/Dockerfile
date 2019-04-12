@@ -1,7 +1,7 @@
 FROM ros:kinetic
 
 # utils
-RUN apt-get update && apt-get install --yes debconf-utils wget apache2
+RUN apt-get update && apt-get install --yes debconf-utils wget apache2 collectd
 
 # preseed graphite remove database question
 RUN echo "graphite-carbon graphite-carbon/postrm_remove_databases boolean false" | debconf-set-selections

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# start collectd
+service collectd start
+
 # start grafana
 service grafana-server start
 
