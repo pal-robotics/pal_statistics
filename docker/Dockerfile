@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install --yes graphite-carbon graphite-web libapac
 RUN wget https://dl.grafana.com/oss/release/grafana_6.1.3_amd64.deb
 RUN dpkg -i grafana_6.1.3_amd64.deb
 
+# collectd configuration
+COPY ./config/collectd.conf /etc/collectd/
+
 # grafana-web configuration
 RUN cp /usr/share/graphite-web/apache2-graphite.conf /etc/apache2/sites-available
 
