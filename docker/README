@@ -1,8 +1,20 @@
 Build with:
 docker build -t pal_graphite .
 
-Run with:
-docker run -it -p 3000:3000 pal_graphite bash
 
-An inside the docker:
-service grafana-server start
+Run in background:
+docker run -d -p 80:80 -p 3000:3000 pal_graphite
+
+
+Run in interactive:
+docker run -it -p 80:80 -p 3000:3000 pal_graphite bash
+
+
+Persistent storage
+
+Create volumens
+
+docker volume create graphite
+
+docker run -d -p 80:80 -p 3000:3000 -v graphite:/var/lib/graphite pal_graphite
+
