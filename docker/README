@@ -12,7 +12,7 @@ docker run -it -p 80:80 -p 3000:3000 pal_statistics bash
 
 Persistent storage
 
-Create volumens
+Create volumes
 
 docker volume create grafana
 docker volume create graphite
