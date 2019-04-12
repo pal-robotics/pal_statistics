@@ -12,3 +12,7 @@ RUN apt-get update && apt-get install --yes graphite-carbon graphite-web
 RUN wget https://dl.grafana.com/oss/release/grafana_6.1.3_amd64.deb
 RUN dpkg -i grafana_6.1.3_amd64.deb
 
+# entrypoint
+COPY ./entrypoint.sh /
+ENTRYPOINT ["/entrypoint.sh"]
+
