@@ -1,0 +1,21 @@
+Build with:
+docker build -t pal_statistics .
+
+
+Run in background:
+docker run -d -p 80:80 -p 3000:3000 pal_statistics
+
+
+Run in interactive:
+docker run -it -p 80:80 -p 3000:3000 pal_statistics bash
+
+
+Persistent storage
+
+Create volumes
+
+docker volume create grafana
+docker volume create graphite
+
+docker run -d -p 80:80 -p 2003:2003 -p 2004:2004 -p 3000:3000 -v graphite:/var/lib/graphite -v grafana:/var/lib/grafana pal_statistics
+
