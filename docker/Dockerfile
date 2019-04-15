@@ -1,4 +1,4 @@
-FROM ros:kinetic
+FROM ubuntu:xenial
 
 # utils
 RUN apt-get update && apt-get install --yes debconf-utils wget apache2 collectd
