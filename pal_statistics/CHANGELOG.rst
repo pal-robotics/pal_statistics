@@ -2,6 +2,18 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'optimized-msg' into 'erbium-devel'
+  Optimized msg
+  See merge request qa/pal_statistics!15
+* Update python api to new msgs
+* Rename full statistics topic
+* Add new messages
+* Change internal structure from vector of pairs to pair of vectors
+* Add missing add_dependencies
+* Contributors: Victor Lopez
+
 1.1.1 (2018-12-19)
 ------------------
 * Merge branch 'correct-stamp' into 'erbium-devel'
