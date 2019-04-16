@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.2.0 (2019-04-16)
+------------------
 * Merge branch 'optimized-msg' into 'erbium-devel'
   Optimized msg
   See merge request qa/pal_statistics!15
