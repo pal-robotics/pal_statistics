@@ -20,6 +20,8 @@
 #include <map>
 #include <ros/ros.h>
 #include <pal_statistics_msgs/Statistics.h>
+#include <pal_statistics_msgs/StatisticsNames.h>
+#include <pal_statistics_msgs/StatisticsValues.h>
 #include <pal_statistics/static_circular_buffer.h>
 namespace pal_statistics
 {
@@ -195,16 +197,17 @@ public:
   /**
     @brief fills message with the last captured values.
     */
-  void fillMsg(pal_statistics_msgs::Statistics &msg);
+  void fillMsg(pal_statistics_msgs::StatisticsNames &names, pal_statistics_msgs::StatisticsValues &value);
 
   /**
    * @brief smartFillMsg Attempts to minimize the amount of string copies
+   * @return true if a smartfill was possible
    *
    * Assumes that msg has already been filled before, and if no variables have been
    * registered/deregistered/enabled/disabled since the last call to this function, will
    * only update the values.
    */
-  void smartFillMsg(pal_statistics_msgs::Statistics &msg);
+  bool smartFillMsg(pal_statistics_msgs::StatisticsNames &names, pal_statistics_msgs::StatisticsValues &values);
   /**
    * @return the number of variables registered
    */
@@ -215,11 +218,13 @@ public:
   
   // How many messages where lost because the buffer was full
   unsigned int overwritten_data_count_;
+
 private:
   void deleteElement(size_t index);
   void registrationsChanged();
 
   int last_id_;
+  unsigned int names_version_;
 
   // Bidirectional map between names and ids.
   // Can have multiple variables with the same name but different id, but not multiple id
@@ -233,8 +238,17 @@ private:
   std::vector<VariableHolder> references_;
   std::vector<bool> enabled_;
 
-  typedef std::vector<std::pair<IdType, double>> LastValues; 
-  typedef std::pair<LastValues, ros::Time> LastValuesStamped;
+  struct NameValues
+  {
+    NameValues(size_t capacity)
+      : names(capacity, IdType(0)), values(capacity, 0.)
+    {}
+    
+    std::vector<IdType> names;
+    std::vector<double> values;
+  };
+
+  typedef std::pair<NameValues, ros::Time> LastValuesStamped;
   StaticCircularBuffer<LastValuesStamped> last_values_buffer_;
 
   bool registrations_changed_;

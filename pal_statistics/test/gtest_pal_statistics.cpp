@@ -21,30 +21,47 @@ namespace pal_statistics
 class PalStatisticsTest : public ::testing::Test
 {
 public:
-  PalStatisticsTest() : spinner_(1, &queue_)
+  PalStatisticsTest()
   {
     var1_ = 0.0;
     var2_ = 0.5;
     container_.resize(5);
 
     nh_.setCallbackQueue(&queue_);
-    sub_ = nh_.subscribe(DEFAULT_STATISTICS_TOPIC, 1, &PalStatisticsTest::topicCb, this);
-    spinner_.start();
+    sub_ = nh_.subscribe(std::string(DEFAULT_STATISTICS_TOPIC) + "/full", 1, &PalStatisticsTest::fullTopicCb, this);
+    names_sub_ = nh_.subscribe(std::string(DEFAULT_STATISTICS_TOPIC) + "/names", 1, &PalStatisticsTest::namesTopicCb, this);
+    values_sub_ = nh_.subscribe(std::string(DEFAULT_STATISTICS_TOPIC) + "/values", 1, &PalStatisticsTest::valuesTopicCb, this);
   }
-
-  void topicCb(const pal_statistics_msgs::StatisticsConstPtr &msg)
+  
+  void fullTopicCb(const pal_statistics_msgs::StatisticsConstPtr &msg)
   {
     last_msg_ = msg;
   }
-  
+  void namesTopicCb(const pal_statistics_msgs::StatisticsNamesConstPtr &msg)
+  {
+    last_names_msg_ = msg;
+  }
+  void valuesTopicCb(const pal_statistics_msgs::StatisticsValuesConstPtr &msg)
+  {
+    last_values_msg_ = msg;
+  }
+  void resetMsgs()
+  {
+    last_msg_.reset();
+    // last names should not be reset, because it's not always published and you'll be using the last one
+    last_values_msg_.reset();
+  }
   bool waitForMsg(const ros::Duration &timeout)
   {
     ros::Time end = ros::Time::now() + timeout;
     while (ros::Time::now() < end)
     {
+      queue_.callAvailable();
       ros::Duration(1e-4).sleep();
-      if (last_msg_.get())
+      if (last_msg_.get() && last_values_msg_.get()) 
+      {
         return true;
+      }
     }
     return false;
   }
@@ -55,9 +72,12 @@ protected:
   std::vector<int> container_;
   ros::NodeHandle nh_;
   ros::CallbackQueue queue_;
-  ros::AsyncSpinner spinner_;
   ros::Subscriber sub_;
+  ros::Subscriber names_sub_;
+  ros::Subscriber values_sub_;
   pal_statistics_msgs::StatisticsConstPtr last_msg_;
+  pal_statistics_msgs::StatisticsNamesConstPtr last_names_msg_;
+  pal_statistics_msgs::StatisticsValuesConstPtr last_values_msg_;
 };
 
 
@@ -447,7 +467,7 @@ TEST_F(PalStatisticsTest, stressAsync)
   ros::AsyncSpinner spinner(1, &async_queue);  
   spinner.start();
   ros::Subscriber sub = async_nh.subscribe<pal_statistics_msgs::Statistics>(
-      DEFAULT_STATISTICS_TOPIC, 1000000,
+      std::string(DEFAULT_STATISTICS_TOPIC) + "/full", 1000000,
       [&](const pal_statistics_msgs::StatisticsConstPtr &) { received_messages++; });
   while (sub.getNumPublishers() == 0)
   {
@@ -583,10 +603,8 @@ TEST_F(PalStatisticsTest, singlePublish)
       boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
   double d = 0.123;
   registry->publishCustomStatistic("single_stat", d);
-  //Wait for message
-  ros::Duration(0.5).sleep();
-
-
+  
+  waitForMsg(ros::Duration(0.2));
   EXPECT_TRUE(last_msg_.get());
   ASSERT_EQ(1, last_msg_->statistics.size());
   EXPECT_EQ("single_stat", last_msg_->statistics[0].name);
@@ -653,6 +671,55 @@ TEST_F(PalStatisticsTest, chaosTest3)
 }
 
 
+TEST_F(PalStatisticsTest, splitMsgTest)
+{
+  std::string topic("other_topic");
+  RegistrationsRAII bookkeeping;
+  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var1", &var1_, NULL);
+  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var1_bk", &var1_, &bookkeeping);
+  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var2", &var2_, NULL);
+  REGISTER_VARIABLE_SIMPLE(DEFAULT_STATISTICS_TOPIC, &var2_, &bookkeeping);
+  // Time for publisher to connect to subscriber
+  ros::Duration(0.2).sleep();
+  unsigned int old_names_version = 0;
+  for (int i = 0; i < 4; ++i)
+  {
+    for (bool remove : {false, true})
+    {
+      if (!remove)
+      {
+        REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var" + std::to_string(i), &var2_, NULL);
+      }
+      else
+      {
+        UNREGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var" + std::to_string(i));
+      }
+      SCOPED_TRACE(std::string("Iteration ") + std::to_string(i) + " remove " +
+                   std::to_string(remove));
+      
+      resetMsgs();
+      PUBLISH_STATISTICS(DEFAULT_STATISTICS_TOPIC);
+      ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
+      ASSERT_EQ(last_msg_->header.stamp, last_names_msg_->header.stamp);
+      ASSERT_EQ(last_names_msg_->header.stamp, last_values_msg_->header.stamp);
+      ASSERT_EQ(last_names_msg_->names_version, last_values_msg_->names_version);
+      ASSERT_GT(last_names_msg_->names_version, old_names_version);
+      old_names_version = last_names_msg_->names_version;
+
+      ASSERT_EQ(getVariables(*last_msg_), last_names_msg_->names);
+      
+      resetMsgs();
+      PUBLISH_STATISTICS(DEFAULT_STATISTICS_TOPIC);
+      ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
+      ASSERT_LT(last_names_msg_->header.stamp, last_values_msg_->header.stamp);
+      ASSERT_EQ(last_names_msg_->names_version, last_values_msg_->names_version);
+      ASSERT_EQ(last_names_msg_->names_version, old_names_version);
+      
+    }
+  }
+}
+
+
 
 
 }  // namespace pal_statistics
@@ -667,3 +734,4 @@ int main(int argc, char **argv)
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
+

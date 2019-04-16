@@ -65,7 +65,7 @@ public:
    * @brief publish Reads the values of all registered variables and publishes them to the
    * topic associated to this object.
    * @warning This function may lock if another thread is adding/removing registered
-   * variables, use publishAsync if you need RT safety
+   * variables, it may allocate memory, use publishAsync if you need RT safety
    */
   void publish();
 
@@ -137,8 +137,13 @@ private:
    * calling this
    */
   void updateMsgUnsafe();
-  
-  void updateMsg(pal_statistics_msgs::Statistics &msg, bool smart_fill = false);
+
+  /**
+   * @brief updateMsg update names and values, optionally using smartfill to minimize copying
+   * @return true if a smartfill was performed
+   */
+  bool updateMsg(pal_statistics_msgs::StatisticsNames &names,
+                 pal_statistics_msgs::StatisticsValues &values, bool smart_fill = false);
 
   void publisherThreadCycle();
   
@@ -152,6 +157,11 @@ private:
    * @brief handlePendingDisables Empties by handling the queue of disabled/enabled ids.
    */
   void handlePendingDisables(const boost::unique_lock<boost::mutex> &data_lock);
+  
+  /**
+   * @brief doPublish publishes the subscribed topics, requires mutex
+   */
+  void doPublish(bool publish_names_msg = true);
   
   ros::NodeHandle nh_;
 
@@ -181,10 +191,28 @@ private:
   // To avoid deadlocks, should always be acquired after data_mutex_
   boost::mutex pub_mutex_;
   ros::Publisher pub_;
+  ros::Publisher pub_names_;
+  ros::Publisher pub_values_;
+  
   bool is_data_ready_;
   boost::shared_ptr<boost::thread> publisher_thread_;
-  pal_statistics_msgs::Statistics msg_;
   
+  struct GeneratedStatistics
+  {
+    GeneratedStatistics() 
+     : last_names_version_(-1)
+    {}
+    void update(const pal_statistics_msgs::StatisticsNames &names,
+                const pal_statistics_msgs::StatisticsValues &values);
+    
+    /// This message is generated using an updated StatiticsNames and StatisticsValues
+    pal_statistics_msgs::Statistics msg_;
+    unsigned int last_names_version_;
+  };
+
+  pal_statistics_msgs::StatisticsNames names_msg_;
+  pal_statistics_msgs::StatisticsValues values_msg_;
+  GeneratedStatistics generated_statistics_;  
   // Internal stats
   unsigned int publish_async_attempts_;
   unsigned int publish_async_failures_;

@@ -17,6 +17,8 @@ add_message_files(
     FILES
         Statistic.msg
         Statistics.msg
+        StatisticsNames.msg
+        StatisticsValues.msg
 )
 
 generate_messages(
