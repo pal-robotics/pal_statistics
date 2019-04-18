@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.2.1 (2019-04-18)
+------------------
 * Fix stamp of full messages
 * Contributors: Victor Lopez
 
