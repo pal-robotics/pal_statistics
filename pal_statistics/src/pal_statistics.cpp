@@ -248,7 +248,7 @@ void StatisticsRegistry::GeneratedStatistics::update(
     const pal_statistics_msgs::StatisticsNames &names,
     const pal_statistics_msgs::StatisticsValues &values)
 {
-  msg_.header = names.header;
+  msg_.header = values.header;
   if (last_names_version_ == names.names_version && !msg_.statistics.empty())
   {
     // only need to update the values
