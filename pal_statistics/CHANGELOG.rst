@@ -2,6 +2,11 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix stamp of full messages
+* Contributors: Victor Lopez
+
 1.2.0 (2019-04-16)
 ------------------
 * Merge branch 'optimized-msg' into 'erbium-devel'
