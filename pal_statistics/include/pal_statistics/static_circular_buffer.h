@@ -1,10 +1,19 @@
-/*
-  @file
-  
-  @author victor
-  
-  @copyright (c) 2018 PAL Robotics SL. All Rights Reserved
-*/
+/**
+ * Copyright (C) 2019 PAL Robotics S.L.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ **/
 #ifndef STATICCIRCULARBUFFER_H
 #define STATICCIRCULARBUFFER_H
 
@@ -15,8 +24,8 @@
  * outside of the constructor, destructor and resize methods.
  *
  * The Buffer can only be used by reading/writing to the existing elements
- * 
- * Cannot use boost::circular_buffer because popping a vector destroys it and 
+ *
+ * Cannot use boost::circular_buffer because popping a vector destroys it and
  * deallocates memory
  */
 template <typename T, typename Allocator = std::allocator<T>>
@@ -24,19 +33,19 @@ class StaticCircularBuffer
 {
 public:
  typedef std::vector<T, Allocator> VectorType;
- 
+
   StaticCircularBuffer(size_t max_size, const T& val, const Allocator& alloc = Allocator())
     : buffer_(alloc)
   {
     set_capacity(max_size, val);
   }
-  
+
   StaticCircularBuffer()
   {
    begin_iterator_ = buffer_.begin();
-   end_iterator_ = begin_iterator_;    
+   end_iterator_ = begin_iterator_;
   }
-  
+
   /**
    * @brief clear Change the size of the buffer to 0 (not capacity)
    *              Only modifies internal iterators
@@ -58,7 +67,7 @@ public:
     buffer_.assign(max_size, val);
     clear();
   }
-  
+
 
   size_t capacity() const
   {
@@ -85,12 +94,12 @@ public:
   /**
    * @brief push_back Increases the buffer size (not capacity) by one, and returns a
    * reference to the last item in the buffer. This item may have been used in the past
-   * 
+   *
    * If the buffer becomes full, the returned reference already contains an item
    */
   T& push_back()
   {
-   
+
     auto old_it = end_iterator_;
     if (full_)
       advance(begin_iterator_);

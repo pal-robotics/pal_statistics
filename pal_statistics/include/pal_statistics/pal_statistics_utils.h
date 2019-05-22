@@ -1,10 +1,19 @@
-/*
-  @file
-
-  @author victor
-
-  @copyright (c) 2018 PAL Robotics SL. All Rights Reserved
-*/
+/**
+ * Copyright (C) 2019 PAL Robotics S.L.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ **/
 #ifndef PAL_STATISTICS_UTILS_H
 #define PAL_STATISTICS_UTILS_H
 
@@ -96,7 +105,7 @@ private:
  * @brief The RegistrationsRAII class holds handles to registered variables and when it is
  * destroyed, unregisters them automatically.
  */
-class RegistrationsRAII 
+class RegistrationsRAII
 {
 public:
   RegistrationsRAII();
@@ -108,19 +117,19 @@ public:
   bool enable(const std::string &name);
   bool enable(IdType id);
   bool enableAll();
-  
+
   bool disable(const std::string &name);
   bool disable(IdType id);
   bool disableAll();
-  
+
 private:
   // This object should not be copied, because Registration is not copiable
   RegistrationsRAII( const RegistrationsRAII& ) = delete; // non construction-copyable
   RegistrationsRAII& operator=( const RegistrationsRAII& ) = delete; // non copyable
-  
-  std::vector<Registration>::iterator find(const std::string &name);  
+
+  std::vector<Registration>::iterator find(const std::string &name);
   std::vector<Registration>::iterator find(IdType id);
-  
+
   boost::mutex mutex_;
   std::vector<Registration> registrations_;
 };
@@ -212,10 +221,10 @@ public:
    * @return the number of variables registered
    */
   size_t size() const;
-  
+
   bool hasPendingData() const;
-  
-  
+
+
   // How many messages where lost because the buffer was full
   unsigned int overwritten_data_count_;
 
@@ -243,7 +252,7 @@ private:
     NameValues(size_t capacity)
       : names(capacity, IdType(0)), values(capacity, 0.)
     {}
-    
+
     std::vector<IdType> names;
     std::vector<double> values;
   };

@@ -1,10 +1,19 @@
-/**************************************************************************
-**
-**  Author: victor
-**  Created on: 2018/06/06
-**
-**  Copyright (c) 2018 PAL Robotics SL. All Rights Reserved
-**************************************************************************/
+/**
+ * Copyright (C) 2019 PAL Robotics S.L.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ **/
 
 #ifndef _PAL_STATISTICS_H_
 #define _PAL_STATISTICS_H_
@@ -39,7 +48,7 @@ public:
   StatisticsRegistry(const std::string &topic);
 
   virtual ~StatisticsRegistry();
-  
+
   /**
    * @brief registerVariable Specialization for double*, the most common case, to avoid
    * going through a boost function call to read the variable
@@ -90,7 +99,7 @@ public:
    * @return
    */
   pal_statistics_msgs::Statistics createMsg();
-  
+
   /**
    * @brief publishCustomStatistic publishes a one-time statistic
    */
@@ -105,29 +114,29 @@ public:
     msg.header.stamp = ros::Time::now();
     pub_.publish(msg);
   }
-  
+
   /**
    * @brief publishCustomStatistic publishes a one-time statistics msg
    */
   void publishCustomStatistics(const pal_statistics_msgs::Statistics &msg)
   {
-    pub_.publish(msg);    
+    pub_.publish(msg);
   }
-  
+
   /**
    * These functions disable/enable the publication of one or more variables
-   * 
+   *
    * They are RT safe and thread safe.
-   * They guarantee that on the next publish (or publishAsync) call, the specified variables will 
+   * They guarantee that on the next publish (or publishAsync) call, the specified variables will
    * or will not be read and published.
-   * 
-   * @warning If a publish is being executed while this function is being run, 
+   *
+   * @warning If a publish is being executed while this function is being run,
    * it will not take into account these modifications.
-   * 
-   * If you need a deterministic way of preventing a variable from being published, 
+   *
+   * If you need a deterministic way of preventing a variable from being published,
    * you need to unregister it, but it is not RT safe.
    */
-  bool enable(const IdType &id);  
+  bool enable(const IdType &id);
   bool disable(const IdType &id);
 
 private:
@@ -146,65 +155,65 @@ private:
                  pal_statistics_msgs::StatisticsValues &values, bool smart_fill = false);
 
   void publisherThreadCycle();
-  
+
   void startPublishThreadImpl();
 
   IdType registerInternal(const std::string &name, VariableHolder &&variable, RegistrationsRAII *bookkeeping, bool enabled);
-  
+
   bool setEnabledmpl(const IdType &id, bool enabled);
-  
+
   /**
    * @brief handlePendingDisables Empties by handling the queue of disabled/enabled ids.
    */
   void handlePendingDisables(const boost::unique_lock<boost::mutex> &data_lock);
-  
+
   /**
    * @brief doPublish publishes the subscribed topics, requires mutex
    */
   void doPublish(bool publish_names_msg = true);
-  
+
   ros::NodeHandle nh_;
 
   boost::mutex data_mutex_;
   RegistrationList registration_list_;
-    
+
   struct EnabledId
   {
     //Can't use a pair because it's not trivially copiable
     IdType id;
     bool enabled;
   };
-  
+
   /**
    * @brief disabled_ids_ this is used to keep track of enabled/disabled variables in a
    * lock free way
    *
    * enable/disable need to write, but they cannot be locked, and cannot be
-   * skipped if they fail to acquire a mutex. 
-   * Therefore they write to a lockfree  structure. 
+   * skipped if they fail to acquire a mutex.
+   * Therefore they write to a lockfree  structure.
    * This structure is processed in the next publish or publishAsync that has
    * the write lock and can modify shared structures.
    */
   LockFreeQueue<EnabledId> enabled_ids_;
-  
-  
+
+
   // To avoid deadlocks, should always be acquired after data_mutex_
   boost::mutex pub_mutex_;
   ros::Publisher pub_;
   ros::Publisher pub_names_;
   ros::Publisher pub_values_;
-  
+
   bool is_data_ready_;
   boost::shared_ptr<boost::thread> publisher_thread_;
-  
+
   struct GeneratedStatistics
   {
-    GeneratedStatistics() 
+    GeneratedStatistics()
      : last_names_version_(-1)
     {}
     void update(const pal_statistics_msgs::StatisticsNames &names,
                 const pal_statistics_msgs::StatisticsValues &values);
-    
+
     /// This message is generated using an updated StatiticsNames and StatisticsValues
     pal_statistics_msgs::Statistics msg_;
     unsigned int last_names_version_;
@@ -212,7 +221,7 @@ private:
 
   pal_statistics_msgs::StatisticsNames names_msg_;
   pal_statistics_msgs::StatisticsValues values_msg_;
-  GeneratedStatistics generated_statistics_;  
+  GeneratedStatistics generated_statistics_;
   // Internal stats
   unsigned int publish_async_attempts_;
   unsigned int publish_async_failures_;
