@@ -145,11 +145,12 @@ public:
     throw std::runtime_error("VariableHolder default constructor should never be called");
   }
 
-  VariableHolder(const double *const pointer) : variable_(pointer)
+  VariableHolder(const double *const pointer) : v_ptr_(pointer)
   {
+    v_ptr_ = pointer;
   }
 
-  VariableHolder(const boost::function<double()> &function) : variable_(function)
+  VariableHolder(const boost::function<double()> &function) : v_ptr_(nullptr), v_func_(function)
   {
   }
 
@@ -163,22 +164,24 @@ public:
 
   void operator=(const VariableHolder &&other)
   {
-    variable_ = std::move(other.variable_);
+    v_ptr_ = std::move(other.v_ptr_);
+    v_func_ = std::move(other.v_func_);
   }
   ~VariableHolder()
   {
   }
 
-  double getValue() const
+  inline double getValue() const
   {
-    if (variable_.type() == typeid(const double *))
-      return *boost::get<const double *>(variable_);
+    if (v_ptr_)
+      return *v_ptr_;
     else
-      return boost::get<boost::function<double()>>(variable_)();
+      return v_func_();
   }
 
 private:
-  boost::variant<const double *, boost::function<double()>> variable_;
+  const double *v_ptr_;
+   boost::function<double()> v_func_;
 };
 
 
@@ -258,6 +261,7 @@ private:
   };
 
   typedef std::pair<NameValues, ros::Time> LastValuesStamped;
+  bool all_enabled_;
   StaticCircularBuffer<LastValuesStamped> last_values_buffer_;
 
   bool registrations_changed_;
