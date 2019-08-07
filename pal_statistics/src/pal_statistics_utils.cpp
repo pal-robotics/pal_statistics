@@ -92,8 +92,6 @@ void RegistrationList::doUpdate()
 
   auto &last_values_stamped = last_values_buffer_.push_back();
   auto &last_values = last_values_stamped.first;
-  last_values.names.clear();
-  last_values.values.clear();
   last_values_stamped.second = ros::Time::now();
   assert(last_values.names.capacity() >= ids_.size());
   assert(last_values.values.capacity() >= ids_.size());
@@ -103,16 +101,18 @@ void RegistrationList::doUpdate()
   {
     last_values.names = ids_;   
     size_t ref_size = references_.size();
-    last_values.values.resize(ref_size);
     for (size_t i = 0; i < ref_size; ++i)
     {
         // Should never allocate memory because its capacity is able to hold all
         // variables
         last_values.values[i] = references_[i].getValue();
     }
+    last_values.values.resize(ref_size);
   }
   else
   {  
+    last_values.names.clear();
+    last_values.values.clear();
     // We know it doesn't change from another thread, and makes the condition check 50% faster
     size_t id_size = ids_.size();
     for (size_t i = 0; i < id_size; ++i)
