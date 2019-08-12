@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.0 (2019-08-12)
+------------------
 * Merge branch 'async-optimizations' into 'erbium-devel'
   Optimize async update when everything is enabled
   See merge request qa/pal_statistics!17
