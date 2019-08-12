@@ -2,6 +2,16 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'async-optimizations' into 'erbium-devel'
+  Optimize async update when everything is enabled
+  See merge request qa/pal_statistics!17
+* Smarter clear and resize of vectors when all enabled
+* Optimize async update when everything is enabled
+* Add LGPL3 version text
+* Contributors: Victor Lopez
+
 1.2.1 (2019-04-18)
 ------------------
 * Fix stamp of full messages
