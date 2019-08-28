@@ -2,6 +2,11 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix shadow variable warning
+* Contributors: Victor Lopez
+
 1.3.0 (2019-08-12)
 ------------------
 * Merge branch 'async-optimizations' into 'erbium-devel'
