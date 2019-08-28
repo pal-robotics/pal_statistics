@@ -122,8 +122,7 @@ bool operator!=(const MyAlloc<T1>&, const MyAlloc<T2>&) throw()
 TEST(BufferTest, basicTest)
 {
   StaticCircularBuffer<int> buffer;
-  int i = 0;
-  buffer.set_capacity(5, i);
+  buffer.set_capacity(5, 0);
 
 
   for (int i = 0; i < buffer.capacity(); ++i)
