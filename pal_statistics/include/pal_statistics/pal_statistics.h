@@ -203,7 +203,7 @@ private:
   ros::Publisher pub_names_;
   ros::Publisher pub_values_;
 
-  bool is_data_ready_;
+  std::atomic<bool> is_data_ready_;
   boost::shared_ptr<boost::thread> publisher_thread_;
 
   struct GeneratedStatistics

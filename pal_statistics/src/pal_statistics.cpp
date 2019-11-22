@@ -74,8 +74,8 @@ void StatisticsRegistry::publish()
 {
   boost::unique_lock<boost::mutex> data_lock(data_mutex_);
   handlePendingDisables(data_lock);
-  registration_list_.doUpdate();   
-  
+  registration_list_.doUpdate();
+
   boost::unique_lock<boost::mutex> pub_lock(pub_mutex_);
   bool minor_changes = updateMsg(names_msg_, values_msg_, true);
   data_lock.unlock(); //msg_ is covered by pub_mutex_
@@ -97,8 +97,8 @@ bool StatisticsRegistry::publishAsync()
     {
       boost::unique_lock<boost::mutex> data_lock(data_mutex_, boost::adopt_lock);
       handlePendingDisables(data_lock);
-      
-      registration_list_.doUpdate();    
+
+      registration_list_.doUpdate();
     }
     is_data_ready_ = true;
 
@@ -129,8 +129,8 @@ IdType StatisticsRegistry::registerInternal(const std::string &name, VariableHol
     boost::unique_lock<boost::mutex> data_lock(data_mutex_);
     id = registration_list_.registerVariable(name, std::move(variable), enabled);
     enabled_ids_.set_capacity(registration_list_.size());
-  } 
-    
+  }
+
   if (bookkeeping)
     bookkeeping->add(Registration(name, id, weak_from_this()));
   return id;
@@ -141,7 +141,7 @@ bool StatisticsRegistry::setEnabledmpl(const IdType &id, bool enabled)
   EnabledId aux;
   aux.enabled = enabled;
   aux.id = id;
-  
+
   return enabled_ids_.bounded_push(aux);
 }
 
@@ -151,12 +151,12 @@ void StatisticsRegistry::handlePendingDisables(const boost::unique_lock<boost::m
   {
     throw ros::Exception("Called handlePendingDisables without proper lock");
   }
-  
+
   EnabledId elem;
   while (enabled_ids_.pop(elem))
   {
     registration_list_.setEnabled(elem.id, elem.enabled);
-  }  
+  }
 }
 
 void StatisticsRegistry::doPublish(bool publish_names_msg)
@@ -166,8 +166,8 @@ void StatisticsRegistry::doPublish(bool publish_names_msg)
     generated_statistics_.update(names_msg_, values_msg_);
     pub_.publish(generated_statistics_.msg_);
   }
-  
-  // We don't check subscribers here, because this topic is latched and we 
+
+  // We don't check subscribers here, because this topic is latched and we
   // always want the latest version published
   if (publish_names_msg) //only publish strings if changed
   {
@@ -176,7 +176,7 @@ void StatisticsRegistry::doPublish(bool publish_names_msg)
   if (pub_values_.getNumSubscribers() > 0 ) //only publish strings if changed
   {
     pub_values_.publish(values_msg_);
-  }  
+  }
 }
 
 pal_statistics_msgs::Statistics StatisticsRegistry::createMsg()
@@ -187,7 +187,7 @@ pal_statistics_msgs::Statistics StatisticsRegistry::createMsg()
   GeneratedStatistics gen_sts;
   pal_statistics_msgs::StatisticsNames names;
   pal_statistics_msgs::StatisticsValues values;
-  
+
   updateMsg(names, values, false);
   gen_sts.update(names, values);
   return gen_sts.msg_;
@@ -195,16 +195,16 @@ pal_statistics_msgs::Statistics StatisticsRegistry::createMsg()
 
 bool StatisticsRegistry::enable(const IdType &id)
 {
-  return setEnabledmpl(id, true);  
+  return setEnabledmpl(id, true);
 }
 
 bool StatisticsRegistry::disable(const IdType &id)
 {
-  return setEnabledmpl(id, false);  
+  return setEnabledmpl(id, false);
 }
 
 bool StatisticsRegistry::updateMsg(pal_statistics_msgs::StatisticsNames &names,
-                                   pal_statistics_msgs::StatisticsValues &values, 
+                                   pal_statistics_msgs::StatisticsValues &values,
                                    bool smart_fill)
 {
   if (smart_fill)
@@ -221,19 +221,19 @@ void StatisticsRegistry::publisherThreadCycle()
   //wait until the variable is set
   while (!publisher_thread_.get())
     ros::WallDuration(5e-4).sleep();
-  
-  
+
+
   while (ros::ok() && !publisher_thread_->interruption_requested())
   {
     while (!is_data_ready_ && !publisher_thread_->interruption_requested())
       ros::WallDuration(5e-4).sleep();
-    
+
     boost::unique_lock<boost::mutex> data_lock(data_mutex_);
-    
+
     while (registration_list_.hasPendingData())
     {
       bool minor_changes = updateMsg(names_msg_, values_msg_, true);
-      
+
       boost::unique_lock<boost::mutex> pub_lock(pub_mutex_);
       data_lock.unlock();
       doPublish(!minor_changes);
