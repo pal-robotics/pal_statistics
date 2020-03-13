@@ -2,6 +2,14 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'use-atomic-bool' into 'erbium-devel'
+  Use atomic bool, because we need atomic operation
+  See merge request qa/pal_statistics!18
+* Use atomic bool, because we need atomic operation
+* Contributors: Victor Lopez, victor
+
 1.3.1 (2019-08-28)
 ------------------
 * Fix shadow variable warning
