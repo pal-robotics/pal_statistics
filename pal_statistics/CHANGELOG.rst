@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.4.0 (2020-03-13)
+------------------
 * Merge branch 'use-atomic-bool' into 'erbium-devel'
   Use atomic bool, because we need atomic operation
   See merge request qa/pal_statistics!18
