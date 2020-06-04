@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
   pal_statistics_msgs
   roscpp
   rospy
+  rosbag
 )
 catkin_python_setup()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -32,8 +33,19 @@ add_library(${PROJECT_NAME}
   src/pal_statistics_macros.cpp
 )
 
+add_library(extract_rosbag_signals
+  src/extract_rosbag_signals.cpp
+)
+
 ## Specify libraries to link a library or executable target against
  target_link_libraries(${PROJECT_NAME}
+   ${catkin_LIBRARIES}
+   ${Boost_LIBRARIES}
+ )
+
+## Specify libraries to link a library or executable target against
+ target_link_libraries(extract_rosbag_signals
+   ${PROJECT_NAME}
    ${catkin_LIBRARIES}
    ${Boost_LIBRARIES}
  )
@@ -74,7 +86,7 @@ add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 # )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME} extract_rosbag_signals
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
