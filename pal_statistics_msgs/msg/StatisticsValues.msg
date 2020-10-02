@@ -1,5 +1,5 @@
 # header
-Header header
+std_msgs/Header header
 
 # Statistics
 float64[] values
