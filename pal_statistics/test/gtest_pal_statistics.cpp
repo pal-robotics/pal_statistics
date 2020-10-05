@@ -8,6 +8,7 @@
 
 #include <pal_statistics/pal_statistics_macros.h>
 #include <pal_statistics/pal_statistics.h>
+#include <registration_list.h> // from src directory
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <climits>
@@ -522,7 +523,7 @@ TEST_F(PalStatisticsTest, stressAsync)
   group_executor->cancel();
 
   
-  EXPECT_EQ(success_async - registry->registration_list_.overwritten_data_count_, received_messages);
+  EXPECT_EQ(success_async - registry->registration_list_->overwritten_data_count_, received_messages);
 }
 
 TEST_F(PalStatisticsTest, concurrencyTest)

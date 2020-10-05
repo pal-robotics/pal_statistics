@@ -28,13 +28,20 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <mutex>
+#include <pal_statistics/pal_statistics_utils.h>
 #include <pal_statistics_msgs/msg/statistics.hpp>
 #include <pal_statistics_msgs/msg/statistics_names.hpp>
 #include <pal_statistics_msgs/msg/statistics_values.hpp>
-#include <pal_statistics/pal_statistics_utils.h>
 
 namespace pal_statistics
 {
+
+// forward declarations
+template <typename T>
+class LockFreeQueue;
+struct EnabledId;
+class RegistrationList;
+
 /**
  * @brief The StatisticsRegistry class reads the value of registered variables and
  * publishes them on the specified topic.
@@ -60,10 +67,7 @@ public:
    * going through a boost function call to read the variable
    */
   IdType registerVariable(const std::string &name, const double * variable, RegistrationsRAII *bookkeeping = NULL,
-                          bool enabled = true)
-  {
-    return registerInternal(name, VariableHolder(variable), bookkeeping, enabled);
-  }
+                          bool enabled = true);
 
   /**
    * @brief registerFunction Adds a function that returns double with the specified name
@@ -184,14 +188,7 @@ private:
   rclcpp::Logger logger_;
 
   std::mutex data_mutex_;
-  RegistrationList registration_list_;
-
-  struct EnabledId
-  {
-    //Can't use a pair because it's not trivially copiable
-    IdType id;
-    bool enabled;
-  };
+  std::unique_ptr<RegistrationList> registration_list_;
 
   /**
    * @brief disabled_ids_ this is used to keep track of enabled/disabled variables in a
@@ -203,7 +200,7 @@ private:
    * This structure is processed in the next publish or publishAsync that has
    * the write lock and can modify shared structures.
    */
-  LockFreeQueue<EnabledId> enabled_ids_;
+  std::unique_ptr<LockFreeQueue<EnabledId>> enabled_ids_;
 
 
   // To avoid deadlocks, should always be acquired after data_mutex_
