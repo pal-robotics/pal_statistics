@@ -32,55 +32,55 @@ constexpr char DEFAULT_STATISTICS_TOPIC[] = "pal_statistics";
 
 namespace pal_statistics
 {
-boost::shared_ptr<StatisticsRegistry> getRegistry(const std::string &topic);
+std::shared_ptr<StatisticsRegistry> getRegistry(const std::shared_ptr<rclcpp::Node> &node, const std::string &topic);
 } //namespace pal_statistics
 
 
 //Trick to use macros with optional argument, in practice there are three version of the macro:
-//REGISTER_VARIABLE(TOPIC, ID, VARIABLE, BOOKKEEPING) -> full specification of arguments
-//REGISTER_VARIABLE(TOPIC, ID, VARIABLE)              -> No bookkeeping
+//REGISTER_VARIABLE(NODE, TOPIC, ID, VARIABLE, BOOKKEEPING) -> full specification of arguments
+//REGISTER_VARIABLE(NODE, TOPIC, ID, VARIABLE)              -> No bookkeeping
 
 //https://stackoverflow.com/questions/3046889/optional-parameters-with-c-macros?
-#define REGISTER_VARIABLE_3_ARGS(TOPIC, ID, VARIABLE)                              \
-  customRegister(*pal_statistics::getRegistry(TOPIC), ID, VARIABLE);
-#define REGISTER_VARIABLE_4_ARGS(TOPIC, ID, VARIABLE, BOOKKEEPING)                              \
-  customRegister(*pal_statistics::getRegistry(TOPIC), ID, VARIABLE, BOOKKEEPING);
+#define REGISTER_VARIABLE_4_ARGS(NODE, TOPIC, ID, VARIABLE)                              \
+  customRegister(*pal_statistics::getRegistry(NODE, TOPIC), ID, VARIABLE);
+#define REGISTER_VARIABLE_5_ARGS(NODE, TOPIC, ID, VARIABLE, BOOKKEEPING)                              \
+  customRegister(*pal_statistics::getRegistry(NODE, TOPIC), ID, VARIABLE, BOOKKEEPING);
 
-#define GET_5TH_ARG(arg1, arg2, arg3, arg4, arg5, ...) arg5
+#define GET_6TH_ARG(arg1, arg2, arg3, arg4, arg5, arg6, ...) arg6
 #define REGISTER_MACRO_CHOOSER(...) \
-    GET_5TH_ARG(__VA_ARGS__, REGISTER_VARIABLE_4_ARGS, \
-                REGISTER_VARIABLE_3_ARGS)
+    GET_6TH_ARG(__VA_ARGS__, REGISTER_VARIABLE_5_ARGS, \
+                REGISTER_VARIABLE_4_ARGS)
 
 #define REGISTER_VARIABLE(...) REGISTER_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 // Register the variable with the same name as the variable name
-#define REGISTER_VARIABLE_SIMPLE(TOPIC, VARIABLE, BOOKKEEPING)                              \
-  customRegister(*pal_statistics::getRegistry(TOPIC), #VARIABLE, VARIABLE, BOOKKEEPING);
+#define REGISTER_VARIABLE_SIMPLE(NODE, TOPIC, VARIABLE, BOOKKEEPING)                              \
+  customRegister(*pal_statistics::getRegistry(NODE, TOPIC), #VARIABLE, VARIABLE, BOOKKEEPING);
 
 
-#define PUBLISH_STATISTICS(TOPIC) pal_statistics::getRegistry(TOPIC)->publish();
+#define PUBLISH_STATISTICS(NODE, TOPIC) pal_statistics::getRegistry(NODE, TOPIC)->publish();
 
-#define PUBLISH_ASYNC_STATISTICS(TOPIC) pal_statistics::getRegistry(TOPIC)->publishAsync();
+#define PUBLISH_ASYNC_STATISTICS(NODE, TOPIC) pal_statistics::getRegistry(NODE, TOPIC)->publishAsync();
 
-#define START_PUBLISH_THREAD(TOPIC) pal_statistics::getRegistry(TOPIC)->startPublishThread();
+#define START_PUBLISH_THREAD(NODE, TOPIC) pal_statistics::getRegistry(NODE, TOPIC)->startPublishThread();
 
-#define PUBLISH_CUSTOM_STATISTIC(TOPIC, ID, VALUE) pal_statistics::getRegistry(TOPIC)->publishCustomStatistic(ID, VALUE)
+#define PUBLISH_CUSTOM_STATISTIC(NODE, TOPIC, ID, VALUE) pal_statistics::getRegistry(NODE, TOPIC)->publishCustomStatistic(ID, VALUE)
 
-#define PUBLISH_CUSTOM_STATISTICS_MSG(TOPIC, MSG) pal_statistics::getRegistry(TOPIC)->publishCustomStatistics(MSG)
+#define PUBLISH_CUSTOM_STATISTICS_MSG(NODE, TOPIC, MSG) pal_statistics::getRegistry(NODE, TOPIC)->publishCustomStatistics(MSG)
 
 
-#define UNREGISTER_VARIABLE_2_ARGS(TOPIC, ID)                                            \
-  pal_statistics::getRegistry(TOPIC)->unregisterVariable(ID);
-#define UNREGISTER_VARIABLE_3_ARGS(TOPIC, ID, BOOKKEEPING)                               \
-  pal_statistics::getRegistry(TOPIC)->unregisterVariable(ID, BOOKKEEPING);
+#define UNREGISTER_VARIABLE_3_ARGS(NODE, TOPIC, ID)                                            \
+  pal_statistics::getRegistry(NODE, TOPIC)->unregisterVariable(ID);
+#define UNREGISTER_VARIABLE_4_ARGS(NODE, TOPIC, ID, BOOKKEEPING)                               \
+  pal_statistics::getRegistry(NODE, TOPIC)->unregisterVariable(ID, BOOKKEEPING);
 
-#define GET_4TH_ARG(arg1, arg2, arg3, arg4, ...) arg4
+#define GET_5TH_ARG(arg1, arg2, arg3, arg4, arg5, ...) arg5
 #define UNREGISTER_MACRO_CHOOSER(...) \
-    GET_4TH_ARG(__VA_ARGS__, UNREGISTER_VARIABLE_3_ARGS, \
-                UNREGISTER_VARIABLE_2_ARGS)
+    GET_5TH_ARG(__VA_ARGS__, UNREGISTER_VARIABLE_4_ARGS, \
+                UNREGISTER_VARIABLE_3_ARGS)
 
-//UNREGISTER_VARIABLE(TOPIC, ID, BOOKKEEPING) -> full specification of arguments
-//UNREGISTER_VARIABLE(TOPIC, ID)              -> No bookkeeping
+//UNREGISTER_VARIABLE(NODE, TOPIC, ID, BOOKKEEPING) -> full specification of arguments
+//UNREGISTER_VARIABLE(NODE, TOPIC, ID)              -> No bookkeeping
 #define UNREGISTER_VARIABLE(...) UNREGISTER_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 

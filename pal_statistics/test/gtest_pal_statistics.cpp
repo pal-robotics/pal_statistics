@@ -10,12 +10,11 @@
 #include <pal_statistics/pal_statistics.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <ros/ros.h>
-#include <ros/callback_queue.h>
 #include <climits>
 #include <cfloat>
 
 using ::testing::UnorderedElementsAre;
+using std::placeholders::_1;
 namespace pal_statistics
 {
 class PalStatisticsTest : public ::testing::Test
@@ -23,25 +22,40 @@ class PalStatisticsTest : public ::testing::Test
 public:
   PalStatisticsTest()
   {
+    node_ = std::make_shared<rclcpp::Node>("pal_statistics_test");
+    executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+    executor_->add_node(node_);
+
+
     var1_ = 0.0;
     var2_ = 0.5;
     container_.resize(5);
+    // TODO @v-lopez
+    //nh_.setCallbackQueue(&queue_);
 
-    nh_.setCallbackQueue(&queue_);
-    sub_ = nh_.subscribe(std::string(DEFAULT_STATISTICS_TOPIC) + "/full", 1, &PalStatisticsTest::fullTopicCb, this);
-    names_sub_ = nh_.subscribe(std::string(DEFAULT_STATISTICS_TOPIC) + "/names", 1, &PalStatisticsTest::namesTopicCb, this);
-    values_sub_ = nh_.subscribe(std::string(DEFAULT_STATISTICS_TOPIC) + "/values", 1, &PalStatisticsTest::valuesTopicCb, this);
+    sub_ = node_->create_subscription<pal_statistics_msgs::msg::Statistics>(
+      std::string(DEFAULT_STATISTICS_TOPIC) + "/full", 1,
+      std::bind(&PalStatisticsTest::fullTopicCb, this, std::placeholders::_1));
+    names_sub_ = node_->create_subscription<pal_statistics_msgs::msg::StatisticsNames>(
+      std::string(DEFAULT_STATISTICS_TOPIC) + "/names", 1,
+      std::bind(&PalStatisticsTest::namesTopicCb, this, std::placeholders::_1));
+    values_sub_ =
+      node_->create_subscription<pal_statistics_msgs::msg::StatisticsValues>(
+      std::string(
+        DEFAULT_STATISTICS_TOPIC) + "/values", 1,
+      std::bind(&PalStatisticsTest::valuesTopicCb, this, std::placeholders::_1));
+
   }
   
-  void fullTopicCb(const pal_statistics_msgs::StatisticsConstPtr &msg)
+  void fullTopicCb(const pal_statistics_msgs::msg::Statistics::SharedPtr msg)
   {
     last_msg_ = msg;
   }
-  void namesTopicCb(const pal_statistics_msgs::StatisticsNamesConstPtr &msg)
+  void namesTopicCb(const pal_statistics_msgs::msg::StatisticsNames::SharedPtr msg)
   {
     last_names_msg_ = msg;
   }
-  void valuesTopicCb(const pal_statistics_msgs::StatisticsValuesConstPtr &msg)
+  void valuesTopicCb(const pal_statistics_msgs::msg::StatisticsValues::SharedPtr msg)
   {
     last_values_msg_ = msg;
   }
@@ -51,14 +65,16 @@ public:
     // last names should not be reset, because it's not always published and you'll be using the last one
     last_values_msg_.reset();
   }
-  bool waitForMsg(const ros::Duration &timeout)
+
+  bool waitForMsg(const std::chrono::milliseconds & timeout = std::chrono::milliseconds{300})
   {
-    ros::Time end = ros::Time::now() + timeout;
-    while (ros::Time::now() < end)
+
+    rclcpp::Time end = node_->get_clock()->now() + timeout;
+    while (node_->get_clock()->now() < end)
     {
-      queue_.callAvailable();
-      ros::Duration(1e-4).sleep();
-      if (last_msg_.get() && last_values_msg_.get()) 
+      executor_->spin_some();
+      rclcpp::sleep_for(std::chrono::nanoseconds(100));
+      if (last_msg_.get() && last_values_msg_.get() && last_names_msg_.get())
       {
         return true;
       }
@@ -70,18 +86,20 @@ protected:
   double var1_;
   double var2_;
   std::vector<int> container_;
-  ros::NodeHandle nh_;
-  ros::CallbackQueue queue_;
-  ros::Subscriber sub_;
-  ros::Subscriber names_sub_;
-  ros::Subscriber values_sub_;
-  pal_statistics_msgs::StatisticsConstPtr last_msg_;
-  pal_statistics_msgs::StatisticsNamesConstPtr last_names_msg_;
-  pal_statistics_msgs::StatisticsValuesConstPtr last_values_msg_;
+  std::shared_ptr<rclcpp::Node> node_;
+  rclcpp::Executor::SharedPtr executor_;
+
+  rclcpp::Subscription<pal_statistics_msgs::msg::Statistics>::SharedPtr sub_;
+  rclcpp::Subscription<pal_statistics_msgs::msg::StatisticsNames>::SharedPtr names_sub_;
+  rclcpp::Subscription<pal_statistics_msgs::msg::StatisticsValues>::SharedPtr values_sub_;
+
+  pal_statistics_msgs::msg::Statistics::ConstSharedPtr last_msg_;
+  pal_statistics_msgs::msg::StatisticsNames::ConstSharedPtr last_names_msg_;
+  pal_statistics_msgs::msg::StatisticsValues::ConstSharedPtr last_values_msg_;
 };
 
 
-std::vector<std::string> getVariables(const pal_statistics_msgs::Statistics &msg)
+std::vector<std::string> getVariables(const pal_statistics_msgs::msg::Statistics &msg)
 {
   std::vector<std::string> v;
   for (const auto &s : msg.statistics)
@@ -91,7 +109,7 @@ std::vector<std::string> getVariables(const pal_statistics_msgs::Statistics &msg
   return v;
 }
 
-std::map<std::string, double> getVariableAndValues(const pal_statistics_msgs::Statistics &msg)
+std::map<std::string, double> getVariableAndValues(const pal_statistics_msgs::msg::Statistics &msg)
 {
   std::map<std::string, double> m;
   for (const auto &s : msg.statistics)
@@ -103,8 +121,8 @@ std::map<std::string, double> getVariableAndValues(const pal_statistics_msgs::St
 
 TEST_F(PalStatisticsTest, misUse)
 {
-  boost::shared_ptr<StatisticsRegistry> registry =
-      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  std::shared_ptr<StatisticsRegistry> registry =
+    std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
   registry->unregisterVariable("foo");
   customRegister(*registry, "var1", &var1_);
   customRegister(*registry, "var1", &var1_);
@@ -114,17 +132,18 @@ TEST_F(PalStatisticsTest, misUse)
 
 TEST_F(PalStatisticsTest, checkValues)
 {
-  boost::shared_ptr<StatisticsRegistry> registry =
-      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  std::shared_ptr<StatisticsRegistry> registry =
+      std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
 
   customRegister(*registry, "var1", &var1_);
   customRegister(*registry, "var2", &var2_);
 
   var1_ = 1.0;
   var2_ = 2.0;
-  pal_statistics_msgs::Statistics msg = registry->createMsg();
+  pal_statistics_msgs::msg::Statistics msg = registry->createMsg();
 
-  EXPECT_NEAR(ros::Time::now().toSec(), msg.header.stamp.toSec(), 0.001);
+  EXPECT_NEAR(node_->get_clock()->now().seconds(),
+              rclcpp::Time(msg.header.stamp).seconds(), 0.001);
   auto s = getVariableAndValues(msg);
   EXPECT_EQ(var1_, s["var1"]);
   EXPECT_EQ(var2_, s["var2"]);
@@ -139,8 +158,8 @@ TEST_F(PalStatisticsTest, checkValues)
 
 TEST_F(PalStatisticsTest, typeTest)
 {
-  boost::shared_ptr<StatisticsRegistry> registry =
-      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  std::shared_ptr<StatisticsRegistry> registry =
+      std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
 
 
   short s = std::numeric_limits<short>::min();
@@ -178,9 +197,9 @@ TEST_F(PalStatisticsTest, typeTest)
   customRegister(*registry, "max_d", &max_d);
   customRegister(*registry, "true_b", &true_b);
   customRegister(*registry, "false_b", &false_b);
-  customRegister(*registry, "container_size", boost::function<size_t ()>(boost::bind(&std::vector<int>::size,
+  customRegister(*registry, "container_size", std::function<size_t ()>(std::bind(&std::vector<int>::size,
                                                            &container_)));
-  pal_statistics_msgs::Statistics msg = registry->createMsg();
+  pal_statistics_msgs::msg::Statistics msg = registry->createMsg();
 
   auto values = getVariableAndValues(msg);
   EXPECT_EQ(s, values["s"]);
@@ -206,17 +225,17 @@ TEST_F(PalStatisticsTest, typeTest)
 
 TEST_F(PalStatisticsTest, manualRegistration)
 {
-  boost::shared_ptr<StatisticsRegistry> registry =
-      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  std::shared_ptr<StatisticsRegistry> registry =
+      std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
 
   IdType var1_id = customRegister(*registry, "var1", &var1_);
   customRegister(*registry, "var2", &var2_);
-  customRegister(*registry, "container_size", boost::function<size_t ()>(boost::bind(&std::vector<int>::size,
+  customRegister(*registry, "container_size", std::function<size_t ()>(std::bind(&std::vector<int>::size,
                                                            &container_)));
 
-  pal_statistics_msgs::Statistics msg = registry->createMsg();
+  pal_statistics_msgs::msg::Statistics msg = registry->createMsg();
 
-  EXPECT_NEAR(ros::Time::now().toSec(), msg.header.stamp.toSec(), 0.001);
+  EXPECT_NEAR(node_->get_clock()->now().seconds(), rclcpp::Time(msg.header.stamp).seconds(), 0.001);
   EXPECT_THAT(getVariables(msg),
               UnorderedElementsAre("var1", "var2", "container_size",
                                    "topic_stats.pal_statistics.publish_async_attempts",
@@ -256,9 +275,9 @@ TEST_F(PalStatisticsTest, manualRegistration)
 
 TEST_F(PalStatisticsTest, automaticRegistration)
 {
-  boost::shared_ptr<StatisticsRegistry> registry =
-      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
-  pal_statistics_msgs::Statistics msg;
+  std::shared_ptr<StatisticsRegistry> registry =
+      std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
+  pal_statistics_msgs::msg::Statistics msg;
   {
     RegistrationsRAII bookkeeping;
 
@@ -267,7 +286,7 @@ TEST_F(PalStatisticsTest, automaticRegistration)
 
     msg = registry->createMsg();
 
-    EXPECT_NEAR(ros::Time::now().toSec(), msg.header.stamp.toSec(), 0.001);
+    EXPECT_NEAR(node_->get_clock()->now().seconds(), rclcpp::Time(msg.header.stamp).seconds(), 0.001);
     EXPECT_THAT(getVariables(msg),
                 UnorderedElementsAre("var1", "var2",
                                      "topic_stats.pal_statistics.publish_async_attempts",
@@ -286,7 +305,7 @@ TEST_F(PalStatisticsTest, automaticRegistration)
     EXPECT_TRUE(bookkeeping.enableAll());
     msg = registry->createMsg();
     EXPECT_THAT(getVariables(msg),
-                UnorderedElementsAre("var1", "var2", 
+                UnorderedElementsAre("var1", "var2",
                                      "topic_stats.pal_statistics.publish_async_attempts",
                                      "topic_stats.pal_statistics.publish_async_failures",
                                      "topic_stats.pal_statistics.publish_buffer_full_errors",
@@ -305,8 +324,8 @@ TEST_F(PalStatisticsTest, automaticRegistration)
 
 TEST_F(PalStatisticsTest, automaticRegistrationDestruction)
 {
-  boost::shared_ptr<StatisticsRegistry> registry =
-      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  std::shared_ptr<StatisticsRegistry> registry =
+      std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
   {
     RegistrationsRAII bookkeeping;
 
@@ -322,33 +341,36 @@ TEST_F(PalStatisticsTest, automaticRegistrationDestruction)
 
 TEST_F(PalStatisticsTest, asyncPublisher)
 {
-  boost::shared_ptr<StatisticsRegistry> registry =
-      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  std::shared_ptr<StatisticsRegistry> registry =
+      std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
   {
     RegistrationsRAII bookkeeping;
 
     registry->startPublishThread();
 
     // Time for publisher to connect to subscriber
-    ros::Duration(0.5).sleep();
+    while(sub_->get_publisher_count() == 0)
+    {
+      rclcpp::sleep_for(std::chrono::milliseconds(5));
+    }
     customRegister(*registry, "var1", &var1_, &bookkeeping);
     customRegister(*registry, "var2", &var2_, &bookkeeping);
 
     registry->publishAsync();
-    ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
+    ASSERT_TRUE(waitForMsg());
 
     auto s = getVariableAndValues(*last_msg_);
     EXPECT_EQ(var1_, s["var1"]);
     EXPECT_EQ(var2_, s["var2"]);
 
     last_msg_.reset();
-    ASSERT_FALSE(waitForMsg(ros::Duration(0.3)))
+    ASSERT_FALSE(waitForMsg())
         << " Data shouldn't have been published because there were no calls to publishAsync";
 
     var1_ = 2.0;
     var2_ = 3.0;
     registry->publishAsync();
-    ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
+    ASSERT_TRUE(waitForMsg());
 
     s = getVariableAndValues(*last_msg_);
     EXPECT_EQ(var1_, s["var1"]);
@@ -357,7 +379,7 @@ TEST_F(PalStatisticsTest, asyncPublisher)
     last_msg_.reset();
   }
   registry->publishAsync();
-  ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
+  ASSERT_TRUE(waitForMsg());
   // Number of internal statistics
   EXPECT_EQ(4, last_msg_->statistics.size());
 }
@@ -366,15 +388,18 @@ TEST_F(PalStatisticsTest, macroTest)
 {
   {
     RegistrationsRAII bookkeeping;
-    REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var1", &var1_, NULL);
-    REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var1_bk", &var1_, &bookkeeping);
-    REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var2", &var2_, NULL);
-    REGISTER_VARIABLE_SIMPLE(DEFAULT_STATISTICS_TOPIC, &var2_, &bookkeeping);
-    START_PUBLISH_THREAD(DEFAULT_STATISTICS_TOPIC);
+    REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var1", &var1_, NULL);
+    REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var1_bk", &var1_, &bookkeeping);
+    REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var2", &var2_, NULL);
+    REGISTER_VARIABLE_SIMPLE(node_, DEFAULT_STATISTICS_TOPIC, &var2_, &bookkeeping);
+    START_PUBLISH_THREAD(node_, DEFAULT_STATISTICS_TOPIC);
     // Time for publisher to connect to subscriber
-    ros::Duration(0.5).sleep();
-    PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC)
-    ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
+    while(sub_->get_publisher_count() == 0)
+    {
+      rclcpp::sleep_for(std::chrono::milliseconds(5));
+    }
+    PUBLISH_ASYNC_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC)
+    ASSERT_TRUE(waitForMsg());
     EXPECT_THAT(getVariables(*last_msg_),
                 UnorderedElementsAre("macro_var1", "macro_var1_bk", "macro_var2", "&var2_",
                                      "topic_stats.pal_statistics.publish_async_attempts",
@@ -383,8 +408,8 @@ TEST_F(PalStatisticsTest, macroTest)
                                      "topic_stats.pal_statistics.last_async_pub_duration"));
     last_msg_.reset();
   }
-  PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC)
-  ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
+  PUBLISH_ASYNC_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC)
+  ASSERT_TRUE(waitForMsg());
   EXPECT_THAT(getVariables(*last_msg_),
               UnorderedElementsAre("macro_var1", "macro_var2",
                                    "topic_stats.pal_statistics.publish_async_attempts",
@@ -393,11 +418,11 @@ TEST_F(PalStatisticsTest, macroTest)
                                    "topic_stats.pal_statistics.last_async_pub_duration"));
   last_msg_.reset();
   
-  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var2_bis", &var2_, NULL);
-  UNREGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var2", NULL);
+  REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var2_bis", &var2_, NULL);
+  UNREGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var2", NULL);
   var1_ = 123.456;
-  PUBLISH_STATISTICS(DEFAULT_STATISTICS_TOPIC);
-  ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
+  PUBLISH_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC);
+  ASSERT_TRUE(waitForMsg());
   EXPECT_THAT(getVariables(*last_msg_),
               UnorderedElementsAre("macro_var1", "macro_var2_bis",
                                    "topic_stats.pal_statistics.publish_async_attempts",
@@ -405,25 +430,24 @@ TEST_F(PalStatisticsTest, macroTest)
                                    "topic_stats.pal_statistics.publish_buffer_full_errors",
                                    "topic_stats.pal_statistics.last_async_pub_duration"));
   EXPECT_EQ(var1_, getVariableAndValues(*last_msg_)["macro_var1"]);
-  UNREGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var1", NULL);
-  UNREGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var2_bis", NULL);
+  UNREGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var1", NULL);
+  UNREGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var2_bis", NULL);
   
   
   
   
 }
 
-void registerThread(boost::shared_ptr<StatisticsRegistry> registry, const std::string &prefix,
+void registerThread(std::shared_ptr<StatisticsRegistry> registry, const std::string &prefix,
                     size_t iterations, double *variable, RegistrationsRAII *bookkeeping = NULL)
 {
   for (size_t i = 0; i < iterations; ++i)
   {
-    ros::Time b = ros::Time::now();
     customRegister(*registry, prefix + std::to_string(i), variable, bookkeeping);
-    //    ROS_INFO_STREAM(i << " " << (ros::Time::now() - b).toSec());
+    //    RCLCPP_INFO_STREAM(node_->get_logger(), i << " " << (ros::Time::now() - b).toSec());
   }
 }
-void unregisterThread(boost::shared_ptr<StatisticsRegistry> registry,
+void unregisterThread(std::shared_ptr<StatisticsRegistry> registry,
                       const std::string &prefix, size_t n_variables)
 {
   // Deregister in inverse order
@@ -434,7 +458,7 @@ void unregisterThread(boost::shared_ptr<StatisticsRegistry> registry,
 }
 
 
-void publish(boost::shared_ptr<StatisticsRegistry> registry, size_t n_variables)
+void publish(std::shared_ptr<StatisticsRegistry> registry, size_t n_variables)
 {
   for (size_t i = n_variables; i > 0; --i)
   {
@@ -443,7 +467,7 @@ void publish(boost::shared_ptr<StatisticsRegistry> registry, size_t n_variables)
 }
 
 
-void publishAsync(boost::shared_ptr<StatisticsRegistry> registry, size_t n_variables)
+void publishAsync(std::shared_ptr<StatisticsRegistry> registry, size_t n_variables)
 {
   for (size_t i = n_variables; i > 0; --i)
   {
@@ -454,27 +478,37 @@ void publishAsync(boost::shared_ptr<StatisticsRegistry> registry, size_t n_varia
 TEST_F(PalStatisticsTest, stressAsync)
 {
   double d = 5.0;
-  boost::shared_ptr<StatisticsRegistry> registry =
-      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  std::shared_ptr<StatisticsRegistry> registry =
+      std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
   registry->startPublishThread();
   customRegister(*registry, "test_variable", &d);
   customRegister(*registry, "test_variable2", &d);
   size_t received_messages = 0;
   
-  ros::NodeHandle async_nh;
-  ros::CallbackQueue async_queue;
-  async_nh.setCallbackQueue(&async_queue);
-  ros::AsyncSpinner spinner(1, &async_queue);  
-  spinner.start();
-  ros::Subscriber sub = async_nh.subscribe<pal_statistics_msgs::Statistics>(
-      std::string(DEFAULT_STATISTICS_TOPIC) + "/full", 1000000,
-      [&](const pal_statistics_msgs::StatisticsConstPtr &) { received_messages++; });
-  while (sub.getNumPublishers() == 0)
+  // Create a callback group to spin independently from the rest of callbacks of the node
+  auto cb_group = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
+  auto group_executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+  group_executor->add_callback_group(cb_group, node_->get_node_base_interface());
+
+
+  rclcpp::SubscriptionOptions sub_opts;
+  sub_opts.callback_group = cb_group;
+  auto topic_sub = node_->create_subscription<pal_statistics_msgs::msg::Statistics>(
+    std::string(DEFAULT_STATISTICS_TOPIC) + "/full", rclcpp::QoS(rclcpp::KeepAll()),
+    [&](const pal_statistics_msgs::msg::Statistics::SharedPtr ) { received_messages++; }, sub_opts);
+
+  auto future_handle = std::async(
+    std::launch::async, [&group_executor]() -> void {
+      group_executor->spin();
+    });
+
+
+  while (topic_sub->get_publisher_count() == 0)
   {
-    ros::Duration(0.1).sleep();
+    rclcpp::sleep_for(std::chrono::milliseconds(100));
   }
   
-  ros::Rate rate(1e4);
+  rclcpp::Rate rate(1e4);
   size_t num_messages = 3e4;
   size_t success_async = 0;
   for (size_t i = 0; i < num_messages; ++i)
@@ -484,23 +518,25 @@ TEST_F(PalStatisticsTest, stressAsync)
   }
   
   //Allow time for everything to arrive
-  ros::Duration(0.5).sleep();
+  rclcpp::sleep_for(std::chrono::milliseconds(500));
+  group_executor->cancel();
+
   
-  EXPECT_EQ(success_async - registry->registration_list_.overwritten_data_count_, received_messages);  
+  EXPECT_EQ(success_async - registry->registration_list_.overwritten_data_count_, received_messages);
 }
 
 TEST_F(PalStatisticsTest, concurrencyTest)
 {
   size_t n_threads = 5;
   size_t n_variables = 2e4/n_threads; //2e4 variables in total
-  std::vector<boost::thread> threads;
-  boost::shared_ptr<StatisticsRegistry> registry =
-      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  std::vector<std::thread> threads;
+  std::shared_ptr<StatisticsRegistry> registry =
+      std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
   registry->startPublishThread();
-  ROS_INFO_STREAM("Start registration threads");
+  RCLCPP_INFO_STREAM(node_->get_logger(), "Start registration threads");
   for (size_t i = 0; i < n_threads; ++i)
   {
-    threads.push_back(boost::thread(boost::bind(&registerThread, registry,
+    threads.push_back(std::thread(std::bind(&registerThread, registry,
                                                 std::to_string(i) + "_", n_variables, &var1_,
                                                 static_cast<RegistrationsRAII *>(NULL))));
   }
@@ -508,12 +544,12 @@ TEST_F(PalStatisticsTest, concurrencyTest)
   {
     threads[i].join();
   }
-  ROS_INFO_STREAM("Registration ended");
-  pal_statistics_msgs::Statistics msg = registry->createMsg();
+  RCLCPP_INFO_STREAM(node_->get_logger(), "Registration ended");
+  pal_statistics_msgs::msg::Statistics msg = registry->createMsg();
 
   EXPECT_EQ(4 + n_variables * n_threads, msg.statistics.size());
-  ROS_INFO_STREAM("Start publishAsync");
-  ros::Time b = ros::Time::now();
+  RCLCPP_INFO_STREAM(node_->get_logger(), "Start publishAsync");
+  rclcpp::Time b = node_->get_clock()->now();
   size_t iter = 10000;
 //  ros::Rate rate(1e3);
   for (size_t i = 0; i < iter; ++i)
@@ -522,51 +558,43 @@ TEST_F(PalStatisticsTest, concurrencyTest)
 //    rate.sleep();
   }
   // Time to publish 1000 times the registered statistics
-  ROS_INFO_STREAM("End publishAsync " << (1000. * (ros::Time::now() - b).toSec()) / double(iter));
-  ROS_INFO_STREAM("Start publish");
+  RCLCPP_INFO_STREAM(node_->get_logger(), "End publishAsync " << (1000. * (node_->get_clock()->now() - b).seconds()) / double(iter));
+  RCLCPP_INFO_STREAM(node_->get_logger(), "Start publish");
   for (size_t i = 0; i < n_variables; ++i)
   {
     registry->publish();
   }
-  ROS_INFO_STREAM("End publish");
+  RCLCPP_INFO_STREAM(node_->get_logger(), "End publish");
 
   threads.clear();
-  ROS_INFO_STREAM("Start deregistration threads");
+  RCLCPP_INFO_STREAM(node_->get_logger(), "Start deregistration threads");
   for (size_t i = 0; i < n_threads; ++i)
   {
-    threads.push_back(boost::thread(
-        boost::bind(&unregisterThread, registry, std::to_string(i) + "_", n_variables)));
+    threads.push_back(std::thread(
+        std::bind(&unregisterThread, registry, std::to_string(i) + "_", n_variables)));
   }
   for (size_t i = 0; i < n_threads; ++i)
   {
     threads[i].join();
   }
-  ROS_INFO_STREAM("Deregistration ended");
+  RCLCPP_INFO_STREAM(node_->get_logger(), "Deregistration ended");
   msg = registry->createMsg();
   threads.clear();
 
   // Number of internal variables
   EXPECT_EQ(4, msg.statistics.size());
-
-
-  for (size_t i = 0; i < n_threads; ++i)
-  {
-    threads[i].join();
-  }
-
-  threads.clear();
 }
 
 TEST_F(PalStatisticsTest, concurrencyMixTest)
 {
   size_t n_variables = 2e3;
   size_t n_threads = 5;
-  std::vector<boost::thread> threads;
-  boost::shared_ptr<StatisticsRegistry> registry =
-      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  std::vector<std::thread> threads;
+  std::shared_ptr<StatisticsRegistry> registry =
+      std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
   for (size_t i = 0; i < n_threads; ++i)
   {
-    threads.push_back(boost::thread(boost::bind(&registerThread, registry,
+    threads.push_back(std::thread(std::bind(&registerThread, registry,
                                                 std::to_string(i) + "_", n_variables, &var1_,
                                                 static_cast<RegistrationsRAII *>(NULL))));
   }
@@ -577,34 +605,34 @@ TEST_F(PalStatisticsTest, concurrencyMixTest)
   threads.clear();
 
 
-  ROS_INFO_STREAM("Start thread mix");
+  RCLCPP_INFO_STREAM(node_->get_logger(), "Start thread mix");
   RegistrationsRAII bookkeeping;
   for (size_t i = 0; i < n_threads; ++i)
   {
-    threads.push_back(boost::thread(
-        boost::bind(&unregisterThread, registry, std::to_string(i) + "_", n_variables)));
-    threads.push_back(boost::thread(boost::bind(&registerThread, registry,
+    threads.push_back(std::thread(
+        std::bind(&unregisterThread, registry, std::to_string(i) + "_", n_variables)));
+    threads.push_back(std::thread(std::bind(&registerThread, registry,
                                                 std::to_string(i + n_threads) + "_",
                                                 n_variables, &var1_, &bookkeeping)));
-    //    threads.push_back(boost::thread(boost::bind(&publish, registry, n_variables)));
-    //    threads.push_back(boost::thread(boost::bind(&publishAsync, registry,
+    //    threads.push_back(std::thread(std::bind(&publish, registry, n_variables)));
+    //    threads.push_back(std::thread(std::bind(&publishAsync, registry,
     //    n_variables)));
   }
   for (size_t i = 0; i < threads.size(); ++i)
   {
     threads[i].join();
   }
-  ROS_INFO_STREAM("End thread mix");
+  RCLCPP_INFO_STREAM(node_->get_logger(), "End thread mix");
 }
 
 TEST_F(PalStatisticsTest, singlePublish)
 {
-  boost::shared_ptr<StatisticsRegistry> registry =
-      boost::make_shared<StatisticsRegistry>(DEFAULT_STATISTICS_TOPIC);
+  std::shared_ptr<StatisticsRegistry> registry =
+      std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
   double d = 0.123;
   registry->publishCustomStatistic("single_stat", d);
   
-  waitForMsg(ros::Duration(0.2));
+  waitForMsg();
   EXPECT_TRUE(last_msg_.get());
   ASSERT_EQ(1, last_msg_->statistics.size());
   EXPECT_EQ("single_stat", last_msg_->statistics[0].name);
@@ -618,12 +646,12 @@ TEST_F(PalStatisticsTest, chaosTest)
   // Tests the registration of a variable and publication by the nonrt thread
   // before a publish_async has been performed
   RegistrationsRAII bookkeeping;
-  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var1", &var1_, &bookkeeping);
-  PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC);
-  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var2", &var2_, &bookkeeping);
-  ros::Duration(0.2).sleep();
-  PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC);
-  ros::Duration(0.2).sleep();  
+  REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "var1", &var1_, &bookkeeping);
+  PUBLISH_ASYNC_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC);
+  REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "var2", &var2_, &bookkeeping);
+  rclcpp::sleep_for(std::chrono::milliseconds(200));
+  PUBLISH_ASYNC_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC);
+  rclcpp::sleep_for(std::chrono::milliseconds(200));
 }
 
 TEST_F(PalStatisticsTest, chaosTest2)
@@ -631,15 +659,15 @@ TEST_F(PalStatisticsTest, chaosTest2)
   // Tests the unregistration of a variable and publication by the nonrt thread
   // before a publish_async has been performed
   RegistrationsRAII bookkeeping;
-  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var1", &var1_, nullptr);
-  PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC);
-  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var2", &var2_, &bookkeeping);
-  UNREGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var1", nullptr);
-  ros::Duration(0.2).sleep();
-  PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC);
+  REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "var1", &var1_, nullptr);
+  PUBLISH_ASYNC_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC);
+  REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "var2", &var2_, &bookkeeping);
+  UNREGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "var1", nullptr);
+  rclcpp::sleep_for(std::chrono::milliseconds(200));
+  PUBLISH_ASYNC_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC);
   
   last_msg_.reset();
-  ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
+  ASSERT_TRUE(waitForMsg());
   EXPECT_THAT(getVariables(*last_msg_),
               UnorderedElementsAre("var2",
                                    "topic_stats.pal_statistics.publish_async_attempts",
@@ -653,15 +681,15 @@ TEST_F(PalStatisticsTest, chaosTest3)
   // Tests the disabling of a variable and publication by the nonrt thread
   // before a publish_async has been performed
   RegistrationsRAII bookkeeping;
-  auto var1id = REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var1", &var1_, nullptr);
-  PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC);
-  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var2", &var2_, &bookkeeping);
-  getRegistry(DEFAULT_STATISTICS_TOPIC)->disable(var1id);
-  ros::Duration(0.2).sleep();
-  PUBLISH_ASYNC_STATISTICS(DEFAULT_STATISTICS_TOPIC);
+  auto var1id = REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "var1", &var1_, nullptr);
+  PUBLISH_ASYNC_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC);
+  REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "var2", &var2_, &bookkeeping);
+  getRegistry(node_, DEFAULT_STATISTICS_TOPIC)->disable(var1id);
+  rclcpp::sleep_for(std::chrono::milliseconds(200));
+  PUBLISH_ASYNC_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC);
   
   last_msg_.reset();
-  ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
+  ASSERT_TRUE(waitForMsg());
   EXPECT_THAT(getVariables(*last_msg_),
               UnorderedElementsAre("var2",
                                    "topic_stats.pal_statistics.publish_async_attempts",
@@ -675,12 +703,12 @@ TEST_F(PalStatisticsTest, splitMsgTest)
 {
   std::string topic("other_topic");
   RegistrationsRAII bookkeeping;
-  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var1", &var1_, NULL);
-  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var1_bk", &var1_, &bookkeeping);
-  REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "macro_var2", &var2_, NULL);
-  REGISTER_VARIABLE_SIMPLE(DEFAULT_STATISTICS_TOPIC, &var2_, &bookkeeping);
+  REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var1", &var1_, NULL);
+  REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var1_bk", &var1_, &bookkeeping);
+  REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var2", &var2_, NULL);
+  REGISTER_VARIABLE_SIMPLE(node_, DEFAULT_STATISTICS_TOPIC, &var2_, &bookkeeping);
   // Time for publisher to connect to subscriber
-  ros::Duration(0.2).sleep();
+  rclcpp::sleep_for(std::chrono::milliseconds(200));
   unsigned int old_names_version = 0;
   for (int i = 0; i < 4; ++i)
   {
@@ -688,18 +716,18 @@ TEST_F(PalStatisticsTest, splitMsgTest)
     {
       if (!remove)
       {
-        REGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var" + std::to_string(i), &var2_, NULL);
+        REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "var" + std::to_string(i), &var2_, NULL);
       }
       else
       {
-        UNREGISTER_VARIABLE(DEFAULT_STATISTICS_TOPIC, "var" + std::to_string(i));
+        UNREGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "var" + std::to_string(i));
       }
       SCOPED_TRACE(std::string("Iteration ") + std::to_string(i) + " remove " +
                    std::to_string(remove));
       
       resetMsgs();
-      PUBLISH_STATISTICS(DEFAULT_STATISTICS_TOPIC);
-      ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
+      PUBLISH_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC);
+      ASSERT_TRUE(waitForMsg());
       ASSERT_EQ(last_msg_->header.stamp, last_names_msg_->header.stamp);
       ASSERT_EQ(last_names_msg_->header.stamp, last_values_msg_->header.stamp);
       ASSERT_EQ(last_names_msg_->names_version, last_values_msg_->names_version);
@@ -709,12 +737,11 @@ TEST_F(PalStatisticsTest, splitMsgTest)
       ASSERT_EQ(getVariables(*last_msg_), last_names_msg_->names);
       
       resetMsgs();
-      PUBLISH_STATISTICS(DEFAULT_STATISTICS_TOPIC);
-      ASSERT_TRUE(waitForMsg(ros::Duration(0.3)));
-      ASSERT_LT(last_names_msg_->header.stamp, last_values_msg_->header.stamp);
+      PUBLISH_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC);
+      ASSERT_TRUE(waitForMsg());
+      ASSERT_LT(rclcpp::Time(last_names_msg_->header.stamp), rclcpp::Time(last_values_msg_->header.stamp));
       ASSERT_EQ(last_names_msg_->names_version, last_values_msg_->names_version);
       ASSERT_EQ(last_names_msg_->names_version, old_names_version);
-      
     }
   }
 }
@@ -726,11 +753,7 @@ TEST_F(PalStatisticsTest, splitMsgTest)
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "pal_statistics_test");
-  // first nodehandle created of an app must exist until the end of the life of the node
-  // If not, you'll have funny stuff such as no logs printed
-  ros::NodeHandle nh;
-  ros::Time::waitForValid();
+  rclcpp::init(argc, argv);
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

@@ -9,7 +9,6 @@
 #include <pal_statistics/static_circular_buffer.h>
 #include <boost/circular_buffer.hpp>
 #include <gtest/gtest.h>
-#include <ros/ros.h>
 #include <climits>
 #include <cfloat>
 #include <memory>
@@ -125,14 +124,13 @@ TEST(BufferTest, basicTest)
   buffer.set_capacity(5, 0);
 
 
-  for (int i = 0; i < buffer.capacity(); ++i)
+  for (size_t i = 0; i < buffer.capacity(); ++i)
   {
     buffer.push_back() = i;
   }
 
-  for (int i = 0; i < buffer.capacity(); ++i)
+  for (size_t i = 0; i < buffer.capacity(); ++i)
   {
-    ROS_INFO_STREAM(i);
     EXPECT_EQ(i, buffer.front());
     buffer.pop_front();
   }
@@ -142,92 +140,90 @@ TEST(BufferTest, buffer)
 {
   typedef std::vector<int, MyAlloc<int>> MyVector;
 
-
-
-  ROS_INFO_STREAM("Resizing vector");
+  std::cout << "Resizing vector" << std::endl;
   MyAlloc<int> my_alloc;
   MyVector v(my_alloc);
   v.resize(1000);
 
   MyAlloc<MyVector> my_buffer_alloc;
-  ROS_INFO_STREAM("Creating circular buffer");
+  std::cout << "Creating circular buffer" << std::endl;
   StaticCircularBuffer<MyVector, MyAlloc<MyVector>> buffer(10, v, my_buffer_alloc);
 
   ASSERT_EQ(buffer.size(), 0);
   ASSERT_EQ(buffer.capacity(), 10);
 
-  ROS_INFO_STREAM("Size of type " << sizeof(std::vector<int>) << " size of container "
-                                  << v.size() * sizeof(int));
-  ROS_INFO_STREAM("Pushing first elements of vector");
+  std::cout << "Size of type " << sizeof(std::vector<int>) << " size of container "
+                                  << v.size() * sizeof(int) << std::endl;
+  std::cout << "Pushing first elements of vector" << std::endl;
   for (int i = 0; i < 10; ++i)
   {
     buffer.push_back();
     ASSERT_EQ(i + 1, buffer.size());
   }
 
-  ROS_INFO_STREAM("Pushing second elements of vector");
+  std::cout << "Pushing second elements of vector" << std::endl;
   for (int i = 0; i < 10; ++i)
   {
     buffer.push_back();
     ASSERT_EQ(10, buffer.size());
   }
   /*
-    ROS_INFO_STREAM("Increasing size of container");
+    std::cout << "Increasing size of container" << std::endl;
     v.resize(1001);
-    ROS_INFO_STREAM("Pushing first elements of vector");
+    std::cout << "Pushing first elements of vector" << std::endl;
     for (int i = 0; i < 10; ++i)
     {
       buffer.push_back(v);
     }
 
-    ROS_INFO_STREAM("Pushing second elements of vector");
+    std::cout << "Pushing second elements of vector" << std::endl;
     for (int i = 0; i < 10; ++i)
     {
       buffer.push_back(v);
     }
 
 
-    ROS_INFO_STREAM("Reducing size of container");
+    std::cout << "Reducing size of container" << std::endl;
     v.resize(100);
-    ROS_INFO_STREAM("Pushing first elements of vector");
+    std::cout << "Pushing first elements of vector" << std::endl;
     for (int i = 0; i < 10; ++i)
     {
       buffer.push_back(v);
     }
 
-    ROS_INFO_STREAM("Pushing second elements of vector");
+    std::cout << "Pushing second elements of vector" << std::endl;
     for (int i = 0; i < 10; ++i)
     {
       buffer.push_back(v);
     }
 
 
-    ROS_INFO_STREAM("Increasing size of container");
+    std::cout << "Increasing size of container" << std::endl;
     v.resize(3000);
-    ROS_INFO_STREAM("Resizing and clearing buffer");
+    std::cout << "Resizing and clearing buffer" << std::endl;
     buffer.clear();
     buffer.resize(10, v);
     buffer.clear();
-    ROS_INFO_STREAM("Pushing first elements of vector");
+    std::cout << "Pushing first elements of vector" << std::endl;
     for (int i = 0; i < 10; ++i)
     {
       buffer.push_back(v);
     }
 
-    ROS_INFO_STREAM("Pushing second elements of vector");
+    std::cout << "Pushing second elements of vector" << std::endl;
     for (int i = 0; i < 10; ++i)
     {
       buffer.push_back(v);
     }
 
-    ROS_INFO_STREAM("Pushing and popping");
+    std::cout << "Pushing and popping" << std::endl;
     for (int i = 0; i < 10; ++i)
     {
       buffer.pop_front();
       buffer.push_back(v);
     }
   */
-  ROS_WARN_STREAM("Destructor");
+  std::cout << "Destructor" << std::endl;
 }
 
 TEST(BufferTest, circularBuffer)
@@ -236,100 +232,98 @@ TEST(BufferTest, circularBuffer)
 
 
 
-  ROS_INFO_STREAM("Resizing vector");
+  std::cout << "Resizing vector" << std::endl;
   MyAlloc<int> my_alloc;
   MyVector v(my_alloc);
   v.resize(1000);
 
   MyAlloc<MyVector> my_buffer_alloc;
-  ROS_INFO_STREAM("Creating circular buffer");
+  std::cout << "Creating circular buffer" << std::endl;
   boost::circular_buffer<MyVector, MyAlloc<MyVector>> buffer(10, v, my_buffer_alloc);
 
-  ROS_INFO_STREAM("Size of type " << sizeof(std::vector<int>) << " size of container "
-                                  << v.size() * sizeof(int));
-  ROS_INFO_STREAM("Pushing first elements of vector");
+  std::cout << "Size of type " << sizeof(std::vector<int>) << " size of container "
+                                  << v.size() * sizeof(int) << std::endl;
+  std::cout << "Pushing first elements of vector" << std::endl;
   for (int i = 0; i < 10; ++i)
   {
     buffer.push_back(v);
     //    ASSERT_EQ(i+1, buffer.size());
   }
 
-  ROS_INFO_STREAM("Pushing second elements of vector");
+  std::cout << "Pushing second elements of vector" << std::endl;
   for (int i = 0; i < 10; ++i)
   {
     buffer.push_back(v);
     //    ASSERT_EQ(10, buffer.size());
   }
 
-  ROS_INFO_STREAM("Increasing size of container");
+  std::cout << "Increasing size of container" << std::endl;
   v.resize(1001);
-  ROS_INFO_STREAM("Pushing first elements of vector");
+  std::cout << "Pushing first elements of vector" << std::endl;
   for (int i = 0; i < 10; ++i)
   {
     buffer.push_back(v);
   }
 
-  ROS_INFO_STREAM("Pushing second elements of vector");
+  std::cout << "Pushing second elements of vector" << std::endl;
   for (int i = 0; i < 10; ++i)
   {
     buffer.push_back(v);
   }
 
 
-  ROS_INFO_STREAM("Reducing size of container");
+  std::cout << "Reducing size of container" << std::endl;
   v.resize(100);
-  ROS_INFO_STREAM("Pushing first elements of vector");
+  std::cout << "Pushing first elements of vector" << std::endl;
   for (int i = 0; i < 10; ++i)
   {
     buffer.push_back(v);
   }
 
-  ROS_INFO_STREAM("Pushing second elements of vector");
+  std::cout << "Pushing second elements of vector" << std::endl;
   for (int i = 0; i < 10; ++i)
   {
     buffer.push_back(v);
   }
 
 
-  ROS_INFO_STREAM("Increasing size of container");
+  std::cout << "Increasing size of container" << std::endl;
   v.resize(3000);
-  ROS_INFO_STREAM("Resizing and clearing buffer");
+  std::cout << "Resizing and clearing buffer" << std::endl;
   buffer.clear();
   buffer.resize(10, v);
   buffer.clear();
-  ROS_INFO_STREAM("Pushing first elements of vector");
+  std::cout << "Pushing first elements of vector" << std::endl;
   for (int i = 0; i < 10; ++i)
   {
     buffer.push_back(v);
   }
 
-  ROS_INFO_STREAM("Pushing second elements of vector");
+  std::cout << "Pushing second elements of vector" << std::endl;
   for (int i = 0; i < 10; ++i)
   {
     buffer.push_back(v);
   }
 
-  ROS_INFO_STREAM("Popping");
+  std::cout << "Popping" << std::endl;
   for (int i = 0; i < 10; ++i)
   {
     buffer.pop_front();
   }
 
-  ROS_INFO_STREAM("Pushing after pop ");
+  std::cout << "Pushing after pop " << std::endl;
   for (int i = 0; i < 20; ++i)
   {
     buffer.push_back(v);
   }
 
 
-  ROS_WARN_STREAM("Destructor");
+  std::cout << "Destructor" << std::endl;
 }
 }  // namespace pal_statistics
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "buffer_test");
-
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

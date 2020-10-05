@@ -1,28 +1,20 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5.0)
 project(pal_statistics)
 
-find_package(catkin REQUIRED COMPONENTS
-  pal_statistics_msgs
-  roscpp
-  rospy
-)
-catkin_python_setup()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+find_package(Boost REQUIRED)
+find_package(ament_cmake REQUIRED)
+find_package(pal_statistics_msgs REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
+
+#catkin_python_setup()
 ## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED COMPONENTS thread)
 
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS pal_statistics_msgs roscpp
-#  DEPENDS Boost
-)
-
-include_directories( SYSTEM
-  ${catkin_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-)
-
+include_directories(SYSTEM ${BOOST_INCLUDE_DIRS})
 include_directories(include)
 
 ## Declare a C++ library
@@ -32,90 +24,41 @@ add_library(${PROJECT_NAME}
   src/pal_statistics_macros.cpp
 )
 
-## Specify libraries to link a library or executable target against
- target_link_libraries(${PROJECT_NAME}
-   ${catkin_LIBRARIES}
-   ${Boost_LIBRARIES}
- )
-
-## Add cmake target dependencies of the library
-## as an example, code may need to be generated before libraries
-## either from message generation or dynamic reconfigure
-add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-## Declare a C++ executable
-## With catkin_make all packages are built within a single CMake context
-## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/pal_statistics_node.cpp)
-
-## Rename C++ executable without prefix
-## The above recommended prefix causes long target names, the following renames the
-## target back to the shorter version for ease of user use
-## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
-# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
-
-## Add cmake target dependencies of the executable
-## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+ament_target_dependencies(${PROJECT_NAME} 
+	pal_statistics_msgs
+	rclcpp)
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBARIES})
 
 #############
 ## Install ##
 #############
 
-# all install targets should use catkin DESTINATION variables
-# See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
-
-## Mark executable scripts (Python etc.) for installation
-## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
-## Mark executables and/or libraries for installation
 install(TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+  DESTINATION lib/${PROJECT_NAME})
+ament_export_libraries(${PROJECT_NAME})
 
-## Mark cpp header files for installation
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.h"
-)
-
-## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(DIRECTORY include/
+  DESTINATION include)
+ament_export_include_directories(include)
 
 #############
 ## Testing ##
 #############
 
-if (CATKIN_ENABLE_TESTING)
-    find_package(rostest REQUIRED)
-    catkin_add_gtest(buffer-test test/gtest_buffer.cpp)
-    target_link_libraries(buffer-test
-                                ${PROJECT_NAME}
-                                ${catkin_LIBRARIES})
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest)
+  find_package(ament_cmake_gmock)
+  ament_add_gtest(buffer-test test/gtest_buffer.cpp)
+  target_link_libraries(buffer-test
+	  ${PROJECT_NAME})
 
-    add_rostest_gmock(pal_statistics-test test/pal_statistics.test test/gtest_pal_statistics.cpp)
-    target_link_libraries(pal_statistics-test
-                                ${PROJECT_NAME}
-                                ${catkin_LIBRARIES})
+  ament_add_gmock(pal_statistics-test test/gtest_pal_statistics.cpp)
+  target_link_libraries(pal_statistics-test
+          ${PROJECT_NAME})
+                            
+                        # TODO v-lopez rostest
+			#    add_rostest(test/pal_statistics_py.test)
+endif(BUILD_TESTING)
 
-    add_rostest(test/pal_statistics_py.test)
-endif(CATKIN_ENABLE_TESTING)
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_pal_statistics.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)
+ament_export_dependencies(pal_statistics_msgs rclcpp)
+ament_package()

@@ -38,7 +38,7 @@ template <typename T>
 inline IdType customRegister(StatisticsRegistry &registry, const std::string &name, const T * variable,
                         RegistrationsRAII *bookkeeping = NULL, bool enabled = true)
 {
-  boost::function<double()> funct = [variable] { return static_cast<double>(*variable); };
+  std::function<double()> funct = [variable] { return static_cast<double>(*variable); };
   return registry.registerFunction(name, funct, bookkeeping, enabled);
 }
 
@@ -61,10 +61,10 @@ inline IdType customRegister(StatisticsRegistry &registry, const std::string &na
  */
 template <typename T>
 inline IdType customRegister(StatisticsRegistry &registry, const std::string &name,
-                        const boost::function<T()> &funct,
+                        const std::function<T()> &funct,
                         RegistrationsRAII *bookkeeping = NULL, bool enabled = true)
 {
-  boost::function<double()> double_funct = [funct] { return static_cast<double>(funct()); };
+  std::function<double()> double_funct = [funct] { return static_cast<double>(funct()); };
   return registry.registerFunction(name, double_funct, bookkeeping, enabled);
 }
 
@@ -75,7 +75,7 @@ inline IdType customRegister(StatisticsRegistry &registry, const std::string &na
  */
 template <>
 inline IdType customRegister(StatisticsRegistry &registry, const std::string &name,
-                        const boost::function<double()> &funct,
+                        const std::function<double()> &funct,
                         RegistrationsRAII *bookkeeping, bool enabled)
 {
   return registry.registerFunction(name, funct, bookkeeping, enabled);

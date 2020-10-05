@@ -30,16 +30,16 @@
 #include <boost/bimap.hpp>
 #include <boost/bimap/multiset_of.hpp>
 #include <boost/bimap/set_of.hpp>
-#include <boost/thread/lock_guard.hpp>
-#include <boost/thread/mutex.hpp>
+
+#include <mutex>
 #include <boost/variant.hpp>
 #include <atomic>
 #include <vector>
 #include <map>
-#include <ros/ros.h>
-#include <pal_statistics_msgs/Statistics.h>
-#include <pal_statistics_msgs/StatisticsNames.h>
-#include <pal_statistics_msgs/StatisticsValues.h>
+#include <rclcpp/rclcpp.hpp>
+#include <pal_statistics_msgs/msg/statistics.hpp>
+#include <pal_statistics_msgs/msg/statistics_names.hpp>
+#include <pal_statistics_msgs/msg/statistics_values.hpp>
 #include <pal_statistics/static_circular_buffer.h>
 namespace pal_statistics
 {
@@ -95,7 +95,7 @@ class Registration
 {
 public:
   Registration(const std::string &name, IdType id,
-               const boost::weak_ptr<StatisticsRegistry> &obj);
+               const std::weak_ptr<StatisticsRegistry> &obj);
   Registration(Registration &&other) = default;
   Registration &operator=(Registration &&) = default;
 
@@ -103,7 +103,7 @@ public:
 
   std::string name_;
   IdType id_;
-  boost::weak_ptr<StatisticsRegistry> obj_;
+  std::weak_ptr<StatisticsRegistry> obj_;
 private:
   // This object should not be copied, because we may unregister variables prematurely
   Registration( const Registration& ) = delete; // non construction-copyable
@@ -139,7 +139,7 @@ private:
   std::vector<Registration>::iterator find(const std::string &name);
   std::vector<Registration>::iterator find(IdType id);
 
-  boost::mutex mutex_;
+  std::mutex mutex_;
   std::vector<Registration> registrations_;
 };
 
@@ -159,7 +159,7 @@ public:
     v_ptr_ = pointer;
   }
 
-  VariableHolder(const boost::function<double()> &function) : v_ptr_(nullptr), v_func_(function)
+  VariableHolder(const std::function<double()> &function) : v_ptr_(nullptr), v_func_(function)
   {
   }
 
@@ -190,7 +190,7 @@ public:
 
 private:
   const double *v_ptr_;
-   boost::function<double()> v_func_;
+   std::function<double()> v_func_;
 };
 
 
@@ -202,7 +202,7 @@ private:
 class RegistrationList
 {
 public:
-  RegistrationList(size_t internal_buffer_capacity = 100);
+  RegistrationList(const std::shared_ptr<rclcpp::Node> &node, size_t internal_buffer_capacity = 100);
   int registerVariable(const std::string &name, VariableHolder &&holder, bool enabled = true);
 
 
@@ -218,7 +218,7 @@ public:
   /**
     @brief fills message with the last captured values.
     */
-  void fillMsg(pal_statistics_msgs::StatisticsNames &names, pal_statistics_msgs::StatisticsValues &value);
+  void fillMsg(pal_statistics_msgs::msg::StatisticsNames &names, pal_statistics_msgs::msg::StatisticsValues &value);
 
   /**
    * @brief smartFillMsg Attempts to minimize the amount of string copies
@@ -228,7 +228,7 @@ public:
    * registered/deregistered/enabled/disabled since the last call to this function, will
    * only update the values.
    */
-  bool smartFillMsg(pal_statistics_msgs::StatisticsNames &names, pal_statistics_msgs::StatisticsValues &values);
+  bool smartFillMsg(pal_statistics_msgs::msg::StatisticsNames &names, pal_statistics_msgs::msg::StatisticsValues &values);
   /**
    * @return the number of variables registered
    */
@@ -251,6 +251,7 @@ private:
   // Can have multiple variables with the same name but different id, but not multiple id
   typedef boost::bimap<boost::bimaps::multiset_of<std::string>, boost::bimaps::set_of<IdType>> NameIdBiMap;
 
+  std::shared_ptr<rclcpp::Node> node_;
   NameIdBiMap name_id_;
 
   size_t buffer_size_;
@@ -269,7 +270,7 @@ private:
     std::vector<double> values;
   };
 
-  typedef std::pair<NameValues, ros::Time> LastValuesStamped;
+  typedef std::pair<NameValues, rclcpp::Time> LastValuesStamped;
   bool all_enabled_;
   StaticCircularBuffer<LastValuesStamped> last_values_buffer_;
 

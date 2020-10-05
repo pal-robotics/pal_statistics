@@ -9,18 +9,18 @@
 #include <pal_statistics/pal_statistics_macros.h>
 namespace pal_statistics
 {
-boost::shared_ptr<StatisticsRegistry> getRegistry(const std::string &topic)
+std::shared_ptr<StatisticsRegistry> getRegistry(const std::shared_ptr<rclcpp::Node> &node, const std::string &topic)
 {
-  typedef std::map<std::string, boost::shared_ptr<StatisticsRegistry> > RegistryMap;
+  typedef std::map<std::string, std::shared_ptr<StatisticsRegistry> > RegistryMap;
   static RegistryMap registries;
 
-  RegistryMap::const_iterator cit = registries.find(topic);
+  RegistryMap::const_iterator cit = registries.find(node->get_effective_namespace() + topic);
 
   if (cit == registries.end())
   {
-    boost::shared_ptr<StatisticsRegistry> ptr =
-        boost::make_shared<StatisticsRegistry>(topic);
-    registries[topic] = ptr;
+    std::shared_ptr<StatisticsRegistry> ptr =
+        std::make_shared<StatisticsRegistry>(node, topic);
+    registries[node->get_effective_namespace() + topic] = ptr;
     return ptr;
   }
   else

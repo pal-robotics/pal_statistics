@@ -11,7 +11,7 @@
 namespace pal_statistics
 {
 
-Registration::Registration(const std::string &name, IdType id, const boost::weak_ptr<StatisticsRegistry> &obj)
+Registration::Registration(const std::string &name, IdType id, const std::weak_ptr<StatisticsRegistry> &obj)
   : name_(name), id_(id), obj_(obj)
 {
 }
@@ -25,13 +25,13 @@ Registration::Registration(const std::string &name, IdType id, const boost::weak
 
 Registration::~Registration()
 {
-  boost::shared_ptr<StatisticsRegistry> lock = obj_.lock();
+  std::shared_ptr<StatisticsRegistry> lock = obj_.lock();
   if (lock.get())
     lock->unregisterVariable(id_);
 }
 
-RegistrationList::RegistrationList(size_t internal_buffer_capacity)
-  : last_id_(0), names_version_(0), buffer_size_(internal_buffer_capacity), all_enabled_(true), registrations_changed_(true)
+RegistrationList::RegistrationList(const std::shared_ptr<rclcpp::Node> &node, size_t internal_buffer_capacity)
+: node_(node), last_id_(0), names_version_(0), buffer_size_(internal_buffer_capacity), all_enabled_(true), registrations_changed_(true)
 {
   overwritten_data_count_ = 0;
 }
@@ -67,14 +67,16 @@ void RegistrationList::unregisterVariable(const std::string &name)
   size_t count = name_id_.left.count(name);
   if (count > 1)
   {
-    ROS_ERROR_STREAM(
+    RCLCPP_ERROR_STREAM(node_->get_logger().get_child("pal_statistics"),
           "You asked to unregister "
           << name
           << " but there are multiple variables registered with that name. This can have undefined behaviour, unregistering all");
   }
   if (count == 0)
   {
-    ROS_ERROR_STREAM("Tried to unregister variable " << name << " but it is not registered.");
+
+    RCLCPP_ERROR_STREAM(node_->get_logger().get_child("pal_statistics"),
+                        "Tried to unregister variable " << name << " but it is not registered.");
     return;
   }
   auto it = name_id_.left.find(name);
@@ -92,7 +94,7 @@ void RegistrationList::doUpdate()
 
   auto &last_values_stamped = last_values_buffer_.push_back();
   auto &last_values = last_values_stamped.first;
-  last_values_stamped.second = ros::Time::now();
+  last_values_stamped.second = node_->get_clock()->now();
   assert(last_values.names.capacity() >= ids_.size());
   assert(last_values.values.capacity() >= ids_.size());
   
@@ -129,7 +131,7 @@ void RegistrationList::doUpdate()
   }
 }
 
-void RegistrationList::fillMsg(pal_statistics_msgs::StatisticsNames &names, pal_statistics_msgs::StatisticsValues &value)
+void RegistrationList::fillMsg(pal_statistics_msgs::msg::StatisticsNames &names, pal_statistics_msgs::msg::StatisticsValues &value)
 {
   names.names.clear();
   names.names.resize(last_values_buffer_.front().first.names.size());
@@ -152,7 +154,7 @@ void RegistrationList::fillMsg(pal_statistics_msgs::StatisticsNames &names, pal_
   last_values_buffer_.pop_front();
 }
 
-bool RegistrationList::smartFillMsg(pal_statistics_msgs::StatisticsNames &names, pal_statistics_msgs::StatisticsValues &values)
+bool RegistrationList::smartFillMsg(pal_statistics_msgs::msg::StatisticsNames &names, pal_statistics_msgs::msg::StatisticsValues &values)
 {
   if (names.names.empty() || registrations_changed_)
   {
@@ -192,7 +194,8 @@ void RegistrationList::deleteElement(size_t index)
 {
   IdType id = ids_[index];
   if (name_id_.right.count(id) == 0)
-    ROS_ERROR_STREAM("Didn't find index " << index << " in <name, index> multimap");
+    RCLCPP_ERROR_STREAM(node_->get_logger().get_child("pal_statistics"),
+                        "Didn't find index " << index << " in <name, index> multimap");
 
   name_id_.right.erase(id);
 
@@ -235,7 +238,7 @@ int RegistrationList::registerVariable(const std::string &name, VariableHolder &
     // But the buffer's number of elements is set to 0
     last_values_buffer_.set_capacity(buffer_size_,
                                      LastValuesStamped(NameValues(names_.capacity()),
-                                                       ros::Time(0)));
+                                                       rclcpp::Time(0)));
   }
   return id;
 }
@@ -271,13 +274,13 @@ RegistrationsRAII::RegistrationsRAII()
 
 void RegistrationsRAII::add(Registration &&registration)
 {
-  boost::unique_lock<boost::mutex> guard(mutex_);
+  std::unique_lock<std::mutex> guard(mutex_);
   registrations_.push_back(std::move(registration));
 }
 
 bool RegistrationsRAII::remove(const std::string &name)
 {
-  boost::unique_lock<boost::mutex> guard(mutex_);
+  std::unique_lock<std::mutex> guard(mutex_);
   try
   {
     registrations_.erase(find(name));
@@ -292,7 +295,7 @@ bool RegistrationsRAII::remove(const std::string &name)
 
 bool RegistrationsRAII::remove(IdType id)
 {
-  boost::unique_lock<boost::mutex> guard(mutex_);
+  std::unique_lock<std::mutex> guard(mutex_);
   try
   {
     registrations_.erase(find(id));
