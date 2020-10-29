@@ -47,7 +47,7 @@ public:
       std::bind(&PalStatisticsTest::valuesTopicCb, this, std::placeholders::_1));
 
   }
-  
+
   void fullTopicCb(const pal_statistics_msgs::msg::Statistics::SharedPtr msg)
   {
     last_msg_ = msg;
@@ -146,15 +146,15 @@ TEST_F(PalStatisticsTest, checkValues)
   EXPECT_NEAR(node_->get_clock()->now().seconds(),
               rclcpp::Time(msg.header.stamp).seconds(), 0.001);
   auto s = getVariableAndValues(msg);
-  EXPECT_EQ(var1_, s["var1"]);
-  EXPECT_EQ(var2_, s["var2"]);
+  EXPECT_DOUBLE_EQ(var1_, s["var1"]);
+  EXPECT_DOUBLE_EQ(var2_, s["var2"]);
 
   var1_ = 100.0;
   var2_ = -100.0;
   msg = registry->createMsg();
   s = getVariableAndValues(msg);
-  EXPECT_EQ(var1_, s["var1"]);
-  EXPECT_EQ(var2_, s["var2"]);
+  EXPECT_DOUBLE_EQ(var1_, s["var1"]);
+  EXPECT_DOUBLE_EQ(var2_, s["var2"]);
 }
 
 TEST_F(PalStatisticsTest, typeTest)
@@ -203,25 +203,29 @@ TEST_F(PalStatisticsTest, typeTest)
   pal_statistics_msgs::msg::Statistics msg = registry->createMsg();
 
   auto values = getVariableAndValues(msg);
-  EXPECT_EQ(s, values["s"]);
-  EXPECT_EQ(us, values["us"]);
-  EXPECT_EQ(c, values["c"]);
-  EXPECT_EQ(uc, values["uc"]);
-  EXPECT_EQ(i, values["i"]);
-  EXPECT_EQ(ui, values["ui"]);
-  EXPECT_EQ(l, values["l"]);
-  EXPECT_EQ(ul, values["ul"]);
-  EXPECT_EQ(ll, values["ll"]);
-  EXPECT_EQ(ull, values["ull"]);
-  EXPECT_EQ(min_f, values["min_f"]);
-  EXPECT_EQ(max_f, values["max_f"]);
-  EXPECT_EQ(min_d, values["min_d"]);
-  EXPECT_EQ(max_d, values["max_d"]);
-  EXPECT_EQ(true_b, values["true_b"]);
-  EXPECT_EQ(false_b, values["false_b"]);
-  EXPECT_EQ(container_.size(), values["container_size"]);
+  EXPECT_EQ(s, static_cast<short>(values["s"]));
+  EXPECT_EQ(us, static_cast<unsigned short>(values["us"]));
+  EXPECT_EQ(c, static_cast<char>(values["c"]));
+  EXPECT_EQ(uc, static_cast<unsigned char>(values["uc"]));
+  EXPECT_EQ(i, static_cast<int>(values["i"]));
+  EXPECT_EQ(ui, static_cast<unsigned int>(values["ui"]));
+  // Can't compare in original type, too big of a precision loss
+  EXPECT_DOUBLE_EQ(l, values["l"]);
+  EXPECT_DOUBLE_EQ(ul, values["ul"]);
+  EXPECT_DOUBLE_EQ(ll, values["ll"]);
+  EXPECT_DOUBLE_EQ(ull, values["ull"]);
+  EXPECT_FLOAT_EQ(min_f, static_cast<float>(values["min_f"]));
+  EXPECT_FLOAT_EQ(max_f, static_cast<float>(values["max_f"]));
+  EXPECT_DOUBLE_EQ(min_d, values["min_d"]);
+  EXPECT_DOUBLE_EQ(max_d, values["max_d"]);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+  EXPECT_EQ(true_b, static_cast<bool>(values["true_b"]));
+  EXPECT_EQ(false_b, static_cast<bool>(values["false_b"]));
+#pragma GCC diagnostic pop
+  EXPECT_EQ(container_.size(), static_cast<unsigned long>(values["container_size"]));
 
-  EXPECT_NE(l, values["ul"]);
+
 }
 
 TEST_F(PalStatisticsTest, manualRegistration)
@@ -252,7 +256,7 @@ TEST_F(PalStatisticsTest, manualRegistration)
                                    "topic_stats.pal_statistics.publish_async_failures",
                                    "topic_stats.pal_statistics.publish_buffer_full_errors",
                                    "topic_stats.pal_statistics.last_async_pub_duration"));
-  
+
   EXPECT_TRUE(registry->disable(var1_id));
   msg = registry->createMsg();
   EXPECT_THAT(getVariables(msg),
@@ -261,8 +265,8 @@ TEST_F(PalStatisticsTest, manualRegistration)
                                    "topic_stats.pal_statistics.publish_async_failures",
                                    "topic_stats.pal_statistics.publish_buffer_full_errors",
                                    "topic_stats.pal_statistics.last_async_pub_duration"));
-  
-  
+
+
   EXPECT_TRUE(registry->enable(var1_id));
   msg = registry->createMsg();
   EXPECT_THAT(getVariables(msg),
@@ -294,7 +298,7 @@ TEST_F(PalStatisticsTest, automaticRegistration)
                                      "topic_stats.pal_statistics.publish_async_failures",
                                      "topic_stats.pal_statistics.publish_buffer_full_errors",
                                      "topic_stats.pal_statistics.last_async_pub_duration"));
-    
+
     EXPECT_TRUE(bookkeeping.disableAll());
     msg = registry->createMsg();
     EXPECT_THAT(getVariables(msg),
@@ -302,7 +306,7 @@ TEST_F(PalStatisticsTest, automaticRegistration)
                                      "topic_stats.pal_statistics.publish_async_failures",
                                      "topic_stats.pal_statistics.publish_buffer_full_errors",
                                      "topic_stats.pal_statistics.last_async_pub_duration"));
-    
+
     EXPECT_TRUE(bookkeeping.enableAll());
     msg = registry->createMsg();
     EXPECT_THAT(getVariables(msg),
@@ -311,7 +315,7 @@ TEST_F(PalStatisticsTest, automaticRegistration)
                                      "topic_stats.pal_statistics.publish_async_failures",
                                      "topic_stats.pal_statistics.publish_buffer_full_errors",
                                      "topic_stats.pal_statistics.last_async_pub_duration"));
-    
+
   }
 
   msg = registry->createMsg();
@@ -361,8 +365,8 @@ TEST_F(PalStatisticsTest, asyncPublisher)
     ASSERT_TRUE(waitForMsg());
 
     auto s = getVariableAndValues(*last_msg_);
-    EXPECT_EQ(var1_, s["var1"]);
-    EXPECT_EQ(var2_, s["var2"]);
+    EXPECT_DOUBLE_EQ(var1_, s["var1"]);
+    EXPECT_DOUBLE_EQ(var2_, s["var2"]);
 
     last_msg_.reset();
     ASSERT_FALSE(waitForMsg())
@@ -374,8 +378,8 @@ TEST_F(PalStatisticsTest, asyncPublisher)
     ASSERT_TRUE(waitForMsg());
 
     s = getVariableAndValues(*last_msg_);
-    EXPECT_EQ(var1_, s["var1"]);
-    EXPECT_EQ(var2_, s["var2"]);
+    EXPECT_DOUBLE_EQ(var1_, s["var1"]);
+    EXPECT_DOUBLE_EQ(var2_, s["var2"]);
 
     last_msg_.reset();
   }
@@ -418,7 +422,7 @@ TEST_F(PalStatisticsTest, macroTest)
                                    "topic_stats.pal_statistics.publish_buffer_full_errors",
                                    "topic_stats.pal_statistics.last_async_pub_duration"));
   last_msg_.reset();
-  
+
   REGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var2_bis", &var2_, NULL);
   UNREGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var2", NULL);
   var1_ = 123.456;
@@ -430,13 +434,13 @@ TEST_F(PalStatisticsTest, macroTest)
                                    "topic_stats.pal_statistics.publish_async_failures",
                                    "topic_stats.pal_statistics.publish_buffer_full_errors",
                                    "topic_stats.pal_statistics.last_async_pub_duration"));
-  EXPECT_EQ(var1_, getVariableAndValues(*last_msg_)["macro_var1"]);
+  EXPECT_DOUBLE_EQ(var1_, getVariableAndValues(*last_msg_)["macro_var1"]);
   UNREGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var1", NULL);
   UNREGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var2_bis", NULL);
-  
-  
-  
-  
+
+
+
+
 }
 
 void registerThread(std::shared_ptr<StatisticsRegistry> registry, const std::string &prefix,
@@ -485,7 +489,7 @@ TEST_F(PalStatisticsTest, stressAsync)
   customRegister(*registry, "test_variable", &d);
   customRegister(*registry, "test_variable2", &d);
   size_t received_messages = 0;
-  
+
   // Create a callback group to spin independently from the rest of callbacks of the node
   auto cb_group = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
   auto group_executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
@@ -508,7 +512,7 @@ TEST_F(PalStatisticsTest, stressAsync)
   {
     rclcpp::sleep_for(std::chrono::milliseconds(100));
   }
-  
+
   rclcpp::Rate rate(1e4);
   size_t num_messages = 3e4;
   size_t success_async = 0;
@@ -517,12 +521,12 @@ TEST_F(PalStatisticsTest, stressAsync)
     success_async += registry->publishAsync();
     rate.sleep();
   }
-  
+
   //Allow time for everything to arrive
   rclcpp::sleep_for(std::chrono::milliseconds(500));
   group_executor->cancel();
 
-  
+
   EXPECT_EQ(success_async - registry->registration_list_->overwritten_data_count_, received_messages);
 }
 
@@ -632,7 +636,7 @@ TEST_F(PalStatisticsTest, singlePublish)
       std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
   double d = 0.123;
   registry->publishCustomStatistic("single_stat", d);
-  
+
   waitForMsg();
   EXPECT_TRUE(last_msg_.get());
   ASSERT_EQ(1, last_msg_->statistics.size());
@@ -666,7 +670,7 @@ TEST_F(PalStatisticsTest, chaosTest2)
   UNREGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "var1", nullptr);
   rclcpp::sleep_for(std::chrono::milliseconds(200));
   PUBLISH_ASYNC_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC);
-  
+
   last_msg_.reset();
   ASSERT_TRUE(waitForMsg());
   EXPECT_THAT(getVariables(*last_msg_),
@@ -688,7 +692,7 @@ TEST_F(PalStatisticsTest, chaosTest3)
   getRegistry(node_, DEFAULT_STATISTICS_TOPIC)->disable(var1id);
   rclcpp::sleep_for(std::chrono::milliseconds(200));
   PUBLISH_ASYNC_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC);
-  
+
   last_msg_.reset();
   ASSERT_TRUE(waitForMsg());
   EXPECT_THAT(getVariables(*last_msg_),
@@ -725,7 +729,7 @@ TEST_F(PalStatisticsTest, splitMsgTest)
       }
       SCOPED_TRACE(std::string("Iteration ") + std::to_string(i) + " remove " +
                    std::to_string(remove));
-      
+
       resetMsgs();
       PUBLISH_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC);
       ASSERT_TRUE(waitForMsg());
@@ -736,7 +740,7 @@ TEST_F(PalStatisticsTest, splitMsgTest)
       old_names_version = last_names_msg_->names_version;
 
       ASSERT_EQ(getVariables(*last_msg_), last_names_msg_->names);
-      
+
       resetMsgs();
       PUBLISH_STATISTICS(node_, DEFAULT_STATISTICS_TOPIC);
       ASSERT_TRUE(waitForMsg());
