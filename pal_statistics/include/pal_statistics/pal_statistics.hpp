@@ -1,19 +1,19 @@
 /**
  *
  * MIT License
- * 
+ *
  * Copyright (c) 2019 PAL Robotics S.L.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,7 +28,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <mutex>
-#include <pal_statistics/pal_statistics_utils.h>
+#include <pal_statistics/pal_statistics_utils.hpp>
 #include <pal_statistics_msgs/msg/statistics.hpp>
 #include <pal_statistics_msgs/msg/statistics_names.hpp>
 #include <pal_statistics_msgs/msg/statistics_values.hpp>
@@ -37,7 +37,7 @@ namespace pal_statistics
 {
 
 // forward declarations
-template <typename T>
+template<typename T>
 class LockFreeQueue;
 struct EnabledId;
 class RegistrationList;
@@ -58,7 +58,7 @@ class RegistrationList;
 class StatisticsRegistry : public std::enable_shared_from_this<StatisticsRegistry>
 {
 public:
-  StatisticsRegistry(const std::shared_ptr<rclcpp::Node> &node, const std::string &topic);
+  StatisticsRegistry(const std::shared_ptr<rclcpp::Node> & node, const std::string & topic);
 
   virtual ~StatisticsRegistry();
 
@@ -66,19 +66,21 @@ public:
    * @brief registerVariable Specialization for double*, the most common case, to avoid
    * going through a boost function call to read the variable
    */
-  IdType registerVariable(const std::string &name, const double * variable, RegistrationsRAII *bookkeeping = NULL,
-                          bool enabled = true);
+  IdType registerVariable(
+    const std::string & name, const double * variable, RegistrationsRAII * bookkeeping = NULL,
+    bool enabled = true);
 
   /**
    * @brief registerFunction Adds a function that returns double with the specified name
    * @param bookkeeping same as in registerVariable
    */
-  IdType registerFunction(const std::string &name, const std::function<double()> &funct,
-                        RegistrationsRAII *bookkeeping = NULL, bool enabled = true);
+  IdType registerFunction(
+    const std::string & name, const std::function<double()> & funct,
+    RegistrationsRAII * bookkeeping = NULL, bool enabled = true);
 
 
-  void unregisterVariable(const std::string &name, RegistrationsRAII *bookkeeping = NULL);
-  void unregisterVariable(IdType id, RegistrationsRAII *bookkeeping = NULL);
+  void unregisterVariable(const std::string & name, RegistrationsRAII * bookkeeping = NULL);
+  void unregisterVariable(IdType id, RegistrationsRAII * bookkeeping = NULL);
 
   /**
    * @brief publish Reads the values of all registered variables and publishes them to the
@@ -113,8 +115,8 @@ public:
   /**
    * @brief publishCustomStatistic publishes a one-time statistic
    */
-  template <typename T>
-  void publishCustomStatistic(const std::string &name, T value)
+  template<typename T>
+  void publishCustomStatistic(const std::string & name, T value)
   {
     pal_statistics_msgs::msg::Statistics msg;
     pal_statistics_msgs::msg::Statistic stat;
@@ -128,7 +130,7 @@ public:
   /**
    * @brief publishCustomStatistic publishes a one-time statistics msg
    */
-  void publishCustomStatistics(const pal_statistics_msgs::msg::Statistics &msg)
+  void publishCustomStatistics(const pal_statistics_msgs::msg::Statistics & msg)
   {
     pub_->publish(msg);
   }
@@ -146,8 +148,8 @@ public:
    * If you need a deterministic way of preventing a variable from being published,
    * you need to unregister it, but it is not RT safe.
    */
-  bool enable(const IdType &id);
-  bool disable(const IdType &id);
+  bool enable(const IdType & id);
+  bool disable(const IdType & id);
 
 private:
   /**
@@ -161,28 +163,31 @@ private:
    * @brief updateMsg update names and values, optionally using smartfill to minimize copying
    * @return true if a smartfill was performed
    */
-  bool updateMsg(pal_statistics_msgs::msg::StatisticsNames &names,
-                 pal_statistics_msgs::msg::StatisticsValues &values, bool smart_fill = false);
+  bool updateMsg(
+    pal_statistics_msgs::msg::StatisticsNames & names,
+    pal_statistics_msgs::msg::StatisticsValues & values, bool smart_fill = false);
 
   void publisherThreadCycle();
 
   void startPublishThreadImpl();
 
-  IdType registerInternal(const std::string &name, VariableHolder &&variable, RegistrationsRAII *bookkeeping, bool enabled);
+  IdType registerInternal(
+    const std::string & name, VariableHolder && variable,
+    RegistrationsRAII * bookkeeping, bool enabled);
 
-  bool setEnabledmpl(const IdType &id, bool enabled);
+  bool setEnabledmpl(const IdType & id, bool enabled);
 
   /**
    * @brief handlePendingDisables Empties by handling the queue of disabled/enabled ids.
    */
-  void handlePendingDisables(const std::unique_lock<std::mutex> &data_lock);
+  void handlePendingDisables(const std::unique_lock<std::mutex> & data_lock);
 
   /**
    * @brief doPublish publishes the subscribed topics, requires mutex
    */
   void doPublish(bool publish_names_msg = true);
 
-  const rclcpp::Logger &getLogger() const;
+  const rclcpp::Logger & getLogger() const;
 
   std::shared_ptr<rclcpp::Node> node_;
   rclcpp::Logger logger_;
@@ -216,10 +221,12 @@ private:
   struct GeneratedStatistics
   {
     GeneratedStatistics()
-     : last_names_version_(-1)
-    {}
-    void update(const pal_statistics_msgs::msg::StatisticsNames &names,
-                const pal_statistics_msgs::msg::StatisticsValues &values);
+    : last_names_version_(-1)
+    {
+    }
+    void update(
+      const pal_statistics_msgs::msg::StatisticsNames & names,
+      const pal_statistics_msgs::msg::StatisticsValues & values);
 
     /// This message is generated using an updated StatiticsNames and StatisticsValues
     pal_statistics_msgs::msg::Statistics msg_;

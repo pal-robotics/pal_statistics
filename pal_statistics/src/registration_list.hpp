@@ -4,7 +4,7 @@
 #include <boost/bimap.hpp>
 #include <boost/bimap/multiset_of.hpp>
 #include <boost/bimap/set_of.hpp>
-#include <pal_statistics/pal_statistics_utils.h>
+#include <pal_statistics/pal_statistics_utils.hpp>
 
 namespace pal_statistics
 {
@@ -18,23 +18,27 @@ namespace pal_statistics
 class RegistrationList
 {
 public:
-  RegistrationList(const std::shared_ptr<rclcpp::Node> &node, size_t internal_buffer_capacity = 100);
-  int registerVariable(const std::string &name, VariableHolder &&holder, bool enabled = true);
+  RegistrationList(
+    const std::shared_ptr<rclcpp::Node> & node,
+    size_t internal_buffer_capacity = 100);
+  int registerVariable(const std::string & name, VariableHolder && holder, bool enabled = true);
 
 
-  void unregisterVariable(const IdType &id);
+  void unregisterVariable(const IdType & id);
 
-  void setEnabled(const IdType &id, bool enabled);
+  void setEnabled(const IdType & id, bool enabled);
 
 
-  void unregisterVariable(const std::string &name);
+  void unregisterVariable(const std::string & name);
 
   void doUpdate();
 
   /**
     @brief fills message with the last captured values.
     */
-  void fillMsg(pal_statistics_msgs::msg::StatisticsNames &names, pal_statistics_msgs::msg::StatisticsValues &value);
+  void fillMsg(
+    pal_statistics_msgs::msg::StatisticsNames & names,
+    pal_statistics_msgs::msg::StatisticsValues & value);
 
   /**
    * @brief smartFillMsg Attempts to minimize the amount of string copies
@@ -44,7 +48,9 @@ public:
    * registered/deregistered/enabled/disabled since the last call to this function, will
    * only update the values.
    */
-  bool smartFillMsg(pal_statistics_msgs::msg::StatisticsNames &names, pal_statistics_msgs::msg::StatisticsValues &values);
+  bool smartFillMsg(
+    pal_statistics_msgs::msg::StatisticsNames & names,
+    pal_statistics_msgs::msg::StatisticsValues & values);
   /**
    * @return the number of variables registered
    */
@@ -65,7 +71,8 @@ private:
 
   // Bidirectional map between names and ids.
   // Can have multiple variables with the same name but different id, but not multiple id
-  typedef boost::bimap<boost::bimaps::multiset_of<std::string>, boost::bimaps::set_of<IdType>> NameIdBiMap;
+  typedef boost::bimap<boost::bimaps::multiset_of<std::string>,
+      boost::bimaps::set_of<IdType>> NameIdBiMap;
 
   std::shared_ptr<rclcpp::Node> node_;
   NameIdBiMap name_id_;

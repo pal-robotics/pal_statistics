@@ -34,32 +34,32 @@ namespace pal_statistics
  *        Boost's implementation of reserve always increases the capacity by the specified
  * size
  */
-template <typename T>
+template<typename T>
 class LockFreeQueue : private boost::lockfree::queue<T>
 {
 public:
   typedef boost::lockfree::queue<T> BaseType;
 
-  LockFreeQueue() : BaseType(0), reserved_size(0)
+  LockFreeQueue()
+  : BaseType(0), reserved_size(0)
   {
   }
   void set_capacity(typename BaseType::size_type n)
   {
     long long missing_size = n - reserved_size;
-    if (missing_size > 0)
-    {
+    if (missing_size > 0) {
       BaseType::reserve(missing_size);
       reserved_size += missing_size;
     }
   }
 
-  bool bounded_push(T const &t)
+  bool bounded_push(T const & t)
   {
     return BaseType::bounded_push(t);
   }
 
-  template <typename U>
-  bool pop(U &ret)
+  template<typename U>
+  bool pop(U & ret)
   {
     return BaseType::pop(ret);
   }

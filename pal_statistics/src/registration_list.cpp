@@ -1,32 +1,31 @@
-#include "registration_list.h"
+#include "registration_list.hpp"
 
 namespace pal_statistics
 {
-RegistrationList::RegistrationList(const std::shared_ptr<rclcpp::Node> &node, size_t internal_buffer_capacity)
-: node_(node), last_id_(0), names_version_(0), buffer_size_(internal_buffer_capacity), all_enabled_(true), registrations_changed_(true)
+RegistrationList::RegistrationList(
+  const std::shared_ptr<rclcpp::Node> & node,
+  size_t internal_buffer_capacity)
+: node_(node), last_id_(0), names_version_(0), buffer_size_(internal_buffer_capacity), all_enabled_(
+    true), registrations_changed_(true)
 {
   overwritten_data_count_ = 0;
 }
 
-void RegistrationList::unregisterVariable(const IdType &id)
+void RegistrationList::unregisterVariable(const IdType & id)
 {
-  for (size_t i = 0; i < ids_.size(); ++i)
-  {
-    if (ids_[i] == id)
-    {
+  for (size_t i = 0; i < ids_.size(); ++i) {
+    if (ids_[i] == id) {
       deleteElement(i);
       break;
     }
   }
 }
 
-void RegistrationList::setEnabled(const IdType &id, bool enabled)
+void RegistrationList::setEnabled(const IdType & id, bool enabled)
 {
   registrationsChanged();
-  for (size_t i = 0; i < ids_.size(); ++i)
-  {
-    if (ids_[i] == id)
-    {
+  for (size_t i = 0; i < ids_.size(); ++i) {
+    if (ids_[i] == id) {
       enabled_[i] = enabled;
       all_enabled_ = all_enabled_ && enabled;
       break;
@@ -34,26 +33,26 @@ void RegistrationList::setEnabled(const IdType &id, bool enabled)
   }
 }
 
-void RegistrationList::unregisterVariable(const std::string &name)
+void RegistrationList::unregisterVariable(const std::string & name)
 {
   size_t count = name_id_.left.count(name);
-  if (count > 1)
-  {
-    RCLCPP_ERROR_STREAM(node_->get_logger().get_child("pal_statistics"),
-                        "You asked to unregister "
-                          << name
-                          << " but there are multiple variables registered with that name. This can have undefined behaviour, unregistering all");
+  if (count > 1) {
+    RCLCPP_ERROR_STREAM(
+      node_->get_logger().get_child(
+        "pal_statistics"),
+      "You asked to unregister " <<
+        name <<
+        " but there are multiple variables registered with that name. This can have undefined behaviour, unregistering all");
   }
-  if (count == 0)
-  {
+  if (count == 0) {
 
-    RCLCPP_ERROR_STREAM(node_->get_logger().get_child("pal_statistics"),
-                        "Tried to unregister variable " << name << " but it is not registered.");
+    RCLCPP_ERROR_STREAM(
+      node_->get_logger().get_child("pal_statistics"),
+      "Tried to unregister variable " << name << " but it is not registered.");
     return;
   }
   auto it = name_id_.left.find(name);
-  while (it != name_id_.left.end())
-  {
+  while (it != name_id_.left.end()) {
     unregisterVariable(it->second);
     it = name_id_.left.find(name);
   }
@@ -61,38 +60,33 @@ void RegistrationList::unregisterVariable(const std::string &name)
 
 void RegistrationList::doUpdate()
 {
-  if (last_values_buffer_.size() == last_values_buffer_.capacity())
+  if (last_values_buffer_.size() == last_values_buffer_.capacity()) {
     overwritten_data_count_++;
+  }
 
-  auto &last_values_stamped = last_values_buffer_.push_back();
-  auto &last_values = last_values_stamped.first;
+  auto & last_values_stamped = last_values_buffer_.push_back();
+  auto & last_values = last_values_stamped.first;
   last_values_stamped.second = node_->get_clock()->now();
   assert(last_values.names.capacity() >= ids_.size());
   assert(last_values.values.capacity() >= ids_.size());
 
   // This is for optimization, majority of the time everything is enabled and this runs 40% faster
-  if (all_enabled_)
-  {
+  if (all_enabled_) {
     last_values.names = ids_;
     size_t ref_size = references_.size();
-    for (size_t i = 0; i < ref_size; ++i)
-    {
+    for (size_t i = 0; i < ref_size; ++i) {
       // Should never allocate memory because its capacity is able to hold all
       // variables
       last_values.values[i] = references_[i].getValue();
     }
     last_values.values.resize(ref_size);
-  }
-  else
-  {
+  } else {
     last_values.names.clear();
     last_values.values.clear();
     // We know it doesn't change from another thread, and makes the condition check 50% faster
     size_t id_size = ids_.size();
-    for (size_t i = 0; i < id_size; ++i)
-    {
-      if (enabled_[i])
-      {
+    for (size_t i = 0; i < id_size; ++i) {
+      if (enabled_[i]) {
         // Should never allocate memory because its capacity is able to hold all
         // variables
         last_values.names.emplace_back(ids_[i]);
@@ -103,15 +97,16 @@ void RegistrationList::doUpdate()
   }
 }
 
-void RegistrationList::fillMsg(pal_statistics_msgs::msg::StatisticsNames &names, pal_statistics_msgs::msg::StatisticsValues &value)
+void RegistrationList::fillMsg(
+  pal_statistics_msgs::msg::StatisticsNames & names,
+  pal_statistics_msgs::msg::StatisticsValues & value)
 {
   names.names.clear();
   names.names.resize(last_values_buffer_.front().first.names.size());
-  for (size_t i = 0; i < last_values_buffer_.front().first.names.size(); ++i)
-  {
-    const IdType &id = last_values_buffer_.front().first.names[i];
+  for (size_t i = 0; i < last_values_buffer_.front().first.names.size(); ++i) {
+    const IdType & id = last_values_buffer_.front().first.names[i];
     assert(name_id_.right.find(id) != name_id_.right.end());
-    names.names[i] = name_id_.right.find(id)->second;;
+    names.names[i] = name_id_.right.find(id)->second;
   }
   names.header.stamp = last_values_buffer_.front().second;
   value.header = names.header;
@@ -126,15 +121,15 @@ void RegistrationList::fillMsg(pal_statistics_msgs::msg::StatisticsNames &names,
   last_values_buffer_.pop_front();
 }
 
-bool RegistrationList::smartFillMsg(pal_statistics_msgs::msg::StatisticsNames &names, pal_statistics_msgs::msg::StatisticsValues &values)
+bool RegistrationList::smartFillMsg(
+  pal_statistics_msgs::msg::StatisticsNames & names,
+  pal_statistics_msgs::msg::StatisticsValues & values)
 {
-  if (names.names.empty() || registrations_changed_)
-  {
+  if (names.names.empty() || registrations_changed_) {
     fillMsg(names, values);
     registrations_changed_ = false;
     all_enabled_ = true;
-    for (size_t i = 0; i < enabled_.size(); ++i)
-    {
+    for (size_t i = 0; i < enabled_.size(); ++i) {
       all_enabled_ = all_enabled_ && enabled_[i];
     }
     return false;
@@ -165,9 +160,11 @@ bool RegistrationList::hasPendingData() const
 void RegistrationList::deleteElement(size_t index)
 {
   IdType id = ids_[index];
-  if (name_id_.right.count(id) == 0)
-    RCLCPP_ERROR_STREAM(node_->get_logger().get_child("pal_statistics"),
-                        "Didn't find index " << index << " in <name, index> multimap");
+  if (name_id_.right.count(id) == 0) {
+    RCLCPP_ERROR_STREAM(
+      node_->get_logger().get_child("pal_statistics"),
+      "Didn't find index " << index << " in <name, index> multimap");
+  }
 
   name_id_.right.erase(id);
 
@@ -191,7 +188,9 @@ void RegistrationList::registrationsChanged()
   last_values_buffer_.clear();
 }
 
-int RegistrationList::registerVariable(const std::string &name, VariableHolder &&holder, bool enabled)
+int RegistrationList::registerVariable(
+  const std::string & name, VariableHolder && holder,
+  bool enabled)
 {
   registrationsChanged();
 
@@ -203,14 +202,15 @@ int RegistrationList::registerVariable(const std::string &name, VariableHolder &
   references_.push_back(std::move(holder));
   enabled_.push_back(enabled);
   // reserve memory for values
-  if (needs_more_capacity )
-  {
+  if (needs_more_capacity) {
     // Reset last_values_buffer_ size to be able to contain buffer_size_ copies
     // of the last values vector with the same capacity as the names vector
     // But the buffer's number of elements is set to 0
-    last_values_buffer_.set_capacity(buffer_size_,
-                                     LastValuesStamped(NameValues(names_.capacity()),
-                                                       rclcpp::Time(0)));
+    last_values_buffer_.set_capacity(
+      buffer_size_,
+      LastValuesStamped(
+        NameValues(names_.capacity()),
+        rclcpp::Time(0)));
   }
   return id;
 }

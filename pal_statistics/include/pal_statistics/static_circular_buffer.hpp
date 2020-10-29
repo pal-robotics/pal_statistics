@@ -1,19 +1,19 @@
 /**
  *
  * MIT License
- * 
+ *
  * Copyright (c) 2019 PAL Robotics S.L.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,22 +37,22 @@
  * Cannot use boost::circular_buffer because popping a vector destroys it and
  * deallocates memory
  */
-template <typename T, typename Allocator = std::allocator<T>>
+template<typename T, typename Allocator = std::allocator<T>>
 class StaticCircularBuffer
 {
 public:
- typedef std::vector<T, Allocator> VectorType;
+  typedef std::vector<T, Allocator> VectorType;
 
-  StaticCircularBuffer(size_t max_size, const T& val, const Allocator& alloc = Allocator())
-    : buffer_(alloc)
+  StaticCircularBuffer(size_t max_size, const T & val, const Allocator & alloc = Allocator())
+  : buffer_(alloc)
   {
     set_capacity(max_size, val);
   }
 
   StaticCircularBuffer()
   {
-   begin_iterator_ = buffer_.begin();
-   end_iterator_ = begin_iterator_;
+    begin_iterator_ = buffer_.begin();
+    end_iterator_ = begin_iterator_;
   }
 
   /**
@@ -71,7 +71,7 @@ public:
    * @param Resets the beginning and end iterators, which reduces the size of the buffer
    * to zero
    */
-  void set_capacity(size_t max_size, const T& val)
+  void set_capacity(size_t max_size, const T & val)
   {
     buffer_.assign(max_size, val);
     clear();
@@ -85,18 +85,20 @@ public:
 
   size_t size() const
   {
-    if (full_)
+    if (full_) {
       return capacity();
-    else if (begin_iterator_ <= end_iterator_)
+    } else if (begin_iterator_ <= end_iterator_) {
       return std::distance(begin_iterator_, end_iterator_);
-    else
+    } else {
       return buffer_.size() - std::distance(end_iterator_, begin_iterator_);
+    }
   }
 
-  T& front()
+  T & front()
   {
-    if (!full_ && (begin_iterator_ == end_iterator_))
+    if (!full_ && (begin_iterator_ == end_iterator_)) {
       throw std::runtime_error("Buffer is empty");
+    }
     return *begin_iterator_;
   }
 
@@ -106,17 +108,17 @@ public:
    *
    * If the buffer becomes full, the returned reference already contains an item
    */
-  T& push_back()
+  T & push_back()
   {
 
     auto old_it = end_iterator_;
-    if (full_)
+    if (full_) {
       advance(begin_iterator_);
+    }
     advance(end_iterator_);
 
     // Buffer at max capacity
-    if (end_iterator_ == begin_iterator_)
-    {
+    if (end_iterator_ == begin_iterator_) {
       full_ = true;
     }
     return *old_it;
@@ -127,8 +129,9 @@ public:
    */
   void pop_front()
   {
-   if (!full_ && (begin_iterator_ == end_iterator_))
-     throw std::runtime_error("Buffer is empty");
+    if (!full_ && (begin_iterator_ == end_iterator_)) {
+      throw std::runtime_error("Buffer is empty");
+    }
     advance(begin_iterator_);
     full_ = false;
   }
@@ -138,19 +141,19 @@ public:
    * risk.
    * @return
    */
-  VectorType &getBuffer()
+  VectorType & getBuffer()
   {
-   return buffer_;
+    return buffer_;
   }
 
 private:
-  void advance(typename VectorType::iterator& it, size_t distance = 1)
+  void advance(typename VectorType::iterator & it, size_t distance = 1)
   {
-    for (size_t i = 0; i < distance; ++i)
-    {
+    for (size_t i = 0; i < distance; ++i) {
       it++;
-      if (it == buffer_.end())
+      if (it == buffer_.end()) {
         it = buffer_.begin();
+      }
     }
   }
   VectorType buffer_;

@@ -5,10 +5,10 @@
 
   @copyright (c) 2018 PAL Robotics SL. All Rights Reserved
 */
-#include "lock_free_queue.h"
-#include "registration_list.h"
-#include <pal_statistics/pal_statistics.h>
-#include <pal_statistics/registration_utils.h>
+#include "lock_free_queue.hpp"
+#include "registration_list.hpp"
+#include <pal_statistics/pal_statistics.hpp>
+#include <pal_statistics/registration_utils.hpp>
 
 namespace pal_statistics
 {
@@ -20,58 +20,77 @@ struct EnabledId
   bool enabled;
 };
 
-StatisticsRegistry::StatisticsRegistry(const std::shared_ptr<rclcpp::Node> &node, const std::string &topic)
-: node_(node), logger_(node_->get_logger().get_child("pal_statistics")), registration_list_(new RegistrationList(node_)),
+StatisticsRegistry::StatisticsRegistry(
+  const std::shared_ptr<rclcpp::Node> & node,
+  const std::string & topic)
+: node_(node), logger_(node_->get_logger().get_child("pal_statistics")), registration_list_(new RegistrationList(
+      node_)),
   enabled_ids_(new LockFreeQueue<EnabledId>())
 {
-  pub_ =  node_->create_publisher<pal_statistics_msgs::msg::Statistics>(topic + "/full", rclcpp::QoS(rclcpp::KeepAll()));
+  pub_ =
+    node_->create_publisher<pal_statistics_msgs::msg::Statistics>(
+    topic + "/full",
+    rclcpp::QoS(rclcpp::KeepAll()));
   rclcpp::QoS names_qos{rclcpp::KeepAll()};
   names_qos.reliable();
   names_qos.transient_local(); // latch
 
-  pub_names_ = node_->create_publisher<pal_statistics_msgs::msg::StatisticsNames>(topic + "/names", names_qos);
-  pub_values_ = node_->create_publisher<pal_statistics_msgs::msg::StatisticsValues>(topic + "/values", rclcpp::QoS(rclcpp::KeepAll()));
+  pub_names_ = node_->create_publisher<pal_statistics_msgs::msg::StatisticsNames>(
+    topic + "/names",
+    names_qos);
+  pub_values_ = node_->create_publisher<pal_statistics_msgs::msg::StatisticsValues>(
+    topic + "/values", rclcpp::QoS(rclcpp::KeepAll()));
   publish_async_attempts_ = 0;
   publish_async_failures_ = 0;
   last_async_pub_duration_ = 0.0;
   interrupt_thread_ = false;
   is_data_ready_ = false;
 
-  customRegister(*this, "topic_stats." + topic + ".publish_async_attempts", &publish_async_attempts_, &internal_stats_raii_);
-  customRegister(*this, "topic_stats." + topic + ".publish_async_failures", &publish_async_failures_, &internal_stats_raii_);
-  customRegister(*this, "topic_stats." + topic + ".publish_buffer_full_errors", &registration_list_->overwritten_data_count_, &internal_stats_raii_);
-  customRegister(*this, "topic_stats." + topic + ".last_async_pub_duration", &last_async_pub_duration_, &internal_stats_raii_);
+  customRegister(
+    *this, "topic_stats." + topic + ".publish_async_attempts",
+    &publish_async_attempts_, &internal_stats_raii_);
+  customRegister(
+    *this, "topic_stats." + topic + ".publish_async_failures",
+    &publish_async_failures_, &internal_stats_raii_);
+  customRegister(
+    *this, "topic_stats." + topic + ".publish_buffer_full_errors",
+    &registration_list_->overwritten_data_count_, &internal_stats_raii_);
+  customRegister(
+    *this, "topic_stats." + topic + ".last_async_pub_duration",
+    &last_async_pub_duration_, &internal_stats_raii_);
 }
 
 StatisticsRegistry::~StatisticsRegistry()
 {
   is_data_ready_ = true; //To let the thread exit nicely
 
-  if (publisher_thread_)
-  {
+  if (publisher_thread_) {
     interrupt_thread_ = true;
     publisher_thread_->join();
   }
-  RCLCPP_INFO_STREAM(getLogger(), "Async messages lost " << registration_list_->overwritten_data_count_);
+  RCLCPP_INFO_STREAM(
+    getLogger(), "Async messages lost " << registration_list_->overwritten_data_count_);
   RCLCPP_INFO_STREAM(getLogger(), "publish_async_failures_ " << publish_async_failures_);
 }
 
-IdType StatisticsRegistry::registerVariable(const std::string &name, const double *variable, RegistrationsRAII *bookkeeping, bool enabled)
+IdType StatisticsRegistry::registerVariable(
+  const std::string & name, const double * variable,
+  RegistrationsRAII * bookkeeping, bool enabled)
 {
   return registerInternal(name, VariableHolder(variable), bookkeeping, enabled);
 }
 
-IdType StatisticsRegistry::registerFunction(const std::string &name,
-                                            const std::function<double()> &funct,
-                                            RegistrationsRAII *bookkeeping, bool enabled)
+IdType StatisticsRegistry::registerFunction(
+  const std::string & name,
+  const std::function<double()> & funct,
+  RegistrationsRAII * bookkeeping, bool enabled)
 {
   return registerInternal(name, VariableHolder(funct), bookkeeping, enabled);
 }
 
-void StatisticsRegistry::unregisterVariable(IdType id, RegistrationsRAII *bookkeeping)
+void StatisticsRegistry::unregisterVariable(IdType id, RegistrationsRAII * bookkeeping)
 {
-  if (bookkeeping)
-  {
+  if (bookkeeping) {
     bookkeeping->remove(id);
   }
 
@@ -79,10 +98,11 @@ void StatisticsRegistry::unregisterVariable(IdType id, RegistrationsRAII *bookke
   registration_list_->unregisterVariable(id);
 }
 
-void StatisticsRegistry::unregisterVariable(const std::string &name, RegistrationsRAII *bookkeeping)
+void StatisticsRegistry::unregisterVariable(
+  const std::string & name,
+  RegistrationsRAII * bookkeeping)
 {
-  if (bookkeeping)
-  {
+  if (bookkeeping) {
     bookkeeping->remove(name);
   }
 
@@ -107,11 +127,11 @@ bool StatisticsRegistry::publishAsync()
 {
   auto begin = std::chrono::steady_clock::now();
   publish_async_attempts_++;
-  if (data_mutex_.try_lock())
-  {
-    if (!publisher_thread_.get())
-    {
-      RCLCPP_WARN(getLogger(), "Called publishAsync but publisher thread has not been started, THIS IS NOT RT safe. You should start it yourself.");
+  if (data_mutex_.try_lock()) {
+    if (!publisher_thread_.get()) {
+      RCLCPP_WARN(
+        getLogger(),
+        "Called publishAsync but publisher thread has not been started, THIS IS NOT RT safe. You should start it yourself.");
       startPublishThreadImpl();
     }
 
@@ -142,8 +162,9 @@ void StatisticsRegistry::startPublishThreadImpl()
   publisher_thread_.reset(new std::thread(&StatisticsRegistry::publisherThreadCycle, this));
 }
 
-IdType StatisticsRegistry::registerInternal(const std::string &name, VariableHolder &&variable,
-                                          RegistrationsRAII *bookkeeping, bool enabled)
+IdType StatisticsRegistry::registerInternal(
+  const std::string & name, VariableHolder && variable,
+  RegistrationsRAII * bookkeeping, bool enabled)
 {
   IdType id;
   {
@@ -152,12 +173,13 @@ IdType StatisticsRegistry::registerInternal(const std::string &name, VariableHol
     enabled_ids_->set_capacity(registration_list_->size());
   }
 
-  if (bookkeeping)
+  if (bookkeeping) {
     bookkeeping->add(Registration(name, id, weak_from_this()));
+  }
   return id;
 }
 
-bool StatisticsRegistry::setEnabledmpl(const IdType &id, bool enabled)
+bool StatisticsRegistry::setEnabledmpl(const IdType & id, bool enabled)
 {
   EnabledId aux;
   aux.enabled = enabled;
@@ -166,41 +188,36 @@ bool StatisticsRegistry::setEnabledmpl(const IdType &id, bool enabled)
   return enabled_ids_->bounded_push(aux);
 }
 
-void StatisticsRegistry::handlePendingDisables(const std::unique_lock<std::mutex> &data_lock)
+void StatisticsRegistry::handlePendingDisables(const std::unique_lock<std::mutex> & data_lock)
 {
-  if (!data_lock.owns_lock() || data_lock.mutex() != &data_mutex_)
-  {
+  if (!data_lock.owns_lock() || data_lock.mutex() != &data_mutex_) {
     throw std::runtime_error("Called handlePendingDisables without proper lock");
   }
 
   EnabledId elem;
-  while (enabled_ids_->pop(elem))
-  {
+  while (enabled_ids_->pop(elem)) {
     registration_list_->setEnabled(elem.id, elem.enabled);
   }
 }
 
 void StatisticsRegistry::doPublish(bool publish_names_msg)
 {
-  if (pub_->get_subscription_count() > 0)
-  {
+  if (pub_->get_subscription_count() > 0) {
     generated_statistics_.update(names_msg_, values_msg_);
     pub_->publish(generated_statistics_.msg_);
   }
 
   // We don't check subscribers here, because this topic is latched and we
   // always want the latest version published
-  if (publish_names_msg) //only publish strings if changed
-  {
+  if (publish_names_msg) { //only publish strings if changed
     pub_names_->publish(names_msg_);
   }
-  if (pub_values_->get_subscription_count() > 0 ) //only publish strings if changed
-  {
+  if (pub_values_->get_subscription_count() > 0) { //only publish strings if changed
     pub_values_->publish(values_msg_);
   }
 }
 
-const rclcpp::Logger &StatisticsRegistry::getLogger() const
+const rclcpp::Logger & StatisticsRegistry::getLogger() const
 {
   return logger_;
 }
@@ -219,24 +236,24 @@ pal_statistics_msgs::msg::Statistics StatisticsRegistry::createMsg()
   return gen_sts.msg_;
 }
 
-bool StatisticsRegistry::enable(const IdType &id)
+bool StatisticsRegistry::enable(const IdType & id)
 {
   return setEnabledmpl(id, true);
 }
 
-bool StatisticsRegistry::disable(const IdType &id)
+bool StatisticsRegistry::disable(const IdType & id)
 {
   return setEnabledmpl(id, false);
 }
 
-bool StatisticsRegistry::updateMsg(pal_statistics_msgs::msg::StatisticsNames &names,
-                                   pal_statistics_msgs::msg::StatisticsValues &values,
-                                   bool smart_fill)
+bool StatisticsRegistry::updateMsg(
+  pal_statistics_msgs::msg::StatisticsNames & names,
+  pal_statistics_msgs::msg::StatisticsValues & values,
+  bool smart_fill)
 {
-  if (smart_fill)
+  if (smart_fill) {
     return registration_list_->smartFillMsg(names, values);
-  else
-  {
+  } else {
     registration_list_->fillMsg(names, values);
     return false;
   }
@@ -245,15 +262,14 @@ bool StatisticsRegistry::updateMsg(pal_statistics_msgs::msg::StatisticsNames &na
 void StatisticsRegistry::publisherThreadCycle()
 {
   rclcpp::WallRate rate(2000);
-  while (rclcpp::ok() && !interrupt_thread_)
-  {
-    while (!is_data_ready_ && !interrupt_thread_)
+  while (rclcpp::ok() && !interrupt_thread_) {
+    while (!is_data_ready_ && !interrupt_thread_) {
       rate.sleep();
+    }
 
     std::unique_lock<std::mutex> data_lock(data_mutex_);
 
-    while (registration_list_->hasPendingData())
-    {
+    while (registration_list_->hasPendingData()) {
       bool minor_changes = updateMsg(names_msg_, values_msg_, true);
 
       std::unique_lock<std::mutex> pub_lock(pub_mutex_);
@@ -267,23 +283,18 @@ void StatisticsRegistry::publisherThreadCycle()
 }
 
 void StatisticsRegistry::GeneratedStatistics::update(
-    const pal_statistics_msgs::msg::StatisticsNames &names,
-    const pal_statistics_msgs::msg::StatisticsValues &values)
+  const pal_statistics_msgs::msg::StatisticsNames & names,
+  const pal_statistics_msgs::msg::StatisticsValues & values)
 {
   msg_.header = values.header;
-  if (last_names_version_ == names.names_version && !msg_.statistics.empty())
-  {
+  if (last_names_version_ == names.names_version && !msg_.statistics.empty()) {
     // only need to update the values
-    for (size_t i = 0; i < values.values.size(); ++i)
-    {
+    for (size_t i = 0; i < values.values.size(); ++i) {
       msg_.statistics[i].value = values.values[i];
     }
-  }
-  else
-  {
+  } else {
     msg_.statistics.clear();
-    for (size_t i = 0; i < names.names.size(); ++i)
-    {
+    for (size_t i = 0; i < names.names.size(); ++i) {
       pal_statistics_msgs::msg::Statistic s;
       s.name = names.names[i];
       s.value = values.values[i];
