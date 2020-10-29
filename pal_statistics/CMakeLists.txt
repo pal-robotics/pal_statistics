@@ -7,7 +7,10 @@ endif()
 
 find_package(Boost REQUIRED)
 find_package(ament_cmake REQUIRED)
+
+# PAL Robotics stricter build flags, other developers should not worry about this
 find_package(ament_cmake_pal QUIET)
+
 find_package(pal_statistics_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 # find_package(rclpy REQUIRED)
