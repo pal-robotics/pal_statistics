@@ -22,31 +22,38 @@
 #   * Victor Lopez, Jordan Palacios
 
 
+from pal_statistics_msgs.msg import Statistic, Statistics, StatisticsNames, StatisticsValues
 import rospy
-from pal_statistics_msgs.msg import Statistics, Statistic, StatisticsValues, StatisticsNames
 
 
 class Registration:
     """
-    A utility class to handle to a registered funciton or variable, when
-    out of scope unregisters the variable.
+    An utility class to handle to a registered function or variable.
+
+    When goes out of scope unregisters the variable.
     """
+
     def __init__(self, name, registry):
         self.name = name
         self.registry = registry
 
     def __del__(self):
-        rospy.logdebug("Unregistering " + self.name)
+        rospy.logdebug('Unregistering ' + self.name)
         self.registry.unregister(self.name)
+
 
 class StatisticsRegistry:
 
     def __init__(self, topic):
         self.topic = topic
         self.functions = {}
-        self.full_pub = rospy.Publisher(topic + "/full", Statistics, queue_size=1)
-        self.names_pub = rospy.Publisher(topic + "/names", StatisticsNames, queue_size=1, latch=True)
-        self.values_pub = rospy.Publisher(topic + "/values", StatisticsValues, queue_size=1)
+        self.full_pub = rospy.Publisher(topic + '/full', Statistics, queue_size=1)
+        self.names_pub = rospy.Publisher(
+            topic + '/names',
+            StatisticsNames,
+            queue_size=1,
+            latch=True)
+        self.values_pub = rospy.Publisher(topic + '/values', StatisticsValues, queue_size=1)
         self.names_changed = True
         self.last_names_version = 1
 
@@ -57,8 +64,9 @@ class StatisticsRegistry:
 
     def registerFunction(self, name, func, registration_list=None):
         """
-        Registers a function that will be called to read the value to
-        be published when the publish() method is called
+        Register a function to retrieve the value to be published.
+
+        func will be called to read the value to be published when the publish() method is called.
 
         @param registration_list: If not None, will be extended to include a
         Registration object for the registered function
@@ -66,8 +74,8 @@ class StatisticsRegistry:
         The function takes no arguments and returns a value convertable to float
         It can also be used to register a variable using lambda
 
-        registerFunction("my_function", self.my_function)
-        registerFunction("my_variable", (lambda: variable))
+        registerFunction('my_function', self.my_function)
+        registerFunction('my_variable', (lambda: variable))
         """
         self.functions[name] = func
         if registration_list is not None:
@@ -75,20 +83,18 @@ class StatisticsRegistry:
         self.names_changed = True
 
     def unregister(self, name):
-        """
-        Unregisters a function or variable so it's no longer read
-        """
+        """Unregister a function or variable so it's no longer read."""
         try:
             self.functions.pop(name)
         except KeyError as e:
-            rospy.logerr("Error unregistering " + name + e.what())
+            rospy.logerr('Error unregistering ' + name + e.what())
         self.names_changed = True
 
     def publish(self):
         if self.full_pub.get_num_connections() > 0:
             self.full_pub.publish(self.createFullMsg())
 
-        #When name changes, we need to publish to keep the latched topic in the latest version
+        # When name changes, we need to publish to keep the latched topic in the latest version
         if self.names_changed or self.values_pub.get_num_connections() > 0:
             names_msg, values_msg = self.createOptimizedMsgs()
             if names_msg:
@@ -96,11 +102,8 @@ class StatisticsRegistry:
             if values_msg:
                 self.values_pub.publish(values_msg)
 
-
     def publishCustomStatistic(self, name, value):
-        """
-        Publishes a one-time statistic
-        """
+        """Publish a one-time statistic."""
         msg = Statistics()
         msg.header.stamp = rospy.Time.now()
         s = Statistic()
@@ -110,15 +113,11 @@ class StatisticsRegistry:
         self.full_pub.publish(msg)
 
     def publishCustomStatistics(self, msg):
-        """
-        Publishes a one-time statistics msg
-        """
+        """Publish a one-time statistics msg."""
         self.full_pub.publish(msg)
 
     def createFullMsg(self):
-        """
-        Create and return a message after reading all registrations
-        """
+        """Create and return a message after reading all registrations."""
         msg = Statistics()
         msg.header.stamp = rospy.Time.now()
         for name, func in self.functions.iteritems():
@@ -129,9 +128,7 @@ class StatisticsRegistry:
         return msg
 
     def createOptimizedMsgs(self):
-        """
-        Create and return a names, values message after reading all registrations
-        """
+        """Create and return a names, values message after reading all registrations."""
         values_msg = StatisticsValues()
         values_msg.header.stamp = rospy.Time.now()
         if self.names_changed:
