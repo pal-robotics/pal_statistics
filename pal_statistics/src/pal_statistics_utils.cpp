@@ -8,6 +8,12 @@
 #include <pal_statistics/pal_statistics_utils.hpp>
 #include <pal_statistics/pal_statistics.hpp>
 
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
 namespace pal_statistics
 {
 
@@ -18,12 +24,12 @@ Registration::Registration(
 {
 }
 
-//Registration::Registration(const Registration &&other)
-//{
-//  name_ = std::move(other.name_);
-//  id_ = std::move(other.id_);
-//  obj_ = std::move(other.obj_);
-//}
+// Registration::Registration(const Registration &&other)
+// {
+//   name_ = std::move(other.name_);
+//   id_ = std::move(other.id_);
+//   obj_ = std::move(other.obj_);
+// }
 
 Registration::~Registration()
 {
@@ -57,7 +63,6 @@ std::vector<Registration>::iterator RegistrationsRAII::find(IdType id)
 
 RegistrationsRAII::RegistrationsRAII()
 {
-
 }
 
 void RegistrationsRAII::add(Registration && registration)
@@ -135,4 +140,4 @@ bool RegistrationsRAII::disableAll()
   }
   return result;
 }
-}
+}  // namespace pal_statistics

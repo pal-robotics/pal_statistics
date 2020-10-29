@@ -1,4 +1,16 @@
+/*
+  @file
+
+  @author victor
+
+  @copyright (c) 2018 PAL Robotics SL. All Rights Reserved
+*/
+
 #include "registration_list.hpp"
+
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace pal_statistics
 {
@@ -42,10 +54,10 @@ void RegistrationList::unregisterVariable(const std::string & name)
         "pal_statistics"),
       "You asked to unregister " <<
         name <<
-        " but there are multiple variables registered with that name. This can have undefined behaviour, unregistering all");
+        " but there are multiple variables registered with that name. "
+        "This can have undefined behaviour, unregistering all");
   }
   if (count == 0) {
-
     RCLCPP_ERROR_STREAM(
       node_->get_logger().get_child("pal_statistics"),
       "Tried to unregister variable " << name << " but it is not registered.");
@@ -91,7 +103,6 @@ void RegistrationList::doUpdate()
         // variables
         last_values.names.emplace_back(ids_[i]);
         last_values.values.emplace_back(references_[i].getValue());
-
       }
     }
   }

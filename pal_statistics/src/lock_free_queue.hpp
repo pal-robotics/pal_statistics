@@ -23,8 +23,8 @@
  * SOFTWARE.
 **/
 
-#ifndef LOCK_FREE_QUEUE_H
-#define LOCK_FREE_QUEUE_H
+#ifndef LOCK_FREE_QUEUE_HPP_
+#define LOCK_FREE_QUEUE_HPP_
 
 #include <boost/lockfree/queue.hpp>
 namespace pal_statistics
@@ -46,7 +46,7 @@ public:
   }
   void set_capacity(typename BaseType::size_type n)
   {
-    long long missing_size = n - reserved_size;
+    int64_t missing_size = n - reserved_size;
     if (missing_size > 0) {
       BaseType::reserve(missing_size);
       reserved_size += missing_size;
@@ -67,5 +67,5 @@ public:
 private:
   std::atomic<size_t> reserved_size;
 };
-} // pal_statistics
-#endif // LOCK_FREE_QUEUE_H
+}  // namespace pal_statistics
+#endif  // LOCK_FREE_QUEUE_HPP_

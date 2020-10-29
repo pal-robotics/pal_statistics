@@ -7,6 +7,11 @@
 */
 
 #include <pal_statistics/pal_statistics_macros.hpp>
+
+#include <map>
+#include <memory>
+#include <string>
+
 namespace pal_statistics
 {
 std::shared_ptr<StatisticsRegistry> getRegistry(
@@ -27,4 +32,4 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
     return cit->second;
   }
 }
-} //namespace pal_statistics
+}  // namespace pal_statistics

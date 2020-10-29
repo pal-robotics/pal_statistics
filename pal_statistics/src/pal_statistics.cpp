@@ -5,17 +5,23 @@
 
   @copyright (c) 2018 PAL Robotics SL. All Rights Reserved
 */
-#include "lock_free_queue.hpp"
-#include "registration_list.hpp"
+
 #include <pal_statistics/pal_statistics.hpp>
 #include <pal_statistics/registration_utils.hpp>
+
+#include <memory>
+#include <string>
+#include <utility>
+
+#include "lock_free_queue.hpp"
+#include "registration_list.hpp"
 
 namespace pal_statistics
 {
 
 struct EnabledId
 {
-  //Can't use a pair because it's not trivially copiable
+  // Can't use a pair because it's not trivially copiable
   IdType id;
   bool enabled;
 };
@@ -23,7 +29,8 @@ struct EnabledId
 StatisticsRegistry::StatisticsRegistry(
   const std::shared_ptr<rclcpp::Node> & node,
   const std::string & topic)
-: node_(node), logger_(node_->get_logger().get_child("pal_statistics")), registration_list_(new RegistrationList(
+: node_(node), logger_(node_->get_logger().get_child("pal_statistics")),
+  registration_list_(new RegistrationList(
       node_)),
   enabled_ids_(new LockFreeQueue<EnabledId>())
 {
@@ -33,7 +40,7 @@ StatisticsRegistry::StatisticsRegistry(
     rclcpp::QoS(rclcpp::KeepAll()));
   rclcpp::QoS names_qos{rclcpp::KeepAll()};
   names_qos.reliable();
-  names_qos.transient_local(); // latch
+  names_qos.transient_local();  // latch
 
   pub_names_ = node_->create_publisher<pal_statistics_msgs::msg::StatisticsNames>(
     topic + "/names",
@@ -62,7 +69,7 @@ StatisticsRegistry::StatisticsRegistry(
 
 StatisticsRegistry::~StatisticsRegistry()
 {
-  is_data_ready_ = true; //To let the thread exit nicely
+  is_data_ready_ = true;  // To let the thread exit nicely
 
   if (publisher_thread_) {
     interrupt_thread_ = true;
@@ -119,7 +126,7 @@ void StatisticsRegistry::publish()
 
   std::unique_lock<std::mutex> pub_lock(pub_mutex_);
   bool minor_changes = updateMsg(names_msg_, values_msg_, true);
-  data_lock.unlock(); //msg_ is covered by pub_mutex_
+  data_lock.unlock();  // msg_ is covered by pub_mutex_
   doPublish(!minor_changes);
 }
 
@@ -131,7 +138,8 @@ bool StatisticsRegistry::publishAsync()
     if (!publisher_thread_.get()) {
       RCLCPP_WARN(
         getLogger(),
-        "Called publishAsync but publisher thread has not been started, THIS IS NOT RT safe. You should start it yourself.");
+        "Called publishAsync but publisher thread has not been started,"
+        " THIS IS NOT RT safe. You should start it yourself.");
       startPublishThreadImpl();
     }
 
@@ -209,10 +217,10 @@ void StatisticsRegistry::doPublish(bool publish_names_msg)
 
   // We don't check subscribers here, because this topic is latched and we
   // always want the latest version published
-  if (publish_names_msg) { //only publish strings if changed
+  if (publish_names_msg) {  // only publish strings if changed
     pub_names_->publish(names_msg_);
   }
-  if (pub_values_->get_subscription_count() > 0) { //only publish strings if changed
+  if (pub_values_->get_subscription_count() > 0) {  // only publish strings if changed
     pub_values_->publish(values_msg_);
   }
 }
@@ -303,4 +311,4 @@ void StatisticsRegistry::GeneratedStatistics::update(
     last_names_version_ = names.names_version;
   }
 }
-}
+}  // namespace pal_statistics

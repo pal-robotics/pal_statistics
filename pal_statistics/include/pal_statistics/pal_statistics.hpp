@@ -23,8 +23,8 @@
  * SOFTWARE.
 **/
 
-#ifndef _PAL_STATISTICS_H_
-#define _PAL_STATISTICS_H_
+#ifndef _PAL_STATISTICS_HPP__
+#define _PAL_STATISTICS_HPP__
 
 #include <rclcpp/rclcpp.hpp>
 #include <mutex>

@@ -1,14 +1,26 @@
-#ifndef REGISTRATIONLIST_H
-#define REGISTRATIONLIST_H
+/*
+  @file
+
+  @author victor
+
+  @copyright (c) 2018 PAL Robotics SL. All Rights Reserved
+*/
+
+#ifndef REGISTRATION_LIST_HPP_
+#define REGISTRATION_LIST_HPP_
 
 #include <boost/bimap.hpp>
 #include <boost/bimap/multiset_of.hpp>
 #include <boost/bimap/set_of.hpp>
 #include <pal_statistics/pal_statistics_utils.hpp>
 
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
 namespace pal_statistics
 {
-
 
 /**
  * @brief The RegistrationList class
@@ -85,7 +97,7 @@ private:
 
   struct NameValues
   {
-    NameValues(size_t capacity)
+    explicit NameValues(size_t capacity)
     : names(capacity, IdType(0)), values(capacity, 0.)
     {}
 
@@ -101,4 +113,4 @@ private:
 };
 
 }  // namespace pal_statistics
-#endif // REGISTRATIONLIST_H
+#endif  // REGISTRATION_LIST_HPP_

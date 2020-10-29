@@ -23,8 +23,8 @@
  * SOFTWARE.
 **/
 
-#ifndef PAL_STATISTICS_UTILS_H
-#define PAL_STATISTICS_UTILS_H
+#ifndef PAL_STATISTICS_UTILS_HPP_
+#define PAL_STATISTICS_UTILS_HPP_
 
 #include <mutex>
 #include <atomic>
@@ -154,4 +154,4 @@ private:
 
 }
 
-#endif  // PAL_STATISTICS_UTILS_H
+#endif  // PAL_STATISTICS_UTILS_HPP_

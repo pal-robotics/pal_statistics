@@ -23,8 +23,8 @@
  * SOFTWARE.
 **/
 
-#ifndef STATICCIRCULARBUFFER_H
-#define STATICCIRCULARBUFFER_H
+#ifndef STATICCIRCULARBUFFER_HPP_
+#define STATICCIRCULARBUFFER_HPP_
 
 #include <memory>
 #include <vector>
@@ -162,4 +162,4 @@ private:
   bool full_; //Disambiguates when end == begin because it's empty, or it's full
 };
 
-#endif // STATICCIRCULARBUFFER_H
+#endif // STATICCIRCULARBUFFER_HPP_

@@ -23,8 +23,8 @@
  * SOFTWARE.
 **/
 
-#ifndef PAL_STATISTICS_MACROS_H
-#define PAL_STATISTICS_MACROS_H
+#ifndef PAL_STATISTICS_MACROS_HPP_
+#define PAL_STATISTICS_MACROS_HPP_
 #include <pal_statistics/pal_statistics.hpp>
 #include <pal_statistics/registration_utils.hpp>
 
@@ -96,4 +96,4 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 #define UNREGISTER_VARIABLE(...) UNREGISTER_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 
-#endif  // PAL_STATISTICS_MACROS_H
+#endif  // PAL_STATISTICS_MACROS_HPP_
