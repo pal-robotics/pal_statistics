@@ -9,15 +9,15 @@
 #ifndef REGISTRATION_LIST_HPP_
 #define REGISTRATION_LIST_HPP_
 
-#include <boost/bimap.hpp>
-#include <boost/bimap/multiset_of.hpp>
-#include <boost/bimap/set_of.hpp>
-#include <pal_statistics/pal_statistics_utils.hpp>
-
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "boost/bimap.hpp"
+#include "boost/bimap/multiset_of.hpp"
+#include "boost/bimap/set_of.hpp"
+#include "pal_statistics/pal_statistics_utils.hpp"
 
 namespace pal_statistics
 {

@@ -23,18 +23,24 @@
  * SOFTWARE.
 **/
 
-#ifndef PAL_STATISTICS_UTILS_HPP_
-#define PAL_STATISTICS_UTILS_HPP_
+#ifndef PAL_STATISTICS__PAL_STATISTICS_UTILS_HPP_
+#define PAL_STATISTICS__PAL_STATISTICS_UTILS_HPP_
 
-#include <mutex>
 #include <atomic>
-#include <vector>
 #include <map>
-#include <rclcpp/rclcpp.hpp>
-#include <pal_statistics_msgs/msg/statistics.hpp>
-#include <pal_statistics_msgs/msg/statistics_names.hpp>
-#include <pal_statistics_msgs/msg/statistics_values.hpp>
-#include <pal_statistics/static_circular_buffer.hpp>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "pal_statistics_msgs/msg/statistics.hpp"
+#include "pal_statistics_msgs/msg/statistics_names.hpp"
+#include "pal_statistics_msgs/msg/statistics_values.hpp"
+#include "pal_statistics/static_circular_buffer.hpp"
+#include "rclcpp/rclcpp.hpp"
+
+
 namespace pal_statistics
 {
 typedef unsigned int IdType;
@@ -63,7 +69,7 @@ public:
 private:
   // This object should not be copied, because we may unregister variables prematurely
   Registration(const Registration &) = delete;  // non construction-copyable
-  Registration & operator=(const Registration &) = delete; // non copyable
+  Registration & operator=(const Registration &) = delete;  // non copyable
 };
 
 /**
@@ -90,7 +96,7 @@ public:
 private:
   // This object should not be copied, because Registration is not copiable
   RegistrationsRAII(const RegistrationsRAII &) = delete;  // non construction-copyable
-  RegistrationsRAII & operator=(const RegistrationsRAII &) = delete; // non copyable
+  RegistrationsRAII & operator=(const RegistrationsRAII &) = delete;  // non copyable
 
   std::vector<Registration>::iterator find(const std::string & name);
   std::vector<Registration>::iterator find(IdType id);
@@ -110,13 +116,13 @@ public:
     throw std::runtime_error("VariableHolder default constructor should never be called");
   }
 
-  VariableHolder(const double * const pointer)
+  explicit VariableHolder(const double * const pointer)
   : v_ptr_(pointer)
   {
     v_ptr_ = pointer;
   }
 
-  VariableHolder(const std::function<double()> & function)
+  explicit VariableHolder(const std::function<double()> & function)
   : v_ptr_(nullptr), v_func_(function)
   {
   }
@@ -152,6 +158,6 @@ private:
   std::function<double()> v_func_;
 };
 
-}
+}  // namespace pal_statistics
 
-#endif  // PAL_STATISTICS_UTILS_HPP_
+#endif  // PAL_STATISTICS__PAL_STATISTICS_UTILS_HPP_

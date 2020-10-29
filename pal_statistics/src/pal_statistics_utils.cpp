@@ -5,14 +5,15 @@
 
   @copyright (c) 2018 PAL Robotics SL. All Rights Reserved
 */
-#include <pal_statistics/pal_statistics_utils.hpp>
-#include <pal_statistics/pal_statistics.hpp>
+#include "pal_statistics/pal_statistics_utils.hpp"
 
 #include <map>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "pal_statistics/pal_statistics.hpp"
 
 namespace pal_statistics
 {

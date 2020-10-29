@@ -26,7 +26,8 @@
 #ifndef LOCK_FREE_QUEUE_HPP_
 #define LOCK_FREE_QUEUE_HPP_
 
-#include <boost/lockfree/queue.hpp>
+#include "boost/lockfree/queue.hpp"
+
 namespace pal_statistics
 {
 /**

@@ -23,16 +23,21 @@
  * SOFTWARE.
 **/
 
-#ifndef _PAL_STATISTICS_HPP__
-#define _PAL_STATISTICS_HPP__
+#ifndef PAL_STATISTICS__PAL_STATISTICS_HPP_
+#define PAL_STATISTICS__PAL_STATISTICS_HPP_
 
-#include <rclcpp/rclcpp.hpp>
+#include <memory>
 #include <mutex>
-#include <pal_statistics/pal_statistics_utils.hpp>
-#include <pal_statistics_msgs/msg/statistics.hpp>
-#include <pal_statistics_msgs/msg/statistics_names.hpp>
-#include <pal_statistics_msgs/msg/statistics_values.hpp>
+#include <string>
 
+#include "pal_statistics/pal_statistics_utils.hpp"
+
+#include "pal_statistics_msgs/msg/statistics.hpp"
+#include "pal_statistics_msgs/msg/statistics_names.hpp"
+#include "pal_statistics_msgs/msg/statistics_values.hpp"
+#include "rclcpp/rclcpp.hpp"
+
+class PalStatisticsTest_stressAsync_Test;
 namespace pal_statistics
 {
 
@@ -242,7 +247,7 @@ private:
   double last_async_pub_duration_;
   RegistrationsRAII internal_stats_raii_;
 
-  friend class PalStatisticsTest_stressAsync_Test;
+  friend class ::PalStatisticsTest_stressAsync_Test;
 };
 }  // namespace pal_statistics
-#endif
+#endif  // PAL_STATISTICS__PAL_STATISTICS_HPP_

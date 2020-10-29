@@ -6,16 +6,16 @@
   @copyright (c) 2018 PAL Robotics SL. All Rights Reserved
 */
 
-#include <pal_statistics/static_circular_buffer.hpp>
-#include <boost/circular_buffer.hpp>
-#include <gtest/gtest.h>
-#include <climits>
+
+#include <limits>
 #include <cfloat>
 #include <memory>
-using namespace std;
+#include <vector>
 
-namespace pal_statistics
-{
+#include "boost/circular_buffer.hpp"
+#include "gtest/gtest.h"
+#include "pal_statistics/static_circular_buffer.hpp"
+
 template<class T>
 class MyAlloc
 {
@@ -76,7 +76,7 @@ public:
     std::cerr << typeid(T).name() << " allocate " << num << " element(s)" <<
       " of size " << sizeof(T) << std::endl;
     pointer ret = (pointer)(::operator new(num * sizeof(T)));
-    std::cerr << " allocated at: " << (void *)ret << std::endl;
+    std::cerr << " allocated at: " << reinterpret_cast<void *>(ret) << std::endl;
     return ret;
   }
 
@@ -84,7 +84,7 @@ public:
   void construct(pointer p, const T & value)
   {
     // initialize memory with placement new
-    new ((void *)p) T(value);
+    new (reinterpret_cast<void *>(p)) T(value);
   }
 
   // destroy elements of initialized storage p
@@ -99,8 +99,8 @@ public:
   {
     // print message and deallocate memory with global delete
     std::cerr << typeid(T).name() << " deallocate " << num << " element(s)" <<
-      " of size " << sizeof(T) << " at: " << (void *)p << std::endl;
-    ::operator delete((void *)p);
+      " of size " << sizeof(T) << " at: " << reinterpret_cast<void *>(p) << std::endl;
+    ::operator delete(reinterpret_cast<void *>(p));
   }
 };
 
@@ -116,12 +116,10 @@ bool operator!=(const MyAlloc<T1> &, const MyAlloc<T2> &) throw()
   return false;
 }
 
-
 TEST(BufferTest, basicTest)
 {
   StaticCircularBuffer<int> buffer;
   buffer.set_capacity(5, 0);
-
 
   for (size_t i = 0; i < buffer.capacity(); ++i) {
     buffer.push_back() = i;
@@ -304,7 +302,6 @@ TEST(BufferTest, circularBuffer)
 
   std::cout << "Destructor" << std::endl;
 }
-}  // namespace pal_statistics
 
 int main(int argc, char ** argv)
 {

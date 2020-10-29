@@ -23,10 +23,14 @@
  * SOFTWARE.
 **/
 
-#ifndef PAL_STATISTICS_MACROS_HPP_
-#define PAL_STATISTICS_MACROS_HPP_
-#include <pal_statistics/pal_statistics.hpp>
-#include <pal_statistics/registration_utils.hpp>
+#ifndef PAL_STATISTICS__PAL_STATISTICS_MACROS_HPP_
+#define PAL_STATISTICS__PAL_STATISTICS_MACROS_HPP_
+
+#include <memory>
+#include <string>
+
+#include "pal_statistics/pal_statistics.hpp"
+#include "pal_statistics/registration_utils.hpp"
 
 constexpr char DEFAULT_STATISTICS_TOPIC[] = "pal_statistics";
 
@@ -35,14 +39,14 @@ namespace pal_statistics
 std::shared_ptr<StatisticsRegistry> getRegistry(
   const std::shared_ptr<rclcpp::Node> & node,
   const std::string & topic);
-} //namespace pal_statistics
+}  // namespace pal_statistics
 
 
-//Trick to use macros with optional argument, in practice there are three version of the macro:
-//REGISTER_VARIABLE(NODE, TOPIC, ID, VARIABLE, BOOKKEEPING) -> full specification of arguments
-//REGISTER_VARIABLE(NODE, TOPIC, ID, VARIABLE)              -> No bookkeeping
+// Trick to use macros with optional argument, in practice there are three version of the macro:
+// REGISTER_VARIABLE(NODE, TOPIC, ID, VARIABLE, BOOKKEEPING) -> full specification of arguments
+// REGISTER_VARIABLE(NODE, TOPIC, ID, VARIABLE)              -> No bookkeeping
 
-//https://stackoverflow.com/questions/3046889/optional-parameters-with-c-macros?
+// https://stackoverflow.com/questions/3046889/optional-parameters-with-c-macros?
 #define REGISTER_VARIABLE_4_ARGS(NODE, TOPIC, ID, VARIABLE) \
   customRegister(*pal_statistics::getRegistry(NODE, TOPIC), ID, VARIABLE);
 #define REGISTER_VARIABLE_5_ARGS(NODE, TOPIC, ID, VARIABLE, BOOKKEEPING) \
@@ -91,9 +95,9 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
     __VA_ARGS__, UNREGISTER_VARIABLE_4_ARGS, \
     UNREGISTER_VARIABLE_3_ARGS)
 
-//UNREGISTER_VARIABLE(NODE, TOPIC, ID, BOOKKEEPING) -> full specification of arguments
-//UNREGISTER_VARIABLE(NODE, TOPIC, ID)              -> No bookkeeping
+// UNREGISTER_VARIABLE(NODE, TOPIC, ID, BOOKKEEPING) -> full specification of arguments
+// UNREGISTER_VARIABLE(NODE, TOPIC, ID)              -> No bookkeeping
 #define UNREGISTER_VARIABLE(...) UNREGISTER_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 
-#endif  // PAL_STATISTICS_MACROS_HPP_
+#endif  // PAL_STATISTICS__PAL_STATISTICS_MACROS_HPP_

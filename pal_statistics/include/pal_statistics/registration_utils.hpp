@@ -23,10 +23,12 @@
  * SOFTWARE.
 **/
 
-#ifndef REGISTRATION_UTILS_HPP_
-#define REGISTRATION_UTILS_HPP_
+#ifndef PAL_STATISTICS__REGISTRATION_UTILS_HPP_
+#define PAL_STATISTICS__REGISTRATION_UTILS_HPP_
 
-#include <pal_statistics/pal_statistics.hpp>
+#include <string>
+
+#include "pal_statistics/pal_statistics.hpp"
 
 namespace pal_statistics
 {
@@ -91,4 +93,4 @@ inline IdType customRegister(
 
 }  // namespace pal_statistics
 
-#endif  // REGISTRATION_UTILS_HPP_
+#endif  // PAL_STATISTICS__REGISTRATION_UTILS_HPP_

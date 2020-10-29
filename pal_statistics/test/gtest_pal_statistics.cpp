@@ -8,16 +8,23 @@
 
 #include <pal_statistics/pal_statistics_macros.hpp>
 #include <pal_statistics/pal_statistics.hpp>
-#include <registration_list.hpp> // from src directory
+#include <registration_list.hpp>  // from src directory
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <climits>
-#include <cfloat>
+
+#include <limits>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 using ::testing::UnorderedElementsAre;
 using std::placeholders::_1;
-namespace pal_statistics
-{
+using pal_statistics::StatisticsRegistry;
+using pal_statistics::RegistrationsRAII;
+using pal_statistics::IdType;
+using pal_statistics::getRegistry;
+
 class PalStatisticsTest : public ::testing::Test
 {
 public:
@@ -31,8 +38,7 @@ public:
     var1_ = 0.0;
     var2_ = 0.5;
     container_.resize(5);
-    // TODO @v-lopez
-    //nh_.setCallbackQueue(&queue_);
+    // TODO(v-lopez)
 
     sub_ = node_->create_subscription<pal_statistics_msgs::msg::Statistics>(
       std::string(DEFAULT_STATISTICS_TOPIC) + "/full", 1,
@@ -45,7 +51,6 @@ public:
       std::string(
         DEFAULT_STATISTICS_TOPIC) + "/values", 1,
       std::bind(&PalStatisticsTest::valuesTopicCb, this, std::placeholders::_1));
-
   }
 
   void fullTopicCb(const pal_statistics_msgs::msg::Statistics::SharedPtr msg)
@@ -63,13 +68,13 @@ public:
   void resetMsgs()
   {
     last_msg_.reset();
-    // last names should not be reset, because it's not always published and you'll be using the last one
+    // last names should not be reset, because it's not always published and
+    // you'll be using the last one
     last_values_msg_.reset();
   }
 
   bool waitForMsg(const std::chrono::milliseconds & timeout = std::chrono::milliseconds{300})
   {
-
     rclcpp::Time end = node_->get_clock()->now() + timeout;
     while (node_->get_clock()->now() < end) {
       executor_->spin_some();
@@ -160,16 +165,14 @@ TEST_F(PalStatisticsTest, typeTest)
     std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
 
 
-  short s = std::numeric_limits<short>::min();
-  const unsigned short us = std::numeric_limits<unsigned short>::max();
+  int16_t s = std::numeric_limits<int16_t>::min();
+  const uint16_t us = std::numeric_limits<uint16_t>::max();
   const char c = std::numeric_limits<char>::min();
   const unsigned char uc = std::numeric_limits<unsigned char>::max();
   int i = std::numeric_limits<int>::min();
-  const unsigned int ui = std::numeric_limits<unsigned int>::max();
-  long l = std::numeric_limits<long>::min();
-  const unsigned long ul = std::numeric_limits<long>::max();
-  long long ll = std::numeric_limits<long long>::min();
-  const unsigned long long ull = std::numeric_limits<unsigned long long>::max();
+  const uint32_t ui = std::numeric_limits<uint32_t>::max();
+  int64_t l = std::numeric_limits<int64_t>::min();
+  const uint64_t ul = std::numeric_limits<int64_t>::max();
   float min_f = std::numeric_limits<float>::min();
   const float max_f = std::numeric_limits<float>::max();
   const double min_d = std::numeric_limits<double>::min();
@@ -186,8 +189,6 @@ TEST_F(PalStatisticsTest, typeTest)
   customRegister(*registry, "ui", &ui);
   customRegister(*registry, "l", &l);
   customRegister(*registry, "ul", &ul);
-  customRegister(*registry, "ll", &ll);
-  customRegister(*registry, "ull", &ull);
   customRegister(*registry, "min_f", &min_f);
   customRegister(*registry, "max_f", &max_f);
   customRegister(*registry, "min_d", &min_d);
@@ -202,17 +203,15 @@ TEST_F(PalStatisticsTest, typeTest)
   pal_statistics_msgs::msg::Statistics msg = registry->createMsg();
 
   auto values = getVariableAndValues(msg);
-  EXPECT_EQ(s, static_cast<short>(values["s"]));
-  EXPECT_EQ(us, static_cast<unsigned short>(values["us"]));
+  EXPECT_EQ(s, static_cast<int16_t>(values["s"]));
+  EXPECT_EQ(us, static_cast<uint16_t>(values["us"]));
   EXPECT_EQ(c, static_cast<char>(values["c"]));
   EXPECT_EQ(uc, static_cast<unsigned char>(values["uc"]));
   EXPECT_EQ(i, static_cast<int>(values["i"]));
-  EXPECT_EQ(ui, static_cast<unsigned int>(values["ui"]));
+  EXPECT_EQ(ui, static_cast<uint32_t>(values["ui"]));
   // Can't compare in original type, too big of a precision loss
   EXPECT_DOUBLE_EQ(l, values["l"]);
   EXPECT_DOUBLE_EQ(ul, values["ul"]);
-  EXPECT_DOUBLE_EQ(ll, values["ll"]);
-  EXPECT_DOUBLE_EQ(ull, values["ull"]);
   EXPECT_FLOAT_EQ(min_f, static_cast<float>(values["min_f"]));
   EXPECT_FLOAT_EQ(max_f, static_cast<float>(values["max_f"]));
   EXPECT_DOUBLE_EQ(min_d, values["min_d"]);
@@ -222,9 +221,7 @@ TEST_F(PalStatisticsTest, typeTest)
   EXPECT_EQ(true_b, static_cast<bool>(values["true_b"]));
   EXPECT_EQ(false_b, static_cast<bool>(values["false_b"]));
 #pragma GCC diagnostic pop
-  EXPECT_EQ(container_.size(), static_cast<unsigned long>(values["container_size"]));
-
-
+  EXPECT_EQ(container_.size(), static_cast<uint64_t>(values["container_size"]));
 }
 
 TEST_F(PalStatisticsTest, manualRegistration)
@@ -333,7 +330,6 @@ TEST_F(PalStatisticsTest, automaticRegistration)
         "topic_stats.pal_statistics.publish_async_failures",
         "topic_stats.pal_statistics.publish_buffer_full_errors",
         "topic_stats.pal_statistics.last_async_pub_duration"));
-
   }
 
   msg = registry->createMsg();
@@ -461,8 +457,6 @@ TEST_F(PalStatisticsTest, macroTest)
   EXPECT_DOUBLE_EQ(var1_, getVariableAndValues(*last_msg_)["macro_var1"]);
   UNREGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var1", NULL);
   UNREGISTER_VARIABLE(node_, DEFAULT_STATISTICS_TOPIC, "macro_var2_bis", NULL);
-
-
 }
 
 void registerThread(
@@ -540,7 +534,7 @@ TEST_F(PalStatisticsTest, stressAsync)
     rate.sleep();
   }
 
-  //Allow time for everything to arrive
+  // Allow time for everything to arrive
   rclcpp::sleep_for(std::chrono::milliseconds(500));
   group_executor->cancel();
 
@@ -553,7 +547,7 @@ TEST_F(PalStatisticsTest, stressAsync)
 TEST_F(PalStatisticsTest, concurrencyTest)
 {
   size_t n_threads = 5;
-  size_t n_variables = 2e4 / n_threads; //2e4 variables in total
+  size_t n_variables = 2e4 / n_threads;  // 2e4 variables in total
   std::vector<std::thread> threads;
   std::shared_ptr<StatisticsRegistry> registry =
     std::make_shared<StatisticsRegistry>(node_, DEFAULT_STATISTICS_TOPIC);
@@ -577,15 +571,16 @@ TEST_F(PalStatisticsTest, concurrencyTest)
   RCLCPP_INFO_STREAM(node_->get_logger(), "Start publishAsync");
   rclcpp::Time b = node_->get_clock()->now();
   size_t iter = 10000;
-//  ros::Rate rate(1e3);
+  // ros::Rate rate(1e3);
   for (size_t i = 0; i < iter; ++i) {
     registry->publishAsync();
-//    rate.sleep();
+    // rate.sleep();
   }
   // Time to publish 1000 times the registered statistics
   RCLCPP_INFO_STREAM(
     node_->get_logger(),
-    "End publishAsync " << (1000. * (node_->get_clock()->now() - b).seconds()) / double(iter));
+    "End publishAsync " << (1000. * (node_->get_clock()->now() - b).seconds()) /
+      static_cast<double>(iter));
   RCLCPP_INFO_STREAM(node_->get_logger(), "Start publish");
   for (size_t i = 0; i < n_variables; ++i) {
     registry->publish();
@@ -740,7 +735,7 @@ TEST_F(PalStatisticsTest, splitMsgTest)
   REGISTER_VARIABLE_SIMPLE(node_, DEFAULT_STATISTICS_TOPIC, &var2_, &bookkeeping);
   // Time for publisher to connect to subscriber
   rclcpp::sleep_for(std::chrono::milliseconds(200));
-  unsigned int old_names_version = 0;
+  uint32_t old_names_version = 0;
   for (int i = 0; i < 4; ++i) {
     for (bool remove : {false, true}) {
       if (!remove) {
@@ -774,9 +769,6 @@ TEST_F(PalStatisticsTest, splitMsgTest)
     }
   }
 }
-
-
-}  // namespace pal_statistics
 
 int main(int argc, char ** argv)
 {

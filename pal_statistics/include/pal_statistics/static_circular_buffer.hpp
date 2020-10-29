@@ -23,11 +23,12 @@
  * SOFTWARE.
 **/
 
-#ifndef STATICCIRCULARBUFFER_HPP_
-#define STATICCIRCULARBUFFER_HPP_
+#ifndef PAL_STATISTICS__STATIC_CIRCULAR_BUFFER_HPP_
+#define PAL_STATISTICS__STATIC_CIRCULAR_BUFFER_HPP_
 
 #include <memory>
 #include <vector>
+
 /**
  * @brief CircularBuffer implementation that does not perform allocations/deallocations
  * outside of the constructor, destructor and resize methods.
@@ -110,7 +111,6 @@ public:
    */
   T & push_back()
   {
-
     auto old_it = end_iterator_;
     if (full_) {
       advance(begin_iterator_);
@@ -159,7 +159,7 @@ private:
   VectorType buffer_;
   typename VectorType::iterator begin_iterator_;
   typename VectorType::iterator end_iterator_;
-  bool full_; //Disambiguates when end == begin because it's empty, or it's full
+  bool full_;  // Disambiguates when end == begin because it's empty, or it's full
 };
 
-#endif // STATICCIRCULARBUFFER_HPP_
+#endif  // PAL_STATISTICS__STATIC_CIRCULAR_BUFFER_HPP_

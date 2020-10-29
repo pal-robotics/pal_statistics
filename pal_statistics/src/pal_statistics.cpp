@@ -6,8 +6,7 @@
   @copyright (c) 2018 PAL Robotics SL. All Rights Reserved
 */
 
-#include <pal_statistics/pal_statistics.hpp>
-#include <pal_statistics/registration_utils.hpp>
+#include "pal_statistics/pal_statistics.hpp"
 
 #include <memory>
 #include <string>
@@ -15,6 +14,7 @@
 
 #include "lock_free_queue.hpp"
 #include "registration_list.hpp"
+#include "pal_statistics/registration_utils.hpp"
 
 namespace pal_statistics
 {

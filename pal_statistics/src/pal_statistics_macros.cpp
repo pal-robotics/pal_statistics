@@ -6,7 +6,7 @@
   @copyright (c) 2018 PAL Robotics SL. All Rights Reserved
 */
 
-#include <pal_statistics/pal_statistics_macros.hpp>
+#include "pal_statistics/pal_statistics_macros.hpp"
 
 #include <map>
 #include <memory>
