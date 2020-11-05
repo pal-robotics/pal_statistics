@@ -5,38 +5,16 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
 endif()
 
-find_package(Boost REQUIRED)
-find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_auto REQUIRED)
 
 # PAL Robotics stricter build flags, other developers should not worry about this
 find_package(ament_cmake_pal QUIET)
 
-find_package(pal_statistics_msgs REQUIRED)
-find_package(rclcpp REQUIRED)
-# find_package(rclpy REQUIRED)
+ament_auto_find_build_dependencies()
 
-# catkin_python_setup() System dependencies are found with CMake's conventions
-
-include_directories(SYSTEM ${BOOST_INCLUDE_DIRS})
-include_directories(include)
-
-# Declare a C++ library
-add_library(
-  ${PROJECT_NAME} src/pal_statistics_utils.cpp src/pal_statistics.cpp
-                  src/pal_statistics_macros.cpp src/registration_list.cpp)
-
-ament_target_dependencies(${PROJECT_NAME} pal_statistics_msgs rclcpp)
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBARIES})
-
-# ##############################################################################
-# Install ##
-# ##############################################################################
-
-install(TARGETS ${PROJECT_NAME} DESTINATION lib/${PROJECT_NAME})
-ament_export_libraries(${PROJECT_NAME})
-
-install(DIRECTORY include/ DESTINATION include)
-ament_export_include_directories(include)
+ament_auto_add_library(${PROJECT_NAME} SHARED 
+	src/pal_statistics_utils.cpp src/pal_statistics.cpp
+	src/pal_statistics_macros.cpp src/registration_list.cpp)
 
 # ##############################################################################
 # Testing ##
@@ -59,5 +37,4 @@ if(BUILD_TESTING)
   # TODO v-lopez python migration add_rostest(test/pal_statistics_py.test)
 endif()
 
-ament_export_dependencies(pal_statistics_msgs rclcpp)
-ament_package()
+ament_auto_package()

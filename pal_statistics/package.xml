@@ -8,6 +8,7 @@
 
   <license>MIT</license>
 
+  <buildtool_depend>ament_cmake_auto</buildtool_depend>
   <depend>boost</depend>
   <depend>pal_statistics_msgs</depend>
   <depend>rclcpp</depend>
