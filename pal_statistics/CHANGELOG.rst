@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.4.1 (2020-11-11)
+------------------
 * Update license on headers
   refs #5
 * Change License to MIT
