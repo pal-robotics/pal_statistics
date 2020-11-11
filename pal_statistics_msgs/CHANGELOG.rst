@@ -2,6 +2,12 @@
 Changelog for package pal_statistics_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Change License to MIT
+  fixes #5
+* Contributors: Victor Lopez
+
 1.4.0 (2020-03-13)
 ------------------
 

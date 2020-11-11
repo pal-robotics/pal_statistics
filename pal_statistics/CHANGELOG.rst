@@ -2,6 +2,14 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update license on headers
+  refs #5
+* Change License to MIT
+  fixes #5
+* Contributors: Victor Lopez
+
 1.4.0 (2020-03-13)
 ------------------
 * Merge branch 'use-atomic-bool' into 'erbium-devel'
