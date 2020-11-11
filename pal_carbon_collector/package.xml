@@ -13,7 +13,8 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <exec_depend>pal_statistics_msgs</exec_depend>
-  <exec_depend>python-graphitesend-pip</exec_depend>
+  <!-- this dependency is needed, install with pip install graphitesend -->
+  <!--<exec_depend>python-graphitesend-pip</exec_depend>-->
   <exec_depend>rospy</exec_depend>
 
   <test_depend>rostest</test_depend>
