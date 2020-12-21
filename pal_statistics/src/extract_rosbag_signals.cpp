@@ -118,15 +118,18 @@ size_t DataSignals::getDataValuesMinSize() const {
     if (min_size > it->second.size())
       min_size = it->second.size();
   }
+  if(min_size == std::numeric_limits<size_t>::max())
+      min_size = 0;
+
   return min_size;
 }
 
-std::vector<TimeData> DataSignals::getDataValue(const ros::Time &time) const {
+std::vector<TimeData> DataSignals::getDataValue(const ros::Duration &time) const {
   std::vector<TimeData> values_time;
   for (auto it = data_.begin(); it != data_.end(); it++) {
     size_t prev_size = values_time.size();
     for (size_t i = 0; i < it->second.size(); i++) {
-      if (time <= it->second[i].first) {
+      if (time.toSec() <= (it->second[i].first - it->second[0].first).toSec()) {
         values_time.push_back(it->second[i]);
         break;
       }
