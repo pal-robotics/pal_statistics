@@ -61,6 +61,31 @@ class TestPalStatistics(unittest.TestCase):
         registry.unregister("var1")
         self.evaluate_msgs({"var2": 2.0}, registry)
 
+    def test_list_data(self):
+        list_data = [0, 10, 20, 30]
+        registry = StatisticsRegistry(DEFAULT_TOPIC)
+        for i in range(0, len(list_data)):
+            registry.registerFunction("var_{}".format(i), (lambda index=i: list_data[index]))
+
+        self.evaluate_msgs({"var_0": 0.0, "var_1": 10.0, "var_2": 20.0, "var_3": 30.0}, registry)
+
+        # Testing by modifying the data in the list
+        list_data[2] = 152.2
+        list_data[3] = 1.23
+        self.evaluate_msgs({"var_0": 0.0, "var_1": 10.0, "var_2": 152.2, "var_3": 1.23}, registry)
+
+    def test_map_data(self):
+        map_data = {"x": 20.0, "y": 124.2, "z": 20}
+        registry = StatisticsRegistry(DEFAULT_TOPIC)
+        for key in map_data:
+            registry.registerFunction("var_{}".format(key), (lambda map_key=key: map_data[map_key]))
+
+        self.evaluate_msgs({"var_x": 20.0, "var_y": 124.2, "var_z": 20}, registry)
+
+        # Testing by modifying the data in the dictionary
+        map_data["x"] = 25.7
+        map_data["z"] += 7
+        self.evaluate_msgs({"var_x": 25.7, "var_y": 124.2, "var_z": 27}, registry)
 
     def test_registration_list(self):
         var1 = 0.0
