@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.4.2 (2021-01-12)
+------------------
 * Merge branch 'data_signal' into 'erbium-devel'
   Data signal
   See merge request qa/pal_statistics!22
