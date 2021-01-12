@@ -1,0 +1,3 @@
+<launch>
+  <test test-name="extract_rosbag_signals_test" pkg="pal_statistics" type="extract_rosbag_signals-test" time-limit="60.0"/>
+</launch>
