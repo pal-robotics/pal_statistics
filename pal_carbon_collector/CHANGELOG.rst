@@ -2,6 +2,9 @@
 Changelog for package pal_carbon_collector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.4.1 (2020-11-11)
 ------------------
 * Remove pal_statistics_msgs from CMakeLists

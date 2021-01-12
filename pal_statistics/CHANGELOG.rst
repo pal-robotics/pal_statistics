@@ -2,6 +2,23 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'data_signal' into 'erbium-devel'
+  Data signal
+  See merge request qa/pal_statistics!22
+* Add documentation + tests for extact_rosbag_signals
+* Merge branch 'python_more_tests' into 'erbium-devel'
+  add more tests based on lists and dictionary data for the python API
+  See merge request qa/pal_statistics!21
+* Get data signal from introspection data rosbag
+  Rm *.user
+  Get data signal from introspection data rosbag
+  Rm *.user
+  Mv DataSignal to a separate library
+* add more tests based on lists and dictionary data for the python API
+* Contributors: Adria Roig, Sai Kishor Kothakota, victor
+
 1.4.1 (2020-11-11)
 ------------------
 * Update license on headers
