@@ -35,6 +35,7 @@ if (CATKIN_ENABLE_TESTING)
 
     find_package(rostest REQUIRED)
 
-    add_rostest(test/carbon_collector.test)
+    # Disabled test since graphitesend is not released on ROS
+    #    add_rostest(test/carbon_collector.test)
 
 endif()
