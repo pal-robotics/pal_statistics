@@ -127,7 +127,7 @@ class TestPalStatistics(unittest.TestCase):
         old_names_ver = self.last_names_msg.names_version
 
         #If we publish the same statistics, names_version shouldn't change
-        self.clear()
+        self.clear(False)
         registry.publish()
         self.wait_for_msg()
         self.assertEqual(old_names_ver, self.last_names_msg.names_version)
@@ -139,9 +139,11 @@ class TestPalStatistics(unittest.TestCase):
         self.compare_full_msg({"foo": 23}, self.last_full_msg)
 
 
-    def clear(self):
+    def clear(self, expect_new_names=True):
         self.last_full_msg = None
         self.last_values_msg = None
+        if expect_new_names:
+            self.last_names_msg = None
 
     def wait_for_msg(self, timeout=2.0):
         end = rospy.Time.now() + rospy.Duration(timeout)
