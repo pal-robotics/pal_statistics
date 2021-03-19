@@ -2,6 +2,11 @@
 Changelog for package pal_carbon_collector
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Disable test
+* Contributors: Victor Lopez
+
 1.4.2 (2021-01-12)
 ------------------
 

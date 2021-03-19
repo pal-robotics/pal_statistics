@@ -2,6 +2,11 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix spurious test failure
+* Contributors: Victor Lopez
+
 1.4.2 (2021-01-12)
 ------------------
 * Merge branch 'data_signal' into 'erbium-devel'
