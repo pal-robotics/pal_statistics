@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.4.3 (2021-03-19)
+------------------
 * Fix spurious test failure
 * Contributors: Victor Lopez
 
