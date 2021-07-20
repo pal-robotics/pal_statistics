@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>pal_statistics</name>
   <version>1.4.3</version>
   <description>The pal_statistics package</description>
@@ -48,15 +48,20 @@
   <!--   <test_depend>gtest</test_depend> -->
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
+
   <buildtool_depend>catkin</buildtool_depend>
+
   <depend>boost</depend>
   <depend>pal_statistics_msgs</depend>
   <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>rosbag</depend>
+
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-future</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-future</exec_depend>
+
   <test_depend>rostest</test_depend>
   <test_depend>google-mock</test_depend>
-
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
