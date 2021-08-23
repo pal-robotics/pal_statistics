@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.0 (2021-08-23)
+------------------
 * Merge branch 'python3' into 'erbium-devel'
   Make python code compatible with python2/3
   See merge request qa/pal_statistics!23
