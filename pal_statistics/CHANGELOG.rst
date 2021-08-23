@@ -2,6 +2,14 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'python3' into 'erbium-devel'
+  Make python code compatible with python2/3
+  See merge request qa/pal_statistics!23
+* futurize'd python code
+* Contributors: Jordan Palacios
+
 1.4.3 (2021-03-19)
 ------------------
 * Fix spurious test failure
