@@ -21,12 +21,13 @@
 # Authors:
 #   * Victor Lopez, Jordan Palacios
 
+from builtins import object
 
 import rospy
 from pal_statistics_msgs.msg import Statistics, Statistic, StatisticsValues, StatisticsNames
 
 
-class Registration:
+class Registration(object):
     """
     A utility class to handle to a registered funciton or variable, when
     out of scope unregisters the variable.
@@ -39,7 +40,7 @@ class Registration:
         rospy.logdebug("Unregistering " + self.name)
         self.registry.unregister(self.name)
 
-class StatisticsRegistry:
+class StatisticsRegistry(object):
 
     def __init__(self, topic):
         self.topic = topic
@@ -121,7 +122,7 @@ class StatisticsRegistry:
         """
         msg = Statistics()
         msg.header.stamp = rospy.Time.now()
-        for name, func in self.functions.iteritems():
+        for name, func in self.functions.items():
             s = Statistic()
             s.name = name
             s.value = func()
@@ -143,7 +144,7 @@ class StatisticsRegistry:
             names_msg = None
         values_msg.names_version = self.last_names_version
 
-        for name, func in self.functions.iteritems():
+        for name, func in self.functions.items():
             if names_msg:
                 names_msg.names.append(name)
             values_msg.values.append(func())

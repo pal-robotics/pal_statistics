@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from builtins import range
+
 import unittest
 import rospy
 import gc
@@ -32,8 +34,8 @@ class TestPalStatistics(unittest.TestCase):
 
     def compare_optimized_msgs(self, expected, names_msg, values_msg):
         if names_msg:
-            self.assertListEqual(expected.keys(), names_msg.names)
-        self.assertListEqual(expected.values(), values_msg.values)
+            self.assertListEqual(list(expected.keys()), names_msg.names)
+        self.assertListEqual(list(expected.values()), values_msg.values)
 
 
     def evaluate_msgs(self, expected, registry):
