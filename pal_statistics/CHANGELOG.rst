@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.0 (2021-10-15)
+------------------
 * Revert "Comment out tests that require galactic rclpcpp API"
   This reverts commit 6642f6a743e5d5be210f7e59191153746b296866.
 * Fix cmake lint
