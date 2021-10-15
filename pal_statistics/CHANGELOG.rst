@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.0 (2021-10-15)
+------------------
 * Comment out tests that require galactic rclpcpp API
 * Use ament_cmake_auto
 * Update package.xml
