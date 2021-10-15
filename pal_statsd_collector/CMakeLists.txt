@@ -27,14 +27,14 @@ install(PROGRAMS
 foreach(dir config launch)
     install(DIRECTORY ${dir}/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${dir})
-endforeach(dir)
+endforeach()
 
 
 #############
 ## Testing ##
 #############
 
-if (CATKIN_ENABLE_TESTING)
+if(CATKIN_ENABLE_TESTING)
 
     find_package(rostest REQUIRED)
 

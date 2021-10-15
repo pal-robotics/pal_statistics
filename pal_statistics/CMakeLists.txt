@@ -12,9 +12,9 @@ find_package(ament_cmake_pal QUIET)
 
 ament_auto_find_build_dependencies()
 
-ament_auto_add_library(${PROJECT_NAME} SHARED 
-	src/pal_statistics_utils.cpp src/pal_statistics.cpp
-	src/pal_statistics_macros.cpp src/registration_list.cpp)
+ament_auto_add_library(${PROJECT_NAME} SHARED
+        src/pal_statistics_utils.cpp src/pal_statistics.cpp
+        src/pal_statistics_macros.cpp src/registration_list.cpp)
 
 # ##############################################################################
 # Testing ##
