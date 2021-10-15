@@ -29,10 +29,10 @@ if(BUILD_TESTING)
   ament_add_gtest(buffer-test test/gtest_buffer.cpp)
   target_link_libraries(buffer-test ${PROJECT_NAME})
 
-  ament_add_gmock(pal_statistics-test test/gtest_pal_statistics.cpp)
-  target_include_directories(
-    pal_statistics-test PRIVATE src) # dirty hack for a forward declaration
-  target_link_libraries(pal_statistics-test ${PROJECT_NAME})
+  #  ament_add_gmock(pal_statistics-test test/gtest_pal_statistics.cpp)
+  #  target_include_directories(
+  #    pal_statistics-test PRIVATE src) # dirty hack for a forward declaration
+  #  target_link_libraries(pal_statistics-test ${PROJECT_NAME})
 
   # TODO v-lopez python migration add_rostest(test/pal_statistics_py.test)
 endif()
