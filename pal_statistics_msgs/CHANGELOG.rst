@@ -2,8 +2,8 @@
 Changelog for package pal_statistics_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.1 (2021-11-09)
+------------------
 * Fix missing ament_lint_auto dependency
 * Contributors: Victor Lopez
 
