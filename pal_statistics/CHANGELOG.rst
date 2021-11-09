@@ -2,6 +2,9 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 2.1.0 (2021-10-15)
 ------------------
 * Revert "Comment out tests that require galactic rclpcpp API"
