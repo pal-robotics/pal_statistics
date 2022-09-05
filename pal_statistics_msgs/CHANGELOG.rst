@@ -2,6 +2,21 @@
 Changelog for package pal_statistics_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'cherry-pick-92889b69' into 'foxy-devel'
+  Merge branch 'ament_cmake_dependency' into 'foxy-devel'
+  See merge request qa/pal_statistics!26
+* Merge branch 'ament_cmake_dependency' into 'galactic-devel'
+  Add missing dependency ament_cmake
+  See merge request qa/pal_statistics!25
+  (cherry picked from commit 92889b69d3146b64f859770e03cda1b576a644d8)
+  1225c140 add missing dependency ament_cmake
+* Merge pull request `#12 <https://github.com/pal-robotics/pal_statistics/issues/12>`_ from v-lopez/foxy-devel
+  Fix missing ament_lint_common dependency
+* Fix missing ament_lint_common dependency
+* Contributors: Jordan Palacios, Victor Lopez
+
 2.0.1 (2021-11-09)
 ------------------
 * Fix missing ament_lint_auto dependency
