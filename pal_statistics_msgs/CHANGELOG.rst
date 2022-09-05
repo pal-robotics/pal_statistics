@@ -2,8 +2,8 @@
 Changelog for package pal_statistics_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.2 (2022-09-05)
+------------------
 * Merge branch 'cherry-pick-92889b69' into 'foxy-devel'
   Merge branch 'ament_cmake_dependency' into 'foxy-devel'
   See merge request qa/pal_statistics!26
