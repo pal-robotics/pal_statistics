@@ -2,6 +2,17 @@
 Changelog for package pal_statistics_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'ament_cmake_dependency' into 'galactic-devel'
+  Add missing dependency ament_cmake
+  See merge request qa/pal_statistics!25
+* add missing dependency ament_cmake
+* Merge pull request #11 from v-lopez/galactic-devel
+  Fix missing ament_lint_common dependency
+* Fix missing ament_lint_common dependency
+* Contributors: Jordan Palacios, Noel Jimenez, Victor Lopez
+
 2.1.1 (2021-11-09)
 ------------------
 * Fix missing ament_lint_auto dependency
