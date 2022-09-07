@@ -2,6 +2,14 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'fix_linter' into 'humble-devel'
+  fix linter
+  See merge request qa/pal_statistics!27
+* fix linter
+* Contributors: Jordan Palacios, Noel Jimenez
+
 2.1.2 (2022-09-05)
 ------------------
 
