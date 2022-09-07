@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.3 (2022-09-07)
+------------------
 * Merge branch 'fix_linter' into 'humble-devel'
   fix linter
   See merge request qa/pal_statistics!27
