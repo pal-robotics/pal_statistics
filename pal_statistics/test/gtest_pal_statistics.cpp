@@ -27,9 +27,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 
-#include <pal_statistics/pal_statistics_macros.hpp>
-#include <pal_statistics/pal_statistics.hpp>
-#include <registration_list.hpp>  // from src directory
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
@@ -38,6 +35,10 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+#include <pal_statistics/pal_statistics_macros.hpp>
+#include <pal_statistics/pal_statistics.hpp>
+#include <registration_list.hpp>  // from src directory
 
 using ::testing::UnorderedElementsAre;
 using std::placeholders::_1;
