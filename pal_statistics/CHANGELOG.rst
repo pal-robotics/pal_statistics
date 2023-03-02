@@ -2,6 +2,15 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'fix_warns' into 'humble-devel'
+  Fix warns
+  See merge request qa/pal_statistics!28
+* change types for comparisons
+* reorder variable initialization
+* Contributors: Jordan Palacios, Noel Jimenez
+
 2.1.3 (2022-09-07)
 ------------------
 * Merge branch 'fix_linter' into 'humble-devel'
