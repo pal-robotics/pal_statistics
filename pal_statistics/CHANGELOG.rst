@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.4 (2023-03-02)
+------------------
 * Merge branch 'fix_warns' into 'humble-devel'
   Fix warns
   See merge request qa/pal_statistics!28
