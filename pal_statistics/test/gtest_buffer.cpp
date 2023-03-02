@@ -146,7 +146,7 @@ TEST(BufferTest, basicTest)
   }
 
   for (size_t i = 0; i < buffer.capacity(); ++i) {
-    EXPECT_EQ(i, buffer.front());
+    EXPECT_EQ(static_cast<int>(i), buffer.front());
     buffer.pop_front();
   }
 }
@@ -164,13 +164,13 @@ TEST(BufferTest, buffer)
   std::cout << "Creating circular buffer" << std::endl;
   StaticCircularBuffer<MyVector, MyAlloc<MyVector>> buffer(10, v, my_buffer_alloc);
 
-  ASSERT_EQ(buffer.size(), 0);
-  ASSERT_EQ(buffer.capacity(), 10);
+  ASSERT_EQ(buffer.size(), 0u);
+  ASSERT_EQ(buffer.capacity(), 10u);
 
   std::cout << "Size of type " << sizeof(std::vector<int>) << " size of container " <<
     v.size() * sizeof(int) << std::endl;
   std::cout << "Pushing first elements of vector" << std::endl;
-  for (int i = 0; i < 10; ++i) {
+  for (size_t i = 0; i < 10; ++i) {
     buffer.push_back();
     ASSERT_EQ(i + 1, buffer.size());
   }
@@ -178,7 +178,7 @@ TEST(BufferTest, buffer)
   std::cout << "Pushing second elements of vector" << std::endl;
   for (int i = 0; i < 10; ++i) {
     buffer.push_back();
-    ASSERT_EQ(10, buffer.size());
+    ASSERT_EQ(10u, buffer.size());
   }
   /*
     std::cout << "Increasing size of container" << std::endl;

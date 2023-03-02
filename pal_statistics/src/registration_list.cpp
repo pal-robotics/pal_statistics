@@ -38,7 +38,7 @@ namespace pal_statistics
 RegistrationList::RegistrationList(
   const std::shared_ptr<rclcpp::Node> & node,
   size_t internal_buffer_capacity)
-: node_(node), last_id_(0), names_version_(0), buffer_size_(internal_buffer_capacity), all_enabled_(
+: last_id_(0), names_version_(0), node_(node), buffer_size_(internal_buffer_capacity), all_enabled_(
     true), registrations_changed_(true)
 {
   overwritten_data_count_ = 0;
