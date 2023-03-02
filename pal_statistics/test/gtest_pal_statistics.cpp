@@ -423,7 +423,7 @@ TEST_F(PalStatisticsTest, asyncPublisher)
   registry->publishAsync();
   ASSERT_TRUE(waitForMsg());
   // Number of internal statistics
-  EXPECT_EQ(4, last_msg_->statistics.size());
+  EXPECT_EQ(4u, last_msg_->statistics.size());
 }
 
 TEST_F(PalStatisticsTest, macroTest)
@@ -624,7 +624,7 @@ TEST_F(PalStatisticsTest, concurrencyTest)
   threads.clear();
 
   // Number of internal variables
-  EXPECT_EQ(4, msg.statistics.size());
+  EXPECT_EQ(4u, msg.statistics.size());
 }
 
 TEST_F(PalStatisticsTest, concurrencyMixTest)
@@ -679,7 +679,7 @@ TEST_F(PalStatisticsTest, singlePublish)
 
   waitForMsg();
   EXPECT_TRUE(last_msg_.get());
-  ASSERT_EQ(1, last_msg_->statistics.size());
+  ASSERT_EQ(1u, last_msg_->statistics.size());
   EXPECT_EQ("single_stat", last_msg_->statistics[0].name);
   EXPECT_DOUBLE_EQ(d, last_msg_->statistics[0].value);
 }
