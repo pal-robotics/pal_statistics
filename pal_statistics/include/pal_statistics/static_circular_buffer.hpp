@@ -33,6 +33,8 @@
 #include <memory>
 #include <vector>
 
+namespace pal_statistics
+{
 /**
  * @brief CircularBuffer implementation that does not perform allocations/deallocations
  * outside of the constructor, destructor and resize methods.
@@ -165,5 +167,6 @@ private:
   typename VectorType::iterator end_iterator_;
   bool full_;  // Disambiguates when end == begin because it's empty, or it's full
 };
+}  // namespace pal_statistics
 
 #endif  // PAL_STATISTICS__STATIC_CIRCULAR_BUFFER_HPP_

@@ -138,7 +138,7 @@ bool operator!=(const MyAlloc<T1> &, const MyAlloc<T2> &) throw()
 
 TEST(BufferTest, basicTest)
 {
-  StaticCircularBuffer<int> buffer;
+  pal_statistics::StaticCircularBuffer<int> buffer;
   buffer.set_capacity(5, 0);
 
   for (size_t i = 0; i < buffer.capacity(); ++i) {
@@ -162,7 +162,7 @@ TEST(BufferTest, buffer)
 
   MyAlloc<MyVector> my_buffer_alloc;
   std::cout << "Creating circular buffer" << std::endl;
-  StaticCircularBuffer<MyVector, MyAlloc<MyVector>> buffer(10, v, my_buffer_alloc);
+  pal_statistics::StaticCircularBuffer<MyVector, MyAlloc<MyVector>> buffer(10, v, my_buffer_alloc);
 
   ASSERT_EQ(buffer.size(), 0u);
   ASSERT_EQ(buffer.capacity(), 10u);
