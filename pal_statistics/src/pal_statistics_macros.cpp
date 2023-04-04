@@ -35,22 +35,56 @@
 
 namespace pal_statistics
 {
+typedef std::map<std::string, std::shared_ptr<StatisticsRegistry>> RegistryMap;
+
 std::shared_ptr<StatisticsRegistry> getRegistry(
-  const std::shared_ptr<rclcpp::Node> & node,
+  rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
+  rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
+  const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
+  const rclcpp::node_interfaces::NodeClockInterface::SharedPtr & clock_interface,
+  const std::string & node_namespace,
   const std::string & topic)
 {
-  typedef std::map<std::string, std::shared_ptr<StatisticsRegistry>> RegistryMap;
   static RegistryMap registries;
 
-  RegistryMap::const_iterator cit = registries.find(node->get_effective_namespace() + topic);
+  RegistryMap::const_iterator cit = registries.find(node_namespace + topic);
 
   if (cit == registries.end()) {
     std::shared_ptr<StatisticsRegistry> ptr =
-      std::make_shared<StatisticsRegistry>(node, topic);
-    registries[node->get_effective_namespace() + topic] = ptr;
+      std::make_shared<StatisticsRegistry>(
+      parameters_interface, topics_interface,
+      logging_interface, clock_interface, topic);
+    registries[node_namespace + topic] = ptr;
     return ptr;
   } else {
     return cit->second;
   }
 }
+
+std::shared_ptr<StatisticsRegistry> getRegistry(
+  const std::shared_ptr<rclcpp::Node> & node,
+  const std::string & topic)
+{
+  return getRegistry(
+    node->get_node_parameters_interface(),
+    node->get_node_topics_interface(),
+    node->get_node_logging_interface(),
+    node->get_node_clock_interface(),
+    node->get_effective_namespace(),
+    topic);
+}
+
+std::shared_ptr<StatisticsRegistry> getRegistry(
+  const std::shared_ptr<rclcpp_lifecycle::LifecycleNode> & node,
+  const std::string & topic)
+{
+  return getRegistry(
+    node->get_node_parameters_interface(),
+    node->get_node_topics_interface(),
+    node->get_node_logging_interface(),
+    node->get_node_clock_interface(),
+    node->get_namespace(),
+    topic);
+}
+
 }  // namespace pal_statistics

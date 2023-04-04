@@ -52,8 +52,9 @@ class RegistrationList
 {
 public:
   RegistrationList(
-    const std::shared_ptr<rclcpp::Node> & node,
+    const rclcpp::Logger logger, const rclcpp::Clock::SharedPtr clock,
     size_t internal_buffer_capacity = 100);
+
   int registerVariable(const std::string & name, VariableHolder && holder, bool enabled = true);
 
 
@@ -107,7 +108,8 @@ private:
   typedef boost::bimap<boost::bimaps::multiset_of<std::string>,
       boost::bimaps::set_of<IdType>> NameIdBiMap;
 
-  std::shared_ptr<rclcpp::Node> node_;
+  rclcpp::Logger logger_;
+  rclcpp::Clock::SharedPtr clock_;
   NameIdBiMap name_id_;
 
   size_t buffer_size_;

@@ -36,10 +36,10 @@
 namespace pal_statistics
 {
 RegistrationList::RegistrationList(
-  const std::shared_ptr<rclcpp::Node> & node,
+  const rclcpp::Logger logger, const rclcpp::Clock::SharedPtr clock,
   size_t internal_buffer_capacity)
-: last_id_(0), names_version_(0), node_(node), buffer_size_(internal_buffer_capacity), all_enabled_(
-    true), registrations_changed_(true)
+: last_id_(0), names_version_(0), logger_(logger), clock_(clock), buffer_size_(
+    internal_buffer_capacity), all_enabled_(true), registrations_changed_(true)
 {
   overwritten_data_count_ = 0;
 }
@@ -71,8 +71,7 @@ void RegistrationList::unregisterVariable(const std::string & name)
   size_t count = name_id_.left.count(name);
   if (count > 1) {
     RCLCPP_ERROR_STREAM(
-      node_->get_logger().get_child(
-        "pal_statistics"),
+      logger_,
       "You asked to unregister " <<
         name <<
         " but there are multiple variables registered with that name. "
@@ -80,7 +79,7 @@ void RegistrationList::unregisterVariable(const std::string & name)
   }
   if (count == 0) {
     RCLCPP_ERROR_STREAM(
-      node_->get_logger().get_child("pal_statistics"),
+      logger_,
       "Tried to unregister variable " << name << " but it is not registered.");
     return;
   }
@@ -99,7 +98,7 @@ void RegistrationList::doUpdate()
 
   auto & last_values_stamped = last_values_buffer_.push_back();
   auto & last_values = last_values_stamped.first;
-  last_values_stamped.second = node_->get_clock()->now();
+  last_values_stamped.second = clock_->now();
   assert(last_values.names.capacity() >= ids_.size());
   assert(last_values.values.capacity() >= ids_.size());
 
@@ -194,7 +193,7 @@ void RegistrationList::deleteElement(size_t index)
   IdType id = ids_[index];
   if (name_id_.right.count(id) == 0) {
     RCLCPP_ERROR_STREAM(
-      node_->get_logger().get_child("pal_statistics"),
+      logger_,
       "Didn't find index " << index << " in <name, index> multimap");
   }
 

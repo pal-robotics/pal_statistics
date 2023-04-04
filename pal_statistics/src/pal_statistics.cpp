@@ -37,6 +37,8 @@
 #include "registration_list.hpp"
 #include "pal_statistics/registration_utils.hpp"
 
+#include "rclcpp/create_publisher.hpp"
+
 namespace pal_statistics
 {
 
@@ -48,26 +50,29 @@ struct EnabledId
 };
 
 StatisticsRegistry::StatisticsRegistry(
-  const std::shared_ptr<rclcpp::Node> & node,
+  rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
+  rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
+  const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
+  const rclcpp::node_interfaces::NodeClockInterface::SharedPtr & clock_interface,
   const std::string & topic)
-: node_(node), logger_(node_->get_logger().get_child("pal_statistics")),
-  registration_list_(new RegistrationList(
-      node_)),
+: logger_(logging_interface->get_logger().get_child("pal_statistics")),
+  clock_(clock_interface->get_clock()),
+  registration_list_(new RegistrationList(logger_, clock_)),
   enabled_ids_(new LockFreeQueue<EnabledId>())
 {
-  pub_ =
-    node_->create_publisher<pal_statistics_msgs::msg::Statistics>(
-    topic + "/full",
-    rclcpp::QoS(rclcpp::KeepAll()));
+  pub_ = rclcpp::create_publisher<pal_statistics_msgs::msg::Statistics>(
+    parameters_interface, topics_interface, topic + "/full", rclcpp::QoS(
+      rclcpp::KeepAll()));
+
   rclcpp::QoS names_qos{rclcpp::KeepAll()};
   names_qos.reliable();
   names_qos.transient_local();  // latch
 
-  pub_names_ = node_->create_publisher<pal_statistics_msgs::msg::StatisticsNames>(
-    topic + "/names",
-    names_qos);
-  pub_values_ = node_->create_publisher<pal_statistics_msgs::msg::StatisticsValues>(
-    topic + "/values", rclcpp::QoS(rclcpp::KeepAll()));
+  pub_names_ = rclcpp::create_publisher<pal_statistics_msgs::msg::StatisticsNames>(
+    parameters_interface, topics_interface, topic + "/names", names_qos);
+  pub_values_ = rclcpp::create_publisher<pal_statistics_msgs::msg::StatisticsValues>(
+    parameters_interface, topics_interface, topic + "/values", rclcpp::QoS(rclcpp::KeepAll()));
+
   publish_async_attempts_ = 0;
   publish_async_failures_ = 0;
   last_async_pub_duration_ = 0.0;
@@ -86,6 +91,30 @@ StatisticsRegistry::StatisticsRegistry(
   customRegister(
     *this, "topic_stats." + topic + ".last_async_pub_duration",
     &last_async_pub_duration_, &internal_stats_raii_);
+}
+
+StatisticsRegistry::StatisticsRegistry(
+  const std::shared_ptr<rclcpp::Node> & node,
+  const std::string & topic)
+: StatisticsRegistry(
+    node->get_node_parameters_interface(),
+    node->get_node_topics_interface(),
+    node->get_node_logging_interface(),
+    node->get_node_clock_interface(),
+    topic)
+{
+}
+
+StatisticsRegistry::StatisticsRegistry(
+  const rclcpp_lifecycle::LifecycleNode::SharedPtr & node,
+  const std::string & topic)
+: StatisticsRegistry(
+    node->get_node_parameters_interface(),
+    node->get_node_topics_interface(),
+    node->get_node_logging_interface(),
+    node->get_node_clock_interface(),
+    topic)
+{
 }
 
 StatisticsRegistry::~StatisticsRegistry()
