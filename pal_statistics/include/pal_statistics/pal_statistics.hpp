@@ -43,7 +43,10 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 
-class PalStatisticsTest_stressAsync_Test;
+// fordward declaration to make it friend of StatisticsRegistry
+template<typename NodeT>
+class PalStatisticsTestHelperClass;
+
 namespace pal_statistics
 {
 
@@ -263,7 +266,8 @@ private:
   double last_async_pub_duration_;
   RegistrationsRAII internal_stats_raii_;
 
-  friend class ::PalStatisticsTest_stressAsync_Test;
+  template<typename NodeT>
+  friend class ::PalStatisticsTestHelperClass;
 };
 }  // namespace pal_statistics
 #endif  // PAL_STATISTICS__PAL_STATISTICS_HPP_
