@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.5 (2023-04-14)
+------------------
 * miscellaneous enhancements
 * refactor gtest_pal_statistics to test also lifecycle nodes
 * add support for lifecycle nodes
