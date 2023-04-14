@@ -39,9 +39,14 @@
 #include "pal_statistics_msgs/msg/statistics.hpp"
 #include "pal_statistics_msgs/msg/statistics_names.hpp"
 #include "pal_statistics_msgs/msg/statistics_values.hpp"
-#include "rclcpp/rclcpp.hpp"
 
-class PalStatisticsTest_stressAsync_Test;
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
+
+// fordward declaration to make it friend of StatisticsRegistry
+template<typename NodeT>
+class PalStatisticsTestHelperClass;
+
 namespace pal_statistics
 {
 
@@ -67,7 +72,17 @@ class RegistrationList;
 class StatisticsRegistry : public std::enable_shared_from_this<StatisticsRegistry>
 {
 public:
+  StatisticsRegistry(
+    rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
+    rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
+    const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
+    const rclcpp::node_interfaces::NodeClockInterface::SharedPtr & clock_interface,
+    const std::string & topic);
+
   StatisticsRegistry(const std::shared_ptr<rclcpp::Node> & node, const std::string & topic);
+  StatisticsRegistry(
+    const rclcpp_lifecycle::LifecycleNode::SharedPtr & node,
+    const std::string & topic);
 
   virtual ~StatisticsRegistry();
 
@@ -132,7 +147,7 @@ public:
     stat.name = name;
     stat.value = static_cast<double>(value);
     msg.statistics.push_back(stat);
-    msg.header.stamp = node_->get_clock()->now();
+    msg.header.stamp = clock_->now();
     pub_->publish(msg);
   }
 
@@ -198,8 +213,8 @@ private:
 
   const rclcpp::Logger & getLogger() const;
 
-  std::shared_ptr<rclcpp::Node> node_;
   rclcpp::Logger logger_;
+  rclcpp::Clock::SharedPtr clock_;
 
   std::mutex data_mutex_;
   std::unique_ptr<RegistrationList> registration_list_;
@@ -251,7 +266,8 @@ private:
   double last_async_pub_duration_;
   RegistrationsRAII internal_stats_raii_;
 
-  friend class ::PalStatisticsTest_stressAsync_Test;
+  template<typename NodeT>
+  friend class ::PalStatisticsTestHelperClass;
 };
 }  // namespace pal_statistics
 #endif  // PAL_STATISTICS__PAL_STATISTICS_HPP_

@@ -4,15 +4,19 @@
   <version>2.1.4</version>
   <description>The pal_statistics package</description>
 
-  <maintainer email="victor.lopez@pal-robotics.com">victor</maintainer>
+  <maintainer email="jordan.palacios@pal-robotics.com">Jordan Palacios</maintainer>
+  <maintainer email="noel.jimenez@pal-robotics.com">Noel Jimenez</maintainer>
 
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
+
   <depend>boost</depend>
   <depend>pal_statistics_msgs</depend>
   <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
   <depend>rclpy</depend>
+
   <test_depend>ament_cmake_gmock</test_depend>
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_auto</test_depend>

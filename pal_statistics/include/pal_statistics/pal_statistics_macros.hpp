@@ -41,7 +41,19 @@ constexpr char DEFAULT_STATISTICS_TOPIC[] = "pal_statistics";
 namespace pal_statistics
 {
 std::shared_ptr<StatisticsRegistry> getRegistry(
+  rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
+  rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
+  const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
+  const rclcpp::node_interfaces::NodeClockInterface::SharedPtr & clock_interface,
+  const std::string & node_namespace,
+  const std::string & topic);
+
+std::shared_ptr<StatisticsRegistry> getRegistry(
   const std::shared_ptr<rclcpp::Node> & node,
+  const std::string & topic);
+
+std::shared_ptr<StatisticsRegistry> getRegistry(
+  const std::shared_ptr<rclcpp_lifecycle::LifecycleNode> & node,
   const std::string & topic);
 }  // namespace pal_statistics
 
