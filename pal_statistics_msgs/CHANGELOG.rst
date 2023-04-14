@@ -2,6 +2,11 @@
 Changelog for package pal_statistics_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* miscellaneous enhancements
+* Contributors: Noel Jimenez
+
 2.1.4 (2023-03-02)
 ------------------
 
