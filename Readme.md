@@ -10,16 +10,16 @@ To log a variable, it must be registered with a name to a topic.
 Registering can be as easy as:
 ```
   double my_variable = 3.0;
-  REGISTER_VARIABLE("/statistics_topic", "my_variable_name", &my_variable);
+  REGISTER_VARIABLE(node, "/statistics_topic", "my_variable_name", &my_variable);
 ```
 To publish all variables registered to a topic:
 ```
-PUBLISH_STATISTICS("/statistics_topic");
+PUBLISH_STATISTICS(node, "/statistics_topic");
 ```
   
 And to unregister:
 ```
-UNREGISTER_VARIABLE("/statistics_topic", "my_variable_name");
+UNREGISTER_VARIABLE(node, "/statistics_topic", "my_variable_name");
 ```
 
 
@@ -41,7 +41,7 @@ Or you can view historic data via [Grafana](https://grafana.com/)
 
 ## Tutorials
 
-The tutorials are hosted on the [ROS wiki](http://wiki.ros.org/pal_statistics/Tutorials/Registering%20and%20publishing%20variables)
+The tutorials for ROS are hosted on the [ROS wiki](http://wiki.ros.org/pal_statistics/Tutorials/Registering%20and%20publishing%20variables). In ROS 2 there are some changes, but it's similar. The node must be added as the first argument when using the macros.
 
 ## Acknowledgements
 ***
