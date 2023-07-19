@@ -2,6 +2,12 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* drop c++11 compiler flag
+  broke on newer systems as log4cxx requires c++17 for quite some time now.
+* Contributors: v4hn
+
 1.5.0 (2021-08-23)
 ------------------
 * Merge branch 'python3' into 'erbium-devel'
