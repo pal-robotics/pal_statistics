@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>pal_statistics</name>
-  <version>1.5.0</version>
+  <version>1.5.1</version>
   <description>The pal_statistics package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->

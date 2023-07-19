@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.1 (2023-07-19)
+------------------
 * drop c++11 compiler flag
   broke on newer systems as log4cxx requires c++17 for quite some time now.
 * Contributors: v4hn
