@@ -299,9 +299,8 @@ bool StatisticsRegistry::disable(const IdType & id)
 
 void StatisticsRegistry::joinPublisherThread()
 {
-  interrupt_thread_ = true;  // To let the thread exit nicely
-
   if (publisher_thread_ && publisher_thread_->joinable()) {
+    interrupt_thread_ = true;  // To let the thread exit nicely
     publisher_thread_->join();
     // after thread has been joined and exited here
     // restore interrupt_thread_ to previous value
