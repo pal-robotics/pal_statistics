@@ -210,7 +210,8 @@ void StatisticsRegistry::startPublishThread()
 {
   joinPublisherThread();
 
-  publisher_thread_.reset(new std::thread(&StatisticsRegistry::publisherThreadCycle, this));
+  publisher_thread_ =
+    std::make_shared<std::thread>(&StatisticsRegistry::publisherThreadCycle, this);
 }
 
 IdType StatisticsRegistry::registerInternal(
