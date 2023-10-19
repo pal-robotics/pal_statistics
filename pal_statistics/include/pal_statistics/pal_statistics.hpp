@@ -175,6 +175,9 @@ public:
   bool enable(const IdType & id);
   bool disable(const IdType & id);
 
+protected:
+  void joinPublisherThread();
+
 private:
   /**
    * @brief updateMsgUnsafe Updates the internal message variable without acquiring the
@@ -192,8 +195,6 @@ private:
     pal_statistics_msgs::msg::StatisticsValues & values, bool smart_fill = false);
 
   void publisherThreadCycle();
-
-  void startPublishThreadImpl();
 
   IdType registerInternal(
     const std::string & name, VariableHolder && variable,

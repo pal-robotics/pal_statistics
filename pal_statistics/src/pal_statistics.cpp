@@ -119,12 +119,8 @@ StatisticsRegistry::StatisticsRegistry(
 
 StatisticsRegistry::~StatisticsRegistry()
 {
-  is_data_ready_ = true;  // To let the thread exit nicely
+  joinPublisherThread();
 
-  if (publisher_thread_) {
-    interrupt_thread_ = true;
-    publisher_thread_->join();
-  }
   RCLCPP_INFO_STREAM(
     getLogger(), "Async messages lost " << registration_list_->overwritten_data_count_);
   RCLCPP_INFO_STREAM(getLogger(), "publish_async_failures_ " << publish_async_failures_);
@@ -190,7 +186,7 @@ bool StatisticsRegistry::publishAsync()
         getLogger(),
         "Called publishAsync but publisher thread has not been started,"
         " THIS IS NOT RT safe. You should start it yourself.");
-      startPublishThreadImpl();
+      startPublishThread();
     }
 
     {
@@ -212,12 +208,10 @@ bool StatisticsRegistry::publishAsync()
 
 void StatisticsRegistry::startPublishThread()
 {
-  std::unique_lock<std::mutex> data_lock(data_mutex_);
-  startPublishThreadImpl();
-}
-void StatisticsRegistry::startPublishThreadImpl()
-{
-  publisher_thread_.reset(new std::thread(&StatisticsRegistry::publisherThreadCycle, this));
+  joinPublisherThread();
+
+  publisher_thread_ =
+    std::make_shared<std::thread>(&StatisticsRegistry::publisherThreadCycle, this);
 }
 
 IdType StatisticsRegistry::registerInternal(
@@ -302,6 +296,20 @@ bool StatisticsRegistry::enable(const IdType & id)
 bool StatisticsRegistry::disable(const IdType & id)
 {
   return setEnabledmpl(id, false);
+}
+
+void StatisticsRegistry::joinPublisherThread()
+{
+  if (publisher_thread_ && publisher_thread_->joinable()) {
+    interrupt_thread_ = true;  // To let the thread exit nicely
+    publisher_thread_->join();
+    // after thread has been joined and exited here
+    // restore interrupt_thread_ to previous value
+    // Not doing so could cause new threads to finish prematurely.
+    // For instance, when a new publisher_thread_ is recreated
+    // and this flag is still true
+    interrupt_thread_ = false;
+  }
 }
 
 bool StatisticsRegistry::updateMsg(
