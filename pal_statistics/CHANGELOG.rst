@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.2.0 (2023-10-19)
+------------------
 * Merge branch 'fix/crash_when_start_publish_called_twice_for_same_topic' into 'humble-devel'
   Fix: prevent crash when publisher thread is recreated
   See merge request qa/pal_statistics!33
