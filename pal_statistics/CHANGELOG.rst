@@ -2,6 +2,32 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'fix/crash_when_start_publish_called_twice_for_same_topic' into 'humble-devel'
+  Fix: prevent crash when publisher thread is recreated
+  See merge request qa/pal_statistics!33
+* Use make_shared as per CR
+* Test statistics publish thread can be called multiple times
+* Fix: interrupt_thread flag could stay true forever
+  This hinders the execution of the publisher thread, making
+  it exit prematurely.
+  For instance, in case joinPublisherThread() is called when no
+  publisher_thread\_ is still ready:
+  1. startPublishThread()
+  1.1. joinPublisherThread()
+  1.1.1. interrupt_thread\_ set to true
+  1.1.2. publisher_thread\_ is null, no further actions
+  1.2. new thread created for publisherThreadCycle()
+  2. In publisherThreadCycle, interrupt_thread\_ is true
+  2.1. thread finishes
+* Fix use proper event to interrupt the publisher thread
+* Fix: prevent crash when publisher thread is recreated
+  publisher thread was destroyed before being joined causing
+  the termination of the process
+  See: https://en.cppreference.com/w/cpp/thread/thread/%7Ethread
+* Contributors: Carles Lopez Parera, Jordan Palacios
+
 2.1.5 (2023-04-14)
 ------------------
 * miscellaneous enhancements
