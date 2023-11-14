@@ -39,6 +39,7 @@
 #include <pal_statistics/pal_statistics.hpp>
 #include <registration_list.hpp>  // from src directory
 
+using ::testing::Value;
 using ::testing::UnorderedElementsAre;
 using std::placeholders::_1;
 using pal_statistics::StatisticsRegistry;
@@ -101,6 +102,23 @@ public:
       if (last_msg_.get() && last_values_msg_.get() && last_names_msg_.get()) {
         return true;
       }
+    }
+    return false;
+  }
+
+  template<typename Pred>
+  bool waitFor(
+    Pred pred,
+    const std::chrono::milliseconds & timeout = std::chrono::milliseconds{300})
+  {
+    const auto end = node_->get_clock()->now() + timeout;
+
+    while (node_->get_clock()->now() < end) {
+      if (pred()) {
+        return true;
+      }
+      executor_->spin_some();
+      rclcpp::sleep_for(std::chrono::nanoseconds(100));
     }
     return false;
   }
@@ -833,29 +851,49 @@ void PalStatisticsTestHelperClass<NodeT>::chaosTest2()
   // Tests the unregistration of a variable and publication by the nonrt thread
   // before a publish_async has been performed
 
-  /// @note this test can be rather inconsistent due to the thread that publishes
-  /// the statistics could finish before the variable is unregistered, and then
-  /// the last_msg_ could have var1 instead of the last statistics published with var2
+  constexpr auto timeout = std::chrono::milliseconds{300};
   const std::string statistics_topic = std::string(node_->get_name()) + "/" +
     DEFAULT_STATISTICS_TOPIC;
+  const auto promised_publication = [&]() {
+      return PUBLISH_ASYNC_STATISTICS(node_, statistics_topic);
+    };
+
   RegistrationsRAII bookkeeping;
   REGISTER_VARIABLE(node_, statistics_topic, "var1", &var1_, nullptr);
-  PUBLISH_ASYNC_STATISTICS(node_, statistics_topic);
+
+  ASSERT_TRUE(waitFor(promised_publication, timeout))
+    << "Unable to publish 'var1' after " << timeout.count() << 's';
+
   REGISTER_VARIABLE(node_, statistics_topic, "var2", &var2_, &bookkeeping);
   UNREGISTER_VARIABLE(node_, statistics_topic, "var1", nullptr);
   rclcpp::sleep_for(std::chrono::milliseconds(200));
-  PUBLISH_ASYNC_STATISTICS(node_, statistics_topic);
+
+  ASSERT_TRUE(waitFor(promised_publication, timeout))
+    << "Unable to publish 'var2' after " << timeout.count() << 's';
+
+  const auto is_published = [&](const char * var_name) {
+      return last_msg_.get() &&
+             last_values_msg_.get() &&
+             last_names_msg_.get() &&
+             Value(
+        getVariables(*last_msg_),
+        UnorderedElementsAre(
+          var_name,
+          "topic_stats." + statistics_topic + ".publish_async_attempts",
+          "topic_stats." + statistics_topic + ".publish_async_failures",
+          "topic_stats." + statistics_topic + ".publish_buffer_full_errors",
+          "topic_stats." + statistics_topic + ".last_async_pub_duration"));
+    };
 
   last_msg_.reset();
-  ASSERT_TRUE(waitForMsg());
-  EXPECT_THAT(
-    getVariables(*last_msg_),
-    UnorderedElementsAre(
-      "var2",
-      "topic_stats." + statistics_topic + ".publish_async_attempts",
-      "topic_stats." + statistics_topic + ".publish_async_failures",
-      "topic_stats." + statistics_topic + ".publish_buffer_full_errors",
-      "topic_stats." + statistics_topic + ".last_async_pub_duration"));
+
+  /// After PUBLISH_ASYNC_STATISTICS() the actual publication of the statistics
+  /// by StatisticsRegistry::publisherThreadCycle() is indeterministic.
+  /// To prevent flakiness, we wait for a reasonable amount of time
+  /// that the promised statistics gets actually published
+  EXPECT_TRUE(
+    waitFor(std::bind(is_published, "var2"), timeout))
+    << "'var2' has not been published yet after " << timeout.count() << 's';
 }
 
 template<typename NodeT>
@@ -864,29 +902,49 @@ void PalStatisticsTestHelperClass<NodeT>::chaosTest3()
   // Tests the disabling of a variable and publication by the nonrt thread
   // before a publish_async has been performed
 
-  /// @note this test can be rather inconsistent due to the thread that publishes
-  /// the statistics could finish before the variable is unregistered, and then
-  /// the last_msg_ could have var1 instead of the last statistics published with var2
+  constexpr auto timeout = std::chrono::milliseconds{300};
   const std::string statistics_topic = std::string(node_->get_name()) + "/" +
     DEFAULT_STATISTICS_TOPIC;
+  const auto promised_publication = [&]() {
+      return PUBLISH_ASYNC_STATISTICS(node_, statistics_topic);
+    };
+
   RegistrationsRAII bookkeeping;
   auto var1id = REGISTER_VARIABLE(node_, statistics_topic, "var1", &var1_, nullptr);
-  PUBLISH_ASYNC_STATISTICS(node_, statistics_topic);
+
+  ASSERT_TRUE(waitFor(promised_publication, timeout))
+    << "Unable to publish 'var1' after " << timeout.count() << 's';
+
   REGISTER_VARIABLE(node_, statistics_topic, "var2", &var2_, &bookkeeping);
   getRegistry(node_, statistics_topic)->disable(var1id);
   rclcpp::sleep_for(std::chrono::milliseconds(200));
-  PUBLISH_ASYNC_STATISTICS(node_, statistics_topic);
+
+  ASSERT_TRUE(waitFor(promised_publication, timeout))
+    << "Unable to publish 'var2' after " << timeout.count() << 's';
+
+  const auto is_published = [&](const char * var_name) {
+      return last_msg_.get() &&
+             last_values_msg_.get() &&
+             last_names_msg_.get() &&
+             Value(
+        getVariables(*last_msg_),
+        UnorderedElementsAre(
+          var_name,
+          "topic_stats." + statistics_topic + ".publish_async_attempts",
+          "topic_stats." + statistics_topic + ".publish_async_failures",
+          "topic_stats." + statistics_topic + ".publish_buffer_full_errors",
+          "topic_stats." + statistics_topic + ".last_async_pub_duration"));
+    };
 
   last_msg_.reset();
-  ASSERT_TRUE(waitForMsg());
-  EXPECT_THAT(
-    getVariables(*last_msg_),
-    UnorderedElementsAre(
-      "var2",
-      "topic_stats." + statistics_topic + ".publish_async_attempts",
-      "topic_stats." + statistics_topic + ".publish_async_failures",
-      "topic_stats." + statistics_topic + ".publish_buffer_full_errors",
-      "topic_stats." + statistics_topic + ".last_async_pub_duration"));
+
+  /// After PUBLISH_ASYNC_STATISTICS() the actual publication of the statistics
+  /// by StatisticsRegistry::publisherThreadCycle() is indeterministic.
+  /// To prevent flakiness, we wait for a reasonable amount of time
+  /// that the promised statistics gets actually published
+  EXPECT_TRUE(
+    waitFor(std::bind(is_published, "var2"), timeout))
+    << "'var2' has not been published yet after " << timeout.count() << 's';
 }
 
 template<typename NodeT>
