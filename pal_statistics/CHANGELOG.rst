@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.2.1 (2023-11-14)
+------------------
 * Merge branch 'fix/flaky_chaos_test' into 'humble-devel'
   Fix flakiness in chaos tests
   See merge request qa/pal_statistics!34
