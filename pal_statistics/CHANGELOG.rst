@@ -2,6 +2,11 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add website tag
+* Contributors: Noel Jimenez
+
 2.2.1 (2023-11-14)
 ------------------
 * Merge branch 'fix/flaky_chaos_test' into 'humble-devel'
