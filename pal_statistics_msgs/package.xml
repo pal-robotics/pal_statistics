@@ -10,6 +10,8 @@
 
   <author email="jordan.palacios@pal-robotics.com">Jordan Palacios</author>
 
+  <url type="website">https://github.com/pal-robotics/pal_statistics</url>
+
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
 

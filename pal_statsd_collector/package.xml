@@ -10,6 +10,8 @@
 
   <author email="jordan.palacios@pal-robotics.com">Jordan Palacios</author>
 
+  <url type="website">https://github.com/pal-robotics/pal_statistics</url>
+
   <buildtool_depend>catkin</buildtool_depend>
 
   <exec_depend>pal_statistics_msgs</exec_depend>

@@ -9,6 +9,8 @@
 
   <license>MIT</license>
 
+  <url type="website">https://github.com/pal-robotics/pal_statistics</url>
+
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
   <depend>boost</depend>
