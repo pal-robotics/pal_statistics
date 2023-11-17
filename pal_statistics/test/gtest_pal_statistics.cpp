@@ -41,6 +41,7 @@
 
 using ::testing::Value;
 using ::testing::UnorderedElementsAre;
+using ::testing::DoubleEq;
 using std::placeholders::_1;
 using pal_statistics::StatisticsRegistry;
 using pal_statistics::RegistrationsRAII;
@@ -465,10 +466,16 @@ void PalStatisticsTestHelperClass<NodeT>::automaticRegistrationDestructionTest()
 template<typename NodeT>
 void PalStatisticsTestHelperClass<NodeT>::asyncPublisherTest()
 {
+  constexpr auto timeout = std::chrono::milliseconds{300};
   std::shared_ptr<StatisticsRegistry> registry =
     std::make_shared<StatisticsRegistry>(
     node_, std::string(
       node_->get_name()) + "/" + DEFAULT_STATISTICS_TOPIC);
+
+  const auto promised_publication = [&]() {
+      return registry->publishAsync();
+    };
+
   {
     RegistrationsRAII bookkeeping;
 
@@ -481,29 +488,49 @@ void PalStatisticsTestHelperClass<NodeT>::asyncPublisherTest()
     customRegister(*registry, "var1", &var1_, &bookkeeping);
     customRegister(*registry, "var2", &var2_, &bookkeeping);
 
-    registry->publishAsync();
-    ASSERT_TRUE(waitForMsg());
+    ASSERT_TRUE(waitFor(promised_publication, timeout))
+      << "Unable to publish 'var1' and 'var2' after " << timeout.count() << 's';
 
-    auto s = getVariableAndValues(*last_msg_);
-    EXPECT_DOUBLE_EQ(var1_, s["var1"]);
-    EXPECT_DOUBLE_EQ(var2_, s["var2"]);
+    const auto publication_of_var1_var2_stats = [&]() -> bool {
+        const auto is_msg_received = last_msg_.get() &&
+          last_values_msg_.get() &&
+          last_names_msg_.get();
+        auto msg_has_var1_var2 = false;
+
+        if (is_msg_received) {
+          auto s = getVariableAndValues(*last_msg_);
+          msg_has_var1_var2 =
+            Value(var1_, DoubleEq(s["var1"])) && Value(var2_, DoubleEq(s["var2"]));
+        }
+
+        return is_msg_received && msg_has_var1_var2;
+      };
+
+    EXPECT_TRUE(waitFor(publication_of_var1_var2_stats, timeout))
+      << "Unable to receive 'var1' and 'var2' stats after " << timeout.count() << 's';
 
     last_msg_.reset();
+
     ASSERT_FALSE(waitForMsg()) <<
       " Data shouldn't have been published because there were no calls to publishAsync";
 
     var1_ = 2.0;
     var2_ = 3.0;
-    registry->publishAsync();
+
+    ASSERT_TRUE(waitFor(promised_publication, timeout))
+      << "Unable to publish 'var1' and 'var2' after " << timeout.count() << 's';
+
     ASSERT_TRUE(waitForMsg());
 
-    s = getVariableAndValues(*last_msg_);
-    EXPECT_DOUBLE_EQ(var1_, s["var1"]);
-    EXPECT_DOUBLE_EQ(var2_, s["var2"]);
+    EXPECT_TRUE(waitFor(publication_of_var1_var2_stats, timeout))
+      << "Unable to receive 'var1' and 'var2' stats after " << timeout.count() << 's';
 
     last_msg_.reset();
   }
-  registry->publishAsync();
+
+  ASSERT_TRUE(waitFor(promised_publication, timeout))
+    << "Unable to publish 'var1' and 'var2' after " << timeout.count() << 's';
+
   ASSERT_TRUE(waitForMsg());
   // Number of internal statistics
   EXPECT_EQ(4u, last_msg_->statistics.size());
