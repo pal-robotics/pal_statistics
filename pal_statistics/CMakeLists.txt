@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(pal_statistics)
 
+set(CMAKE_CXX_STANDARD 17)
+
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
