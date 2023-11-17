@@ -681,20 +681,6 @@ void unregisterThread(
   }
 }
 
-void publish(std::shared_ptr<StatisticsRegistry> registry, size_t n_variables)
-{
-  for (size_t i = n_variables; i > 0; --i) {
-    registry->publish();
-  }
-}
-
-void publishAsync(std::shared_ptr<StatisticsRegistry> registry, size_t n_variables)
-{
-  for (size_t i = n_variables; i > 0; --i) {
-    registry->publishAsync();
-  }
-}
-
 template<typename NodeT>
 void PalStatisticsTestHelperClass<NodeT>::stressAsyncTest()
 {
