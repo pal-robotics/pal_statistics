@@ -118,7 +118,7 @@ public:
   bool waitForMsg(const std::chrono::milliseconds & timeout = std::chrono::milliseconds{300})
   {
     rclcpp::Time end = node_->get_clock()->now() + timeout;
-    while (node_->get_clock()->now() < end) {
+    while (rclcpp::ok() && node_->get_clock()->now() < end) {
       executor_->spin_some();
       rclcpp::sleep_for(std::chrono::nanoseconds(100));
       if (last_msg_.get() && last_values_msg_.get() && last_names_msg_.get()) {
@@ -135,7 +135,7 @@ public:
   {
     const auto end = node_->get_clock()->now() + timeout;
 
-    while (node_->get_clock()->now() < end) {
+    while (rclcpp::ok() && node_->get_clock()->now() < end) {
       if (pred()) {
         return true;
       }
