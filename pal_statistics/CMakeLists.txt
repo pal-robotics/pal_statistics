@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(pal_statistics)
 
-set(CMAKE_CXX_STANDARD 17)
-
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
@@ -22,6 +20,7 @@ if(BUILD_TESTING)
 
   ament_add_gmock(pal_statistics-test test/gtest_pal_statistics.cpp
     TIMEOUT 180)
+
   target_include_directories(
     pal_statistics-test PRIVATE src) # dirty hack for a forward declaration
   target_link_libraries(pal_statistics-test ${PROJECT_NAME})
