@@ -492,7 +492,7 @@ void PalStatisticsTestHelperClass<NodeT>::asyncPublisherTest()
     customRegister(*registry, "var2", &var2_, &bookkeeping);
 
     ASSERT_TRUE(waitFor(promised_publication, timeout))
-      << "Unable to publish 'var1' and 'var2' after " << timeout.count() << 's';
+      << "Unable to publish 'var1' and 'var2' after " << timeout.count() << "ms";
 
     const auto publication_of_var1_var2_stats = [&]() -> bool {
         const auto is_msg_received = last_msg_.get() &&
@@ -510,7 +510,7 @@ void PalStatisticsTestHelperClass<NodeT>::asyncPublisherTest()
       };
 
     EXPECT_TRUE(waitFor(publication_of_var1_var2_stats, timeout))
-      << "Unable to receive 'var1' and 'var2' stats after " << timeout.count() << 's';
+      << "Unable to receive 'var1' and 'var2' stats after " << timeout.count() << "ms";
 
     last_msg_.reset();
 
@@ -521,18 +521,18 @@ void PalStatisticsTestHelperClass<NodeT>::asyncPublisherTest()
     var2_ = 3.0;
 
     ASSERT_TRUE(waitFor(promised_publication, timeout))
-      << "Unable to publish 'var1' and 'var2' after " << timeout.count() << 's';
+      << "Unable to publish 'var1' and 'var2' after " << timeout.count() << "ms";
 
     ASSERT_TRUE(waitForMsg());
 
     EXPECT_TRUE(waitFor(publication_of_var1_var2_stats, timeout))
-      << "Unable to receive 'var1' and 'var2' stats after " << timeout.count() << 's';
+      << "Unable to receive 'var1' and 'var2' stats after " << timeout.count() << "ms";
 
     last_msg_.reset();
   }
 
   ASSERT_TRUE(waitFor(promised_publication, timeout))
-    << "Unable to publish 'var1' and 'var2' after " << timeout.count() << 's';
+    << "Unable to publish 'var1' and 'var2' after " << timeout.count() << "ms";
 
   ASSERT_TRUE(waitForMsg());
   // Number of internal statistics
@@ -575,7 +575,7 @@ void PalStatisticsTestHelperClass<NodeT>::macroTest()
       rclcpp::sleep_for(std::chrono::milliseconds(5));
     }
     ASSERT_TRUE(waitFor(promised_publication, timeout))
-      << "Unable to publish stats variables after " << timeout.count() << 's';
+      << "Unable to publish stats variables after " << timeout.count() << "ms";
 
     EXPECT_TRUE(
       waitFor(
@@ -588,7 +588,7 @@ void PalStatisticsTestHelperClass<NodeT>::macroTest()
   }
 
   ASSERT_TRUE(waitFor(promised_publication, timeout))
-    << "Unable to publish stats variables after " << timeout.count() << 's';
+    << "Unable to publish stats variables after " << timeout.count() << "ms";
 
   EXPECT_TRUE(
     waitFor(
@@ -602,7 +602,7 @@ void PalStatisticsTestHelperClass<NodeT>::macroTest()
   var1_ = 123.456;
 
   ASSERT_TRUE(waitFor(promised_publication, timeout))
-    << "Unable to publish stats variables after " << timeout.count() << 's';
+    << "Unable to publish stats variables after " << timeout.count() << "ms";
 
   EXPECT_TRUE(
     waitFor(
@@ -895,14 +895,14 @@ void PalStatisticsTestHelperClass<NodeT>::chaosTest2()
   REGISTER_VARIABLE(node_, statistics_topic, "var1", &var1_, nullptr);
 
   ASSERT_TRUE(waitFor(promised_publication, timeout))
-    << "Unable to publish 'var1' after " << timeout.count() << 's';
+    << "Unable to publish 'var1' after " << timeout.count() << "ms";
 
   REGISTER_VARIABLE(node_, statistics_topic, "var2", &var2_, &bookkeeping);
   UNREGISTER_VARIABLE(node_, statistics_topic, "var1", nullptr);
   rclcpp::sleep_for(std::chrono::milliseconds(200));
 
   ASSERT_TRUE(waitFor(promised_publication, timeout))
-    << "Unable to publish 'var2' after " << timeout.count() << 's';
+    << "Unable to publish 'var2' after " << timeout.count() << "ms";
 
   const auto is_published = [&](const char * var_name) {
       return last_msg_.get() &&
@@ -926,7 +926,7 @@ void PalStatisticsTestHelperClass<NodeT>::chaosTest2()
   /// that the promised statistics gets actually published
   EXPECT_TRUE(
     waitFor(std::bind(is_published, "var2"), timeout))
-    << "'var2' has not been published yet after " << timeout.count() << 's';
+    << "'var2' has not been published yet after " << timeout.count() << "ms";
 }
 
 template<typename NodeT>
@@ -934,7 +934,6 @@ void PalStatisticsTestHelperClass<NodeT>::chaosTest3()
 {
   // Tests the disabling of a variable and publication by the nonrt thread
   // before a publish_async has been performed
-
   constexpr auto timeout = std::chrono::milliseconds{300};
   const std::string statistics_topic = std::string(node_->get_name()) + "/" +
     DEFAULT_STATISTICS_TOPIC;
@@ -946,14 +945,14 @@ void PalStatisticsTestHelperClass<NodeT>::chaosTest3()
   auto var1id = REGISTER_VARIABLE(node_, statistics_topic, "var1", &var1_, nullptr);
 
   ASSERT_TRUE(waitFor(promised_publication, timeout))
-    << "Unable to publish 'var1' after " << timeout.count() << 's';
+    << "Unable to publish 'var1' after " << timeout.count() << "ms";
 
   REGISTER_VARIABLE(node_, statistics_topic, "var2", &var2_, &bookkeeping);
   getRegistry(node_, statistics_topic)->disable(var1id);
   rclcpp::sleep_for(std::chrono::milliseconds(200));
 
   ASSERT_TRUE(waitFor(promised_publication, timeout))
-    << "Unable to publish 'var2' after " << timeout.count() << 's';
+    << "Unable to publish 'var2' after " << timeout.count() << "ms";
 
   const auto is_published = [&](const char * var_name) {
       return last_msg_.get() &&
@@ -977,7 +976,7 @@ void PalStatisticsTestHelperClass<NodeT>::chaosTest3()
   /// that the promised statistics gets actually published
   EXPECT_TRUE(
     waitFor(std::bind(is_published, "var2"), timeout))
-    << "'var2' has not been published yet after " << timeout.count() << 's';
+    << "'var2' has not been published yet after " << timeout.count() << "ms";
 }
 
 template<typename NodeT>
