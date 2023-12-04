@@ -67,7 +67,96 @@ std::map<std::string, double> getVariableAndValues(const pal_statistics_msgs::ms
   }
   return m;
 }
+
+template<typename M, typename W>
+class WaitPredicateFormatterFromMatcher
+{
+public:
+  explicit WaitPredicateFormatterFromMatcher(
+    M m,
+    W wait_func,
+    std::chrono::milliseconds timeout)
+
+  : matcher_(std::move(m))
+    , wait_func_(std::move(wait_func))
+    , timeout_(timeout)
+  {}
+
+  // This template () operator allows a WaitPredicateFormatterFromMatcher
+  // object to act as a predicate-formatter suitable for using with
+  // Google Test's EXPECT_PRED_FORMAT1() macro.
+  template<typename F>
+  ::testing::AssertionResult operator()(const char * value_text, const F & func_to_test) const
+  {
+    using ::testing::AssertionResult;
+    using ::testing::SafeMatcherCast;
+    using ::testing::Matcher;
+    using ::testing::AssertionSuccess;
+    using ::testing::AssertionFailure;
+    using ::testing::StringMatchResultListener;
+    using T = std::invoke_result_t<F>;
+    // inspired by googletest's PredicateFormatterFromMatcher
+    const Matcher<const T &> matcher = SafeMatcherCast<const T &>(matcher_);
+    const auto end = std::chrono::steady_clock::now() + timeout_;
+
+    while (rclcpp::ok()) {
+      T && x = func_to_test();
+
+      if (matcher.Matches(x)) {
+        return AssertionSuccess();
+      }
+
+      wait_func_();
+
+      const auto now = std::chrono::steady_clock::now();
+      if (now > end) {
+        ::std::stringstream ss;
+        ss << "After " << timeout_.count() << " ms\n"
+           << "Value of: " << value_text << "\n"
+           << "Expected: ";
+        matcher.DescribeTo(&ss);
+
+        // Rerun the matcher to "PrintAndExain" the failure.
+        StringMatchResultListener listener;
+        if (MatchPrintAndExplain(x, matcher, &listener)) {
+          ss << "\n  The matcher failed on the initial attempt; but passed when "
+            "rerun to generate the explanation.";
+        }
+        ss << "\n  Actual: " << listener.str();
+        return AssertionFailure() << ss.str();
+      }
+    }
+    return AssertionSuccess();
+  }
+
+private:
+  const M matcher_;
+  W wait_func_;
+  const std::chrono::milliseconds timeout_;
+  WaitPredicateFormatterFromMatcher & operator=(WaitPredicateFormatterFromMatcher const &) = delete;
+};
+
+template<typename M>
+inline auto
+MakeWaitPredicateFormatterFromMatcher(
+  M matcher, rclcpp::Executor::SharedPtr executor,
+  std::chrono::milliseconds timeout = std::chrono::milliseconds{300})
+{
+  const auto wait_func = [executor] {
+      executor->spin_some();
+      rclcpp::sleep_for(std::chrono::nanoseconds{100});
+    };
+
+  return WaitPredicateFormatterFromMatcher(std::move(matcher), std::move(wait_func), timeout);
+}
+
 }  // namespace
+
+#define ASSERT_EVENTUALLY_THAT(func_to_test, matcher, executor, timeout) ASSERT_PRED_FORMAT1( \
+    MakeWaitPredicateFormatterFromMatcher(matcher, executor, timeout), func_to_test)
+
+#define EXPECT_EVENTUALLY_THAT(func_to_test, matcher, executor, timeout) EXPECT_PRED_FORMAT1( \
+    MakeWaitPredicateFormatterFromMatcher(matcher, executor, timeout), func_to_test)
 
 template<typename NodeT>
 class PalStatisticsTestHelperClass
