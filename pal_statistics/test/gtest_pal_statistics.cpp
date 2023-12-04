@@ -320,15 +320,15 @@ void PalStatisticsTestHelperClass<NodeT>::checkValuesTest()
     node_->get_clock()->now().seconds(),
     rclcpp::Time(msg.header.stamp).seconds(), 0.001);
   auto s = getVariableAndValues(msg);
-  EXPECT_DOUBLE_EQ(var1_, s["var1"]);
-  EXPECT_DOUBLE_EQ(var2_, s["var2"]);
+  EXPECT_THAT(s, Contains(Pair("var1", DoubleEq(var1_))));
+  EXPECT_THAT(s, Contains(Pair("var2", DoubleEq(var2_))));
 
   var1_ = 100.0;
   var2_ = -100.0;
   msg = registry->createMsg();
   s = getVariableAndValues(msg);
-  EXPECT_DOUBLE_EQ(var1_, s["var1"]);
-  EXPECT_DOUBLE_EQ(var2_, s["var2"]);
+  EXPECT_THAT(s, Contains(Pair("var1", DoubleEq(var1_))));
+  EXPECT_THAT(s, Contains(Pair("var2", DoubleEq(var2_))));
 }
 
 template<typename NodeT>
@@ -701,7 +701,7 @@ void PalStatisticsTestHelperClass<NodeT>::macroTest()
       "topic_stats." + statistics_topic + ".last_async_pub_duration"),
     executor_, timeout);
 
-  EXPECT_DOUBLE_EQ(var1_, getVariableAndValues(*last_msg_)["macro_var1"]);
+  EXPECT_THAT(getVariableAndValues(*last_msg_), Contains(Pair("macro_var1", DoubleEq(var1_))));
   UNREGISTER_VARIABLE(node_, statistics_topic, "macro_var1", NULL);
   UNREGISTER_VARIABLE(node_, statistics_topic, "macro_var2_bis", NULL);
 }
