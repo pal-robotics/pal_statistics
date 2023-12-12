@@ -20,6 +20,7 @@ if(BUILD_TESTING)
 
   ament_add_gmock(pal_statistics-test test/gtest_pal_statistics.cpp
     TIMEOUT 180)
+
   target_include_directories(
     pal_statistics-test PRIVATE src) # dirty hack for a forward declaration
   target_link_libraries(pal_statistics-test ${PROJECT_NAME})
