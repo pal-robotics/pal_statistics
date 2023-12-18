@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.2.3 (2023-12-18)
+------------------
 * Merge branch 'fix/flaky_macro_asyncPublisher' into 'humble-devel'
   Fix/flaky macro async publisher
   See merge request qa/pal_statistics!36
