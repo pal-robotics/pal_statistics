@@ -2,6 +2,41 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'fix/flaky_macro_asyncPublisher' into 'humble-devel'
+  Fix/flaky macro async publisher
+  See merge request qa/pal_statistics!36
+* Improve test failure messages
+* Make gtest failure messages more informative in aync tests
+  For instance from:
+  /home/user/exchange/roses/alum/pal_statistics_ws/src/pal_statistics/pal_statistics/test/gtest_pal_statistics.cpp:580: Failure
+  Value of: waitFor( std::bind( stats_published_for, "macro_var1", "clp-failure", "macro_var1_bk", "macro_var2", "&var2\_"))
+  Actual: false
+  Expected: true
+  to:
+  /home/user/exchange/roses/alum/pal_statistics_ws/src/pal_statistics/pal_statistics/test/gtest_pal_statistics.cpp:673: Failure
+  After 300 msValue of: get_variables
+  Expected: has 9 elements and there exists some permutation of elements such that:
+  - element #0 is equal to "macro_var1", and
+  - element #1 is equal to "clp-failure", and
+  - element #2 is equal to "macro_var1_bk", and
+  - element #3 is equal to "macro_var2", and
+  - element #4 is equal to "&var2\_", and
+  - element #5 is equal to "topic_stats.pal_statistics_node_test/pal_statistics.publish_async_attempts", and
+  - element #6 is equal to "topic_stats.pal_statistics_node_test/pal_statistics.publish_async_failures", and
+  - element #7 is equal to "topic_stats.pal_statistics_node_test/pal_statistics.publish_buffer_full_errors", and
+  - element #8 is equal to "topic_stats.pal_statistics_node_test/pal_statistics.last_async_pub_duration"
+  Actual: { "topic_stats.pal_statistics_node_test/pal_statistics.publish_async_attempts", "topic_stats.pal_statistics_node_test/pal_statistics.publish_async_failures", "topic_stats.pal_statistics_node_test/al_statistics.publish_buffer_full_errors", "topic_stats.pal_statistics_node_test/pal_statistics.last_async_pub_duration", "macro_var1", "macro_var1_bk", "macro_var2", "&var2\_" }, which has 8 elements
+* Create helpers for better failure messages in async tests
+* Fix time units in messages
+* Fix c++17 already enforced
+* Make tests exit when requested
+* Clean up unused functions
+* macroTest: prevent some flakiness
+* asyncPublisherTest: prevent some flakiness
+* Contributors: Carles Lopez Parera, Jordan Palacios
+
 2.2.2 (2023-11-14)
 ------------------
 * Add website tag
