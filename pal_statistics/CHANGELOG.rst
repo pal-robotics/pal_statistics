@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.2 (2024-05-16)
+------------------
 * do not rely on extension for std::vector<bool>
   The standard does not define std::swap() for the bit proxy objects,
   but defines a static method instead. This broke with clang++ 14.0.6 over
