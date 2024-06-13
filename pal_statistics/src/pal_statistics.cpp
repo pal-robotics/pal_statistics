@@ -19,6 +19,7 @@ StatisticsRegistry::StatisticsRegistry(const std::string &topic)
   publish_async_attempts_ = 0;
   publish_async_failures_ = 0;
   last_async_pub_duration_ = 0.0;
+  interrupt_thread_ = false;
   is_data_ready_ = false;
 
   customRegister(*this, "topic_stats." + topic + ".publish_async_attempts", &publish_async_attempts_, &internal_stats_raii_);
@@ -33,7 +34,7 @@ StatisticsRegistry::~StatisticsRegistry()
 
   if (publisher_thread_)
   {
-    publisher_thread_->interrupt();
+    interrupt_thread_ = true;
     publisher_thread_->join();
   }
   ROS_INFO_STREAM("Async messages lost " << registration_list_.overwritten_data_count_);
@@ -223,9 +224,9 @@ void StatisticsRegistry::publisherThreadCycle()
     ros::WallDuration(5e-4).sleep();
 
 
-  while (ros::ok() && !publisher_thread_->interruption_requested())
+  while (ros::ok() && !interrupt_thread_)
   {
-    while (!is_data_ready_ && !publisher_thread_->interruption_requested())
+    while (!is_data_ready_ && !interrupt_thread_)
       ros::WallDuration(5e-4).sleep();
 
     boost::unique_lock<boost::mutex> data_lock(data_mutex_);
