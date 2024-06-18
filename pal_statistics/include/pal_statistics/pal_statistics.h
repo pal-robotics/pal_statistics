@@ -212,6 +212,7 @@ private:
   ros::Publisher pub_values_;
 
   std::atomic<bool> is_data_ready_;
+  std::atomic<bool> interrupt_thread_;
   boost::shared_ptr<boost::thread> publisher_thread_;
 
   struct GeneratedStatistics
