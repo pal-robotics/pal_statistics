@@ -31,7 +31,7 @@
 
 from pal_statistics_msgs.msg import Statistic, Statistics, StatisticsNames, StatisticsValues
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSDurabilityPolicy
+from rclpy.qos import QoSDurabilityPolicy, QoSProfile
 
 
 class Registration:

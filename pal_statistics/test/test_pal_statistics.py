@@ -34,11 +34,11 @@ import unittest
 from pal_statistics.statistics_registry import StatisticsRegistry
 from pal_statistics_msgs.msg import Statistics, StatisticsNames, StatisticsValues
 import rclpy
-import rclpy.exceptions
-from rclpy.node import Node
 from rclpy.duration import Duration
+import rclpy.exceptions
 from rclpy.logging import LoggingSeverity, set_logger_level
-from rclpy.qos import QoSProfile, QoSDurabilityPolicy
+from rclpy.node import Node
+from rclpy.qos import QoSDurabilityPolicy, QoSProfile
 
 
 DEFAULT_TOPIC = 'pal_statistics'
@@ -119,35 +119,35 @@ class TestPalStatistics(unittest.TestCase):
         registry.registerFunction('var2', (lambda: var2))
         self.evaluate_msgs({'var1': 1.0, 'var2': 2.0}, registry)
 
-        registry.unregister("var1")
-        self.evaluate_msgs({"var2": 2.0}, registry)
+        registry.unregister('var1')
+        self.evaluate_msgs({'var2': 2.0}, registry)
 
     def test_list_data(self):
         list_data = [0.0, 10.0, 20.0, 30.0]
         registry = StatisticsRegistry(DEFAULT_TOPIC, self.node)
         for i in range(0, len(list_data)):
-            registry.registerFunction("var_{}".format(i), (lambda index=i: list_data[index]))
+            registry.registerFunction('var_{}'.format(i), (lambda index=i: list_data[index]))
 
-        self.evaluate_msgs({"var_0": 0.0, "var_1": 10.0, "var_2": 20.0, "var_3": 30.0}, registry)
+        self.evaluate_msgs({'var_0': 0.0, 'var_1': 10.0, 'var_2': 20.0, 'var_3': 30.0}, registry)
 
         # Testing by modifying the data in the list
         list_data[2] = 152.2
         list_data[3] = 1.23
-        self.evaluate_msgs({"var_0": 0.0, "var_1": 10.0, "var_2": 152.2, "var_3": 1.23}, registry)
+        self.evaluate_msgs({'var_0': 0.0, 'var_1': 10.0, 'var_2': 152.2, 'var_3': 1.23}, registry)
 
     def test_map_data(self):
-        map_data = {"x": 20.0, "y": 124.2, "z": 20.0}
+        map_data = {'x': 20.0, 'y': 124.2, 'z': 20.0}
         registry = StatisticsRegistry(DEFAULT_TOPIC, self.node)
         for key in map_data:
-            registry.registerFunction("var_{}".format(
+            registry.registerFunction('var_{}'.format(
                 key), (lambda map_key=key: map_data[map_key]))
 
-        self.evaluate_msgs({"var_x": 20.0, "var_y": 124.2, "var_z": 20}, registry)
+        self.evaluate_msgs({'var_x': 20.0, 'var_y': 124.2, 'var_z': 20}, registry)
 
         # Testing by modifying the data in the dictionary
-        map_data["x"] = 25.7
-        map_data["z"] += 7
-        self.evaluate_msgs({"var_x": 25.7, "var_y": 124.2, "var_z": 27}, registry)
+        map_data['x'] = 25.7
+        map_data['z'] += 7
+        self.evaluate_msgs({'var_x': 25.7, 'var_y': 124.2, 'var_z': 27}, registry)
 
     def test_registration_list(self):
         var1 = 0.0
