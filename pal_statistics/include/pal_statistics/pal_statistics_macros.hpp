@@ -91,6 +91,10 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
     NODE, \
     TOPIC)->startPublishThread();
 
+#define STOP_PUBLISHER_THREAD(NODE, TOPIC) pal_statistics::getRegistry( \
+    NODE, \
+    TOPIC)->stopPublisherThread();
+
 #define PUBLISH_CUSTOM_STATISTIC(NODE, TOPIC, ID, VALUE) pal_statistics::getRegistry( \
     NODE, \
     TOPIC)->publishCustomStatistic(ID, VALUE)
