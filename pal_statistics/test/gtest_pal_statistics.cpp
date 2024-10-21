@@ -239,6 +239,7 @@ public:
   void chaosTest3();
   void splitMsgTest();
   void callStartPublishThreadMultipleTimes();
+  void startStopPublishThreadTest();
 
 protected:
   double var1_;
@@ -1131,6 +1132,19 @@ void PalStatisticsTestHelperClass<NodeT>::callStartPublishThreadMultipleTimes()
   }
 }
 
+template<typename NodeT>
+void PalStatisticsTestHelperClass<NodeT>::startStopPublishThreadTest()
+{
+  const std::string statistics_topic = std::string(node_->get_name()) + "/" +
+    DEFAULT_STATISTICS_TOPIC;
+  START_PUBLISH_THREAD(node_, statistics_topic);
+  REGISTER_VARIABLE(node_, statistics_topic, "macro_var1", &var1_, NULL);
+  waitForMsg();
+
+  STOP_PUBLISHER_THREAD(node_, statistics_topic);
+  EXPECT_FALSE(last_msg_.get());
+}
+
 TEST_F(PalStatisticsTest, stressAsync)
 {
   node_test_->stressAsyncTest();
@@ -1183,4 +1197,10 @@ TEST_F(PalStatisticsTest, callStartPublishThreadMultipleTimes)
 {
   node_test_->callStartPublishThreadMultipleTimes();
   lifecycle_test_->callStartPublishThreadMultipleTimes();
+}
+
+TEST_F(PalStatisticsTest, startStopPublishThreadTest)
+{
+  node_test_->startStopPublishThreadTest();
+  lifecycle_test_->startStopPublishThreadTest();
 }
