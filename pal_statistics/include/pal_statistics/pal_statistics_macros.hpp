@@ -45,7 +45,6 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
   rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
   const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
   const rclcpp::node_interfaces::NodeClockInterface::SharedPtr & clock_interface,
-  const std::string & node_namespace,
   const std::string & topic);
 
 std::shared_ptr<StatisticsRegistry> getRegistry(

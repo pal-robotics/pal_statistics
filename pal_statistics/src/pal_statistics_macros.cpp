@@ -42,7 +42,6 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
   rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
   const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
   const rclcpp::node_interfaces::NodeClockInterface::SharedPtr & clock_interface,
-  const std::string & node_namespace,
   const std::string & topic)
 {
   static RegistryMap registries;
@@ -55,7 +54,7 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
       std::make_shared<StatisticsRegistry>(
       parameters_interface, topics_interface,
       logging_interface, clock_interface, topic);
-    registries[node_namespace + topic] = ptr;
+    registries[key] = ptr;
     return ptr;
   } else {
     return cit->second;
@@ -71,7 +70,6 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
     node->get_node_topics_interface(),
     node->get_node_logging_interface(),
     node->get_node_clock_interface(),
-    node->get_effective_namespace(),
     topic);
 }
 
@@ -84,7 +82,6 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
     node->get_node_topics_interface(),
     node->get_node_logging_interface(),
     node->get_node_clock_interface(),
-    node->get_namespace(),
     topic);
 }
 
