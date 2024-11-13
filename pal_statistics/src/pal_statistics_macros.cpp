@@ -47,7 +47,8 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 {
   static RegistryMap registries;
 
-  RegistryMap::const_iterator cit = registries.find(node_namespace + topic);
+  const auto key = topics_interface->resolve_topic_name(topic);
+  RegistryMap::const_iterator cit = registries.find(key);
 
   if (cit == registries.end()) {
     std::shared_ptr<StatisticsRegistry> ptr =
