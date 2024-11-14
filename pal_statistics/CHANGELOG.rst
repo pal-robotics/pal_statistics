@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.4.0 (2024-11-14)
+------------------
 * Create stop thread test
 * Add stop thread function
 * Linter: Import order and single quotes
