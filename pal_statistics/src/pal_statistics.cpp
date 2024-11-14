@@ -214,6 +214,11 @@ void StatisticsRegistry::startPublishThread()
     std::make_shared<std::thread>(&StatisticsRegistry::publisherThreadCycle, this);
 }
 
+void StatisticsRegistry::stopPublisherThread()
+{
+  joinPublisherThread();
+}
+
 IdType StatisticsRegistry::registerInternal(
   const std::string & name, VariableHolder && variable,
   RegistrationsRAII * bookkeeping, bool enabled)

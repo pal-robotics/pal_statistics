@@ -130,6 +130,11 @@ public:
   void startPublishThread();
 
   /**
+   * @brief stopPublisherThread stops and eliminate the publisherThread.
+   */
+  void stopPublisherThread();
+
+  /**
    * @brief createMsg creates a Statistics message from the registered variables, useful
    * for debugging
    * @return
