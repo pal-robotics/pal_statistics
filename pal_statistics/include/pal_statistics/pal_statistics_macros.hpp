@@ -61,6 +61,32 @@ std::shared_ptr<StatisticsRegistry> createRegistry(
   const std::string & topic, const std::string & key);
 
 /**
+ * @brief Creates the registry for the given node and topic and stores it in the global registry
+ * map using the key, if it doesn't exist. If it alread exists, it returns the existing one.
+ * @param node - The node to create the registry
+ * @param topic - The topic to publish the statistics
+ * @param key - The key to store the registry in the global registry map
+ * @return std::shared_ptr<StatisticsRegistry> - The registry stored in the global registry map
+ * using the key
+ */
+std::shared_ptr<StatisticsRegistry> initializeRegistry(
+  const std::shared_ptr<rclcpp::Node> & node,
+  const std::string & topic, const std::string & custom_key);
+
+/**
+ * @brief Creates the registry for the given node and topic and stores it in the global registry
+ * map using the key, if it doesn't exist. If it alread exists, it returns the existing one.
+ * @param node - The node to create the registry
+ * @param topic - The topic to publish the statistics
+ * @param key - The key to store the registry in the global registry map
+ * @return std::shared_ptr<StatisticsRegistry> - The registry stored in the global registry map
+ * using the key
+ */
+std::shared_ptr<StatisticsRegistry> initializeRegistry(
+  const std::shared_ptr<rclcpp_lifecycle::LifecycleNode> & node,
+  const std::string & topic, const std::string & custom_key);
+
+/**
  * @brief Returns the registry stored in the global registry map using the key.
  * If it doesn't exist, it returns a nullptr.
  * @param key - The key to check the registry in the global registry map
@@ -87,6 +113,14 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
   const std::string & topic);
 }  // namespace pal_statistics
 
+
+#define INITIALIZE_REGISTRY(NODE, TOPIC) \
+  pal_statistics::initializeRegistry( \
+    NODE, TOPIC, \
+    NODE->get_node_topics_interface()->resolve_topic_name(TOPIC))
+
+#define INITIALIZE_REGISTRY(NODE, TOPIC, CUSTOM_KEY) \
+  pal_statistics::initializeRegistry(NODE, TOPIC, CUSTOM_KEY)
 
 // Trick to use macros with optional argument, in practice there are three version of the macro:
 // REGISTER_VARIABLE(NODE, TOPIC, ID, VARIABLE, BOOKKEEPING) -> full specification of arguments
