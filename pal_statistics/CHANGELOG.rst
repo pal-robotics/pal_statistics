@@ -2,6 +2,13 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Create stop thread test
+* Add stop thread function
+* Linter: Import order and single quotes
+* Contributors: David ter Kuile, Isaac Acevedo
+
 2.3.1 (2024-08-29)
 ------------------
 * Ensure the value is converted to float before creating the msg
