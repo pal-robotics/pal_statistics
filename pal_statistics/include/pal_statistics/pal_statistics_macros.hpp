@@ -40,11 +40,42 @@ constexpr char DEFAULT_STATISTICS_TOPIC[] = "pal_statistics";
 
 namespace pal_statistics
 {
+/**
+ * @brief Creates the registry for the given node interfaces and topic and stores it in the
+ * global registry map using the key, if it doesn't exist. If it alread exists, it returns the
+ * existing one.
+ *
+ * @param parameters_interface - The parameters interface of the node
+ * @param topics_interface - The topics interface of the node
+ * @param logging_interface - The logging interface of the node
+ * @param clock_interface - The clock interface of the node
+ * @param topic - The topic to publish the statistics
+ * @param key - The key to store the registry in the global registry map
+ *
+*/
+std::shared_ptr<StatisticsRegistry> createRegistry(
+  rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
+  rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
+  const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
+  const rclcpp::node_interfaces::NodeClockInterface::SharedPtr & clock_interface,
+  const std::string & topic, const std::string & key);
+
+/**
+ * @brief Returns the registry stored in the global registry map using the key.
+ * If it doesn't exist, it returns a nullptr.
+ * @param key - The key to check the registry in the global registry map
+ * @return std::shared_ptr<StatisticsRegistry> - The registry stored in the global registry map
+ * using the key
+ * @return nullptr - If the registry doesn't exist
+ */
+std::shared_ptr<StatisticsRegistry> getRegistry(const std::string & key);
+
 std::shared_ptr<StatisticsRegistry> getRegistry(
   rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
   rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
   const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
   const rclcpp::node_interfaces::NodeClockInterface::SharedPtr & clock_interface,
+  const std::string & node_namespace,
   const std::string & topic);
 
 std::shared_ptr<StatisticsRegistry> getRegistry(

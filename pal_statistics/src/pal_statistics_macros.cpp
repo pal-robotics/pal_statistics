@@ -37,16 +37,20 @@ namespace pal_statistics
 {
 typedef std::map<std::string, std::shared_ptr<StatisticsRegistry>> RegistryMap;
 
-std::shared_ptr<StatisticsRegistry> getRegistry(
+RegistryMap & getRegistryMap()
+{
+  static RegistryMap registries;
+  return registries;
+}
+
+std::shared_ptr<StatisticsRegistry> createRegistry(
   rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
   rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
   const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
   const rclcpp::node_interfaces::NodeClockInterface::SharedPtr & clock_interface,
-  const std::string & topic)
+  const std::string & topic, const std::string & key)
 {
-  static RegistryMap registries;
-
-  const auto key = topics_interface->resolve_topic_name(topic);
+  auto & registries = getRegistryMap();
   RegistryMap::const_iterator cit = registries.find(key);
 
   if (cit == registries.end()) {
@@ -54,11 +58,36 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
       std::make_shared<StatisticsRegistry>(
       parameters_interface, topics_interface,
       logging_interface, clock_interface, topic);
-    registries[key] = ptr;
+    registries.insert(std::make_pair(key, ptr));
     return ptr;
   } else {
     return cit->second;
   }
+}
+
+std::shared_ptr<StatisticsRegistry> getRegistry(const std::string & key)
+{
+  const auto & registries = getRegistryMap();
+  RegistryMap::const_iterator cit = registries.find(key);
+
+  if (cit == registries.end()) {
+    return nullptr;
+  } else {
+    return cit->second;
+  }
+}
+
+std::shared_ptr<StatisticsRegistry> getRegistry(
+  rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
+  rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
+  const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
+  const rclcpp::node_interfaces::NodeClockInterface::SharedPtr & clock_interface,
+  const std::string & node_namespace,
+  const std::string & topic)
+{
+  return createRegistry(
+    parameters_interface, topics_interface, logging_interface, clock_interface,
+    topic, node_namespace + topic);
 }
 
 std::shared_ptr<StatisticsRegistry> getRegistry(
@@ -70,6 +99,7 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
     node->get_node_topics_interface(),
     node->get_node_logging_interface(),
     node->get_node_clock_interface(),
+    node->get_effective_namespace(),
     topic);
 }
 
@@ -82,6 +112,7 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
     node->get_node_topics_interface(),
     node->get_node_logging_interface(),
     node->get_node_clock_interface(),
+    node->get_namespace(),
     topic);
 }
 
