@@ -114,13 +114,21 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 }  // namespace pal_statistics
 
 
-#define INITIALIZE_REGISTRY(NODE, TOPIC) \
+#define INITIALIZE_REGISTRY_2_ARGS(NODE, TOPIC) \
   pal_statistics::getOrcreateRegistry( \
     NODE, TOPIC, \
     NODE->get_node_topics_interface()->resolve_topic_name(TOPIC))
 
-#define INITIALIZE_REGISTRY(NODE, TOPIC, CUSTOM_KEY) \
+#define INITIALIZE_REGISTRY_3_ARGS(NODE, TOPIC, CUSTOM_KEY) \
   pal_statistics::getOrcreateRegistry(NODE, TOPIC, CUSTOM_KEY)
+
+#define GET_4TH_ARG(arg1, arg2, arg3, arg4, ...) arg4
+#define INITIALIZE_MACRO_CHOOSER(...) \
+  GET_4TH_ARG( \
+    __VA_ARGS__, INITIALIZE_REGISTRY_2_ARGS, \
+    INITIALIZE_REGISTRY_3_ARGS)
+
+#define INITIALIZE_REGISTRY(...) INITIALIZE_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 // Trick to use macros with optional argument, in practice there are three version of the macro:
 // REGISTER_VARIABLE(NODE, TOPIC, ID, VARIABLE, BOOKKEEPING) -> full specification of arguments
