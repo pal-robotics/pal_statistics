@@ -43,7 +43,7 @@ RegistryMap & getRegistryMap()
   return registries;
 }
 
-std::shared_ptr<StatisticsRegistry> createRegistry(
+std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
   rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
   rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
   const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
@@ -65,11 +65,11 @@ std::shared_ptr<StatisticsRegistry> createRegistry(
   }
 }
 
-std::shared_ptr<StatisticsRegistry> initializeRegistry(
+std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
   const std::shared_ptr<rclcpp::Node> & node,
   const std::string & topic, const std::string & custom_key)
 {
-  return createRegistry(
+  return getOrcreateRegistry(
     node->get_node_parameters_interface(),
     node->get_node_topics_interface(),
     node->get_node_logging_interface(),
@@ -77,11 +77,11 @@ std::shared_ptr<StatisticsRegistry> initializeRegistry(
     topic, custom_key);
 }
 
-std::shared_ptr<StatisticsRegistry> initializeRegistry(
+std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
   const std::shared_ptr<rclcpp_lifecycle::LifecycleNode> & node,
   const std::string & topic, const std::string & custom_key)
 {
-  return createRegistry(
+  return getOrcreateRegistry(
     node->get_node_parameters_interface(),
     node->get_node_topics_interface(),
     node->get_node_logging_interface(),
@@ -109,7 +109,7 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
   const std::string & node_namespace,
   const std::string & topic)
 {
-  return createRegistry(
+  return getOrcreateRegistry(
     parameters_interface, topics_interface, logging_interface, clock_interface,
     topic, node_namespace + topic);
 }

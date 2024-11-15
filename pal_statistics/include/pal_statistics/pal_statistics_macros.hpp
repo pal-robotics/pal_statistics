@@ -53,7 +53,7 @@ namespace pal_statistics
  * @param key - The key to store the registry in the global registry map
  *
 */
-std::shared_ptr<StatisticsRegistry> createRegistry(
+std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
   rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
   rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
   const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
@@ -69,7 +69,7 @@ std::shared_ptr<StatisticsRegistry> createRegistry(
  * @return std::shared_ptr<StatisticsRegistry> - The registry stored in the global registry map
  * using the key
  */
-std::shared_ptr<StatisticsRegistry> initializeRegistry(
+std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
   const std::shared_ptr<rclcpp::Node> & node,
   const std::string & topic, const std::string & custom_key);
 
@@ -82,7 +82,7 @@ std::shared_ptr<StatisticsRegistry> initializeRegistry(
  * @return std::shared_ptr<StatisticsRegistry> - The registry stored in the global registry map
  * using the key
  */
-std::shared_ptr<StatisticsRegistry> initializeRegistry(
+std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
   const std::shared_ptr<rclcpp_lifecycle::LifecycleNode> & node,
   const std::string & topic, const std::string & custom_key);
 
@@ -115,12 +115,12 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 
 
 #define INITIALIZE_REGISTRY(NODE, TOPIC) \
-  pal_statistics::initializeRegistry( \
+  pal_statistics::getOrcreateRegistry( \
     NODE, TOPIC, \
     NODE->get_node_topics_interface()->resolve_topic_name(TOPIC))
 
 #define INITIALIZE_REGISTRY(NODE, TOPIC, CUSTOM_KEY) \
-  pal_statistics::initializeRegistry(NODE, TOPIC, CUSTOM_KEY)
+  pal_statistics::getOrcreateRegistry(NODE, TOPIC, CUSTOM_KEY)
 
 // Trick to use macros with optional argument, in practice there are three version of the macro:
 // REGISTER_VARIABLE(NODE, TOPIC, ID, VARIABLE, BOOKKEEPING) -> full specification of arguments
