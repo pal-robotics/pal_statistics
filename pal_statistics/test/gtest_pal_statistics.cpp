@@ -238,6 +238,7 @@ public:
   void chaosTest2();
   void chaosTest3();
   void chaosTest4();
+  void scopedBookkeepingTest();
   void splitMsgTest();
   void callStartPublishThreadMultipleTimes();
   void startStopPublishThreadTest();
@@ -1132,6 +1133,99 @@ void PalStatisticsTestHelperClass<NodeT>::chaosTest4()
 }
 
 template<typename NodeT>
+void PalStatisticsTestHelperClass<NodeT>::scopedBookkeepingTest()
+{
+  // Tests the unregistration of a variable and publication by the nonrt thread
+  // before a publish_async has been performed
+
+  constexpr auto timeout = std::chrono::milliseconds{300};
+  const std::string statistics_topic = std::string(node_->get_name()) + "/" +
+    DEFAULT_STATISTICS_TOPIC;
+  const auto promised_publication = [&]() {
+      return PUBLISH_ASYNC_STATISTICS(node_, statistics_topic);
+    };
+
+  const std::string registry_key = node_->get_node_topics_interface()->resolve_topic_name(
+    statistics_topic);
+  INITIALIZE_REGISTRY(node_, statistics_topic, registry_key);
+
+  ASSERT_TRUE(pal_statistics::getRegistry(registry_key));
+
+  const auto get_variables = [this]() -> std::vector<std::string> {
+      if (!last_msg_) {
+        return {};
+      }
+      return getVariables(*last_msg_);
+    };
+
+  {
+
+    RegistrationsRAII bookkeeping_1;
+    {
+      RegistrationsRAII bookkeeping_2;
+      REGISTER_ENTITY(registry_key, "var123", &var1_, &bookkeeping_2);
+      REGISTER_ENTITY(registry_key, "var1234", &var1_, &bookkeeping_1);
+
+      ASSERT_EVENTUALLY_THAT(promised_publication, Eq(true), executor_, timeout)
+        << "Unable to publish stats variables after " << timeout.count() << " ms";
+
+      REGISTER_ENTITY(registry_key, "var2", &var2_, &bookkeeping_1);
+      REGISTER_ENTITY(registry_key, "var3", &var1_, &bookkeeping_1);
+      REGISTER_ENTITY(registry_key, "var4", &var2_, &bookkeeping_2);
+      REGISTER_ENTITY(registry_key, "var5", &var1_, &bookkeeping_2);
+      UNREGISTER_ENTITY(registry_key, "var123");
+      UNREGISTER_ENTITY(registry_key, "var1234");
+
+      rclcpp::sleep_for(std::chrono::milliseconds(200));
+
+      ASSERT_EVENTUALLY_THAT(promised_publication, Eq(true), executor_, timeout)
+        << "Unable to publish stats variables after " << timeout.count() << " ms";
+
+      last_msg_.reset();
+
+      /// After PUBLISH_ASYNC_STATISTICS() the actual publication of the statistics
+      /// by StatisticsRegistry::publisherThreadCycle() is indeterministic.
+      /// To prevent flakiness, we wait for a reasonable amount of time
+      /// that the promised statistics gets actually published
+      EXPECT_EVENTUALLY_THAT(
+        get_variables,
+        UnorderedElementsAre(
+          "var2", "var3", "var4", "var5",
+          "topic_stats." + statistics_topic + ".publish_async_attempts",
+          "topic_stats." + statistics_topic + ".publish_async_failures",
+          "topic_stats." + statistics_topic + ".publish_buffer_full_errors",
+          "topic_stats." + statistics_topic + ".last_async_pub_duration"),
+        executor_, timeout)
+        << "'var2' has not been published yet after " << timeout.count() << " ms";
+    }
+
+    // As the bookkeeping_2 is out of scope, the variables registered with it should be unregistered
+
+    rclcpp::sleep_for(std::chrono::milliseconds(200));
+
+    ASSERT_EVENTUALLY_THAT(promised_publication, Eq(true), executor_, timeout)
+      << "Unable to publish stats variables after " << timeout.count() << " ms";
+
+    last_msg_.reset();
+
+    /// After PUBLISH_ASYNC_STATISTICS() the actual publication of the statistics
+    /// by StatisticsRegistry::publisherThreadCycle() is indeterministic.
+    /// To prevent flakiness, we wait for a reasonable amount of time
+    /// that the promised statistics gets actually published
+    EXPECT_EVENTUALLY_THAT(
+      get_variables,
+      UnorderedElementsAre(
+        "var2", "var3",
+        "topic_stats." + statistics_topic + ".publish_async_attempts",
+        "topic_stats." + statistics_topic + ".publish_async_failures",
+        "topic_stats." + statistics_topic + ".publish_buffer_full_errors",
+        "topic_stats." + statistics_topic + ".last_async_pub_duration"),
+      executor_, timeout)
+      << "'var2' has not been published yet after " << timeout.count() << " ms";
+  }
+}
+
+template<typename NodeT>
 void PalStatisticsTestHelperClass<NodeT>::splitMsgTest()
 {
   const std::string statistics_topic = std::string(node_->get_name()) + "/" +
@@ -1250,6 +1344,12 @@ TEST_F(PalStatisticsTest, chaosTest4)
 {
   node_test_->chaosTest4();
   lifecycle_test_->chaosTest4();
+}
+
+TEST_F(PalStatisticsTest, scopedBookkeepingTest)
+{
+  node_test_->scopedBookkeepingTest();
+  lifecycle_test_->scopedBookkeepingTest();
 }
 
 TEST_F(PalStatisticsTest, splitMsgTest)
