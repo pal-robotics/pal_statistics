@@ -118,26 +118,26 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
   const std::shared_ptr<rclcpp::Node> & node,
   const std::string & topic)
 {
-  return getRegistry(
+  return getOrcreateRegistry(
     node->get_node_parameters_interface(),
     node->get_node_topics_interface(),
     node->get_node_logging_interface(),
     node->get_node_clock_interface(),
-    node->get_effective_namespace(),
-    topic);
+    topic,
+    node->get_node_topics_interface()->resolve_topic_name(topic));
 }
 
 std::shared_ptr<StatisticsRegistry> getRegistry(
   const std::shared_ptr<rclcpp_lifecycle::LifecycleNode> & node,
   const std::string & topic)
 {
-  return getRegistry(
+  return getOrcreateRegistry(
     node->get_node_parameters_interface(),
     node->get_node_topics_interface(),
     node->get_node_logging_interface(),
     node->get_node_clock_interface(),
-    node->get_namespace(),
-    topic);
+    topic,
+    node->get_node_topics_interface()->resolve_topic_name(topic));
 }
 
 }  // namespace pal_statistics
