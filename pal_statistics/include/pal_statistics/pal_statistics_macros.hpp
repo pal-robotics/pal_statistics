@@ -197,9 +197,6 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 
 #define UNREGISTER_ENTITY(...) UNREGISTER_ENTITY_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
-#define PUBLISH_ENTITIES_ASYNC(REGISTRY_KEY) pal_statistics::getRegistry( \
-    REGISTRY_KEY)->publishAsync();
-
 // Trick to use macros with optional argument, in practice there are three version of the macro:
 // REGISTER_VARIABLE(NODE, TOPIC, ID, VARIABLE, BOOKKEEPING) -> full specification of arguments
 // REGISTER_VARIABLE(NODE, TOPIC, ID, VARIABLE)              -> No bookkeeping
@@ -223,19 +220,58 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
   customRegister(*pal_statistics::getRegistry(NODE, TOPIC), #VARIABLE, VARIABLE, BOOKKEEPING);
 
 
-#define PUBLISH_STATISTICS(NODE, TOPIC) pal_statistics::getRegistry(NODE, TOPIC)->publish();
+#define PUBLISH_STATISTICS_1_ARGS(REGISTRY_KEY) \
+  pal_statistics::getRegistry(REGISTRY_KEY)->publish();
+#define PUBLISH_STATISTICS_2_ARGS(NODE, TOPIC) \
+  pal_statistics::getRegistry(NODE, TOPIC)->publish();
 
-#define PUBLISH_ASYNC_STATISTICS(NODE, TOPIC) pal_statistics::getRegistry( \
+#define GET_3TH_ARG(arg1, arg2, arg3, ...) arg3
+#define PUBLISH_STATISTICS_MACRO_CHOOSER(...) \
+  GET_3TH_ARG( \
+    __VA_ARGS__, PUBLISH_STATISTICS_2_ARGS, \
+    PUBLISH_STATISTICS_1_ARGS)
+
+#define PUBLISH_STATISTICS(...) PUBLISH_STATISTICS_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
+
+
+#define PUBLISH_ASYNC_STATISTICS_1_ARGS(REGISTRY_KEY) pal_statistics::getRegistry( \
+    REGISTRY_KEY)->publishAsync();
+#define PUBLISH_ASYNC_STATISTICS_2_ARGS(NODE, TOPIC) pal_statistics::getRegistry( \
     NODE, \
     TOPIC)->publishAsync();
+#define PUBLISH_ASYNC_STATISTICS_MACRO_CHOOSER(...) \
+  GET_3TH_ARG( \
+    __VA_ARGS__, PUBLISH_ASYNC_STATISTICS_2_ARGS, \
+    PUBLISH_ASYNC_STATISTICS_1_ARGS)
 
-#define START_PUBLISH_THREAD(NODE, TOPIC) pal_statistics::getRegistry( \
+#define PUBLISH_ASYNC_STATISTICS(...) PUBLISH_ASYNC_STATISTICS_MACRO_CHOOSER(__VA_ARGS__)( \
+    __VA_ARGS__)
+
+#define START_PUBLISH_THREAD_1_ARGS(REGISTRY_KEY) pal_statistics::getRegistry( \
+    REGISTRY_KEY)->startPublishThread();
+#define START_PUBLISH_THREAD_2_ARGS(NODE, TOPIC) pal_statistics::getRegistry( \
     NODE, \
     TOPIC)->startPublishThread();
 
-#define STOP_PUBLISHER_THREAD(NODE, TOPIC) pal_statistics::getRegistry( \
+#define START_PUBLISH_THREAD_MACRO_CHOOSER(...) \
+  GET_3TH_ARG( \
+    __VA_ARGS__, START_PUBLISH_THREAD_2_ARGS, \
+    START_PUBLISH_THREAD_1_ARGS)
+
+#define START_PUBLISH_THREAD(...) START_PUBLISH_THREAD_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
+
+#define STOP_PUBLISHER_THREAD_1_ARGS(REGISTRY_KEY) pal_statistics::getRegistry( \
+    REGISTRY_KEY)->stopPublisherThread();
+#define STOP_PUBLISHER_THREAD_2_ARGS(NODE, TOPIC) pal_statistics::getRegistry( \
     NODE, \
     TOPIC)->stopPublisherThread();
+
+#define STOP_PUBLISHER_THREAD_MACRO_CHOOSER(...) \
+  GET_3TH_ARG( \
+    __VA_ARGS__, STOP_PUBLISHER_THREAD_2_ARGS, \
+    STOP_PUBLISHER_THREAD_1_ARGS)
+
+#define STOP_PUBLISHER_THREAD(...) STOP_PUBLISHER_THREAD_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 #define PUBLISH_CUSTOM_STATISTIC(NODE, TOPIC, ID, VALUE) pal_statistics::getRegistry( \
     NODE, \
