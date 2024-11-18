@@ -82,38 +82,11 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
   rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
   const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
   const rclcpp::node_interfaces::NodeClockInterface::SharedPtr & clock_interface,
-  const std::string & node_namespace,
+  const std::string & /*node_namespace*/,
   const std::string & topic)
 {
   return getOrcreateRegistry(
     parameters_interface, topics_interface, logging_interface, clock_interface,
     topic, topics_interface->resolve_topic_name(topic));
 }
-
-std::shared_ptr<StatisticsRegistry> getRegistry(
-  const std::shared_ptr<rclcpp::Node> & node,
-  const std::string & topic)
-{
-  return getOrcreateRegistry(
-    node->get_node_parameters_interface(),
-    node->get_node_topics_interface(),
-    node->get_node_logging_interface(),
-    node->get_node_clock_interface(),
-    topic,
-    getUniqueRegistryKey(node, topic));
-}
-
-std::shared_ptr<StatisticsRegistry> getRegistry(
-  const std::shared_ptr<rclcpp_lifecycle::LifecycleNode> & node,
-  const std::string & topic)
-{
-  return getOrcreateRegistry(
-    node->get_node_parameters_interface(),
-    node->get_node_topics_interface(),
-    node->get_node_logging_interface(),
-    node->get_node_clock_interface(),
-    topic,
-    getUniqueRegistryKey(node, topic));
-}
-
 }  // namespace pal_statistics
