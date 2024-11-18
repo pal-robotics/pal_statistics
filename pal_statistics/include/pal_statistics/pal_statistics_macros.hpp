@@ -159,10 +159,21 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
         ", as the registry is not found. Try initializing it!"); \
   }
 
-#define GET_5TH_ARG(arg1, arg2, arg3, arg4, arg5, ...) arg5
+#define REGISTER_ENTITY_5_ARGS(REGISTRY_KEY, ID, ENTITY, BOOKKEEPING, ENABLE) \
+  if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) { \
+    pal_statistics::customRegister( \
+      *pal_statistics::getRegistry(REGISTRY_KEY), ID, ENTITY, BOOKKEEPING, ENABLE); \
+  } else { \
+    RCLCPP_WARN_STREAM( \
+      rclcpp::get_logger("pal_statistics"), \
+      "Unable to register entity " << ID << " in " << REGISTRY_KEY << \
+        ", as the registry is not found. Try initializing it!"); \
+  }
+
+#define GET_6TH_ARG(arg1, arg2, arg3, arg4, arg5, arg6, ...) arg6
 #define REGISTER_ENTITY_MACRO_CHOOSER(...) \
-  GET_5TH_ARG( \
-    __VA_ARGS__, REGISTER_ENTITY_4_ARGS, \
+  GET_6TH_ARG( \
+    __VA_ARGS__, REGISTER_ENTITY_5_ARGS, REGISTER_ENTITY_4_ARGS, \
     REGISTER_ENTITY_3_ARGS)
 
 #define REGISTER_ENTITY(...) REGISTER_ENTITY_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
@@ -204,7 +215,6 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 #define REGISTER_VARIABLE_5_ARGS(NODE, TOPIC, ID, VARIABLE, BOOKKEEPING) \
   customRegister(*pal_statistics::getRegistry(NODE, TOPIC), ID, VARIABLE, BOOKKEEPING);
 
-#define GET_6TH_ARG(arg1, arg2, arg3, arg4, arg5, arg6, ...) arg6
 #define REGISTER_MACRO_CHOOSER(...) \
   GET_6TH_ARG( \
     __VA_ARGS__, REGISTER_VARIABLE_5_ARGS, \
@@ -284,6 +294,7 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 #define UNREGISTER_VARIABLE_4_ARGS(NODE, TOPIC, ID, BOOKKEEPING) \
   pal_statistics::getRegistry(NODE, TOPIC)->unregisterVariable(ID, BOOKKEEPING);
 
+#define GET_5TH_ARG(arg1, arg2, arg3, arg4, arg5, ...) arg5
 #define UNREGISTER_MACRO_CHOOSER(...) \
   GET_5TH_ARG( \
     __VA_ARGS__, UNREGISTER_VARIABLE_4_ARGS, \
