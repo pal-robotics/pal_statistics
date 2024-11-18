@@ -1159,7 +1159,6 @@ void PalStatisticsTestHelperClass<NodeT>::scopedBookkeepingTest()
     };
 
   {
-
     RegistrationsRAII bookkeeping_1;
     {
       RegistrationsRAII bookkeeping_2;

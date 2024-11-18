@@ -87,7 +87,7 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 {
   return getOrcreateRegistry(
     parameters_interface, topics_interface, logging_interface, clock_interface,
-    topic, node_namespace + topic);
+    topic, topics_interface->resolve_topic_name(topic));
 }
 
 std::shared_ptr<StatisticsRegistry> getRegistry(
@@ -100,7 +100,7 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
     node->get_node_logging_interface(),
     node->get_node_clock_interface(),
     topic,
-    node->get_node_topics_interface()->resolve_topic_name(topic));
+    getUniqueRegistryKey(node, topic));
 }
 
 std::shared_ptr<StatisticsRegistry> getRegistry(
@@ -113,7 +113,7 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
     node->get_node_logging_interface(),
     node->get_node_clock_interface(),
     topic,
-    node->get_node_topics_interface()->resolve_topic_name(topic));
+    getUniqueRegistryKey(node, topic));
 }
 
 }  // namespace pal_statistics

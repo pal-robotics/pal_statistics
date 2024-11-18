@@ -69,7 +69,7 @@ std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
  * @return std::shared_ptr<StatisticsRegistry> - The registry stored in the global registry map
  * using the key
  */
-template <typename NodeT>
+template<typename NodeT>
 std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
   const NodeT & node,
   const std::string & topic, const std::string & custom_key)
@@ -80,6 +80,12 @@ std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
     node->get_node_logging_interface(),
     node->get_node_clock_interface(),
     topic, custom_key);
+}
+
+template<typename NodeT>
+std::string getUniqueRegistryKey(const NodeT & node, const std::string & topic)
+{
+  return node->get_node_topics_interface()->resolve_topic_name(topic);
 }
 
 /**
@@ -190,6 +196,9 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
     UNREGISTER_ENTITY_2_ARGS)
 
 #define UNREGISTER_ENTITY(...) UNREGISTER_ENTITY_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
+
+#define PUBLISH_ENTITIES_ASYNC(REGISTRY_KEY) pal_statistics::getRegistry( \
+    REGISTRY_KEY)->publishAsync();
 
 // Trick to use macros with optional argument, in practice there are three version of the macro:
 // REGISTER_VARIABLE(NODE, TOPIC, ID, VARIABLE, BOOKKEEPING) -> full specification of arguments
