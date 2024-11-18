@@ -139,11 +139,9 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 #define INITIALIZE_REGISTRY(...) INITIALIZE_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 #define REGISTER_ENTITY_3_ARGS(REGISTRY_KEY, ID, ENTITY) \
-  if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) \
-  { \
+  if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) { \
     pal_statistics::customRegister(*pal_statistics::getRegistry(REGISTRY_KEY), ID, ENTITY); \
-  } \
-  else { \
+  } else { \
     RCLCPP_WARN_STREAM( \
       rclcpp::get_logger("pal_statistics"), \
       "Unable to register entity " << ID << " in " << REGISTRY_KEY << \
@@ -151,13 +149,10 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
   }
 
 #define REGISTER_ENTITY_4_ARGS(REGISTRY_KEY, ID, ENTITY, BOOKKEEPING) \
-  if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) \
-  { \
+  if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) { \
     pal_statistics::customRegister( \
-      *pal_statistics::getRegistry( \
-        REGISTRY_KEY), ID, ENTITY, BOOKKEEPING); \
-  } \
-  else { \
+      *pal_statistics::getRegistry(REGISTRY_KEY), ID, ENTITY, BOOKKEEPING); \
+  } else { \
     RCLCPP_WARN_STREAM( \
       rclcpp::get_logger("pal_statistics"), \
       "Unable to register entity " << ID << " in " << REGISTRY_KEY << \
@@ -173,11 +168,9 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 #define REGISTER_ENTITY(...) REGISTER_ENTITY_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 #define UNREGISTER_ENTITY_2_ARGS(REGISTRY_KEY, ID) \
-  if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) \
-  { \
+  if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) { \
     pal_statistics::getRegistry(REGISTRY_KEY)->unregisterVariable(ID); \
-  } \
-  else { \
+  } else { \
     RCLCPP_WARN_STREAM( \
       rclcpp::get_logger("pal_statistics"), \
       "Unable to unregister entity " << ID << " in " << REGISTRY_KEY << \
@@ -185,11 +178,9 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
   }
 
 #define UNREGISTER_ENTITY_3_ARGS(REGISTRY_KEY, ID, BOOKKEEPING) \
-  if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) \
-  { \
+  if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) { \
     pal_statistics::getRegistry(REGISTRY_KEY)->unregisterVariable(ID, BOOKKEEPING); \
-  } \
-  else { \
+  } else { \
     RCLCPP_WARN_STREAM( \
       rclcpp::get_logger("pal_statistics"), \
       "Unable to unregister entity " << ID << " in " << REGISTRY_KEY << \
