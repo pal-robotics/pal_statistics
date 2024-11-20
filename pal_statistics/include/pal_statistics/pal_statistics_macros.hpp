@@ -50,7 +50,7 @@ namespace pal_statistics
  * @param logging_interface - The logging interface of the node
  * @param clock_interface - The clock interface of the node
  * @param topic - The topic to publish the statistics
- * @param key - The key to store the registry in the global registry map
+ * @param registry_key - The key to store the registry in the global registry map
  *
 */
 std::shared_ptr<StatisticsRegistry> getOrCreateRegistry(
@@ -58,7 +58,7 @@ std::shared_ptr<StatisticsRegistry> getOrCreateRegistry(
   rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
   const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
   const rclcpp::node_interfaces::NodeClockInterface::SharedPtr & clock_interface,
-  const std::string & topic, const std::string & key);
+  const std::string & topic, const std::string & registry_key);
 
 /**
  * @brief Creates the registry for the given node and topic and stores it in the global registry
@@ -91,14 +91,15 @@ std::string getUniqueRegistryKey(const NodeT & node, const std::string & topic)
 /**
  * @brief Returns the registry stored in the global registry map using the key.
  * If it doesn't exist, it returns a nullptr.
- * @param key - The key to check the registry in the global registry map
+ * @param registry_key - The key to check the registry in the global registry map
  * @return std::shared_ptr<StatisticsRegistry> - The registry stored in the global registry map
  * using the key
  * @return nullptr - If the registry doesn't exist
  */
-std::shared_ptr<StatisticsRegistry> getRegistry(const std::string & key);
+std::shared_ptr<StatisticsRegistry> getRegistry(const std::string & registry_key);
 
-[[deprecated("Use getOrcreateRegistry instead")]]
+[[deprecated("Use getOrCreateRegistry(parameters_interface, topics_interface, logging_interface, "
+             "clock_interface, topic, registry_key) instead")]]
 std::shared_ptr<StatisticsRegistry> getRegistry(
   rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
   rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
@@ -111,7 +112,7 @@ template<typename NodeT>
 std::shared_ptr<StatisticsRegistry> getRegistry(
   const NodeT & node, const std::string & topic)
 {
-  return getOrcreateRegistry(
+  return getOrCreateRegistry(
     node->get_node_parameters_interface(),
     node->get_node_topics_interface(),
     node->get_node_logging_interface(),
@@ -123,12 +124,12 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 
 
 #define INITIALIZE_REGISTRY_2_ARGS(NODE, TOPIC) \
-  pal_statistics::getOrcreateRegistry( \
+  pal_statistics::getOrCreateRegistry( \
     NODE, TOPIC, \
     NODE->get_node_topics_interface()->resolve_topic_name(TOPIC))
 
 #define INITIALIZE_REGISTRY_3_ARGS(NODE, TOPIC, CUSTOM_KEY) \
-  pal_statistics::getOrcreateRegistry(NODE, TOPIC, CUSTOM_KEY)
+  pal_statistics::getOrCreateRegistry(NODE, TOPIC, CUSTOM_KEY)
 
 #define GET_4TH_ARG(arg1, arg2, arg3, arg4, ...) arg4
 #define INITIALIZE_MACRO_CHOOSER(...) \

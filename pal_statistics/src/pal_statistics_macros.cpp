@@ -43,7 +43,7 @@ RegistryMap & getRegistryMap()
   return registries;
 }
 
-std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
+std::shared_ptr<StatisticsRegistry> getOrCreateRegistry(
   rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
   rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
   const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
@@ -85,7 +85,7 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
   const std::string & /*node_namespace*/,
   const std::string & topic)
 {
-  return getOrcreateRegistry(
+  return getOrCreateRegistry(
     parameters_interface, topics_interface, logging_interface, clock_interface,
     topic, topics_interface->resolve_topic_name(topic));
 }
