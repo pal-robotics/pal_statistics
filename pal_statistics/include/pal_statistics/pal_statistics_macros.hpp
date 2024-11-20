@@ -42,7 +42,7 @@ namespace pal_statistics
 {
 /**
  * @brief Creates the registry for the given node interfaces and topic and stores it in the
- * global registry map using the key, if it doesn't exist. If it alread exists, it returns the
+ * global registry map using the key, if it doesn't exist. If it already exists, it returns the
  * existing one.
  *
  * @param parameters_interface - The parameters interface of the node
@@ -53,7 +53,7 @@ namespace pal_statistics
  * @param key - The key to store the registry in the global registry map
  *
 */
-std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
+std::shared_ptr<StatisticsRegistry> getOrCreateRegistry(
   rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
   rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
   const rclcpp::node_interfaces::NodeLoggingInterface::SharedPtr & logging_interface,
@@ -62,7 +62,7 @@ std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
 
 /**
  * @brief Creates the registry for the given node and topic and stores it in the global registry
- * map using the key, if it doesn't exist. If it alread exists, it returns the existing one.
+ * map using the key, if it doesn't exist. If it already exists, it returns the existing one.
  * @param node - The node to create the registry
  * @param topic - The topic to publish the statistics
  * @param key - The key to store the registry in the global registry map
@@ -70,11 +70,11 @@ std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
  * using the key
  */
 template<typename NodeT>
-std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
+std::shared_ptr<StatisticsRegistry> getOrCreateRegistry(
   const NodeT & node,
   const std::string & topic, const std::string & custom_key)
 {
-  return getOrcreateRegistry(
+  return getOrCreateRegistry(
     node->get_node_parameters_interface(),
     node->get_node_topics_interface(),
     node->get_node_logging_interface(),

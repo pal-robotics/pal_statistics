@@ -51,10 +51,10 @@ std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
   const std::string & topic, const std::string & key)
 {
   auto & registries = getRegistryMap();
-  RegistryMap::const_iterator cit = registries.find(key);
+  const auto cit = registries.find(key);
 
   if (cit == registries.end()) {
-    std::shared_ptr<StatisticsRegistry> ptr =
+    auto ptr =
       std::make_shared<StatisticsRegistry>(
       parameters_interface, topics_interface,
       logging_interface, clock_interface, topic);
@@ -68,7 +68,7 @@ std::shared_ptr<StatisticsRegistry> getOrcreateRegistry(
 std::shared_ptr<StatisticsRegistry> getRegistry(const std::string & key)
 {
   const auto & registries = getRegistryMap();
-  RegistryMap::const_iterator cit = registries.find(key);
+  const auto cit = registries.find(key);
 
   if (cit == registries.end()) {
     return nullptr;
