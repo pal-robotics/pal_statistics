@@ -82,6 +82,11 @@ std::shared_ptr<StatisticsRegistry> getOrCreateRegistry(
     topic, custom_key);
 }
 
+/**
+ * @brief Returns the unique registry key for the given node and topic.
+ * @param node - The node to create the registry
+ * @param topic - The topic to publish the statistics
+*/
 template<typename NodeT>
 std::string getUniqueRegistryKey(const NodeT & node, const std::string & topic)
 {
