@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.5.0 (2024-11-22)
+------------------
 * add the documentation to the getUniqueRegistryKey method
 * Add more changes to the renaming getOrCreateRegistry method
 * Apply review suggestions
