@@ -2,6 +2,32 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add the documentation to the getUniqueRegistryKey method
+* Add more changes to the renaming getOrCreateRegistry method
+* Apply review suggestions
+* Add new test on disabling the registered elements by default
+* add enable option to the REGISTER_ENTITY.. macro
+* Fix the cpp linter errors
+* Unify getRegistry method for all types of instances of Node and LifeCycleNode
+* deprecate getRegistry method
+* Add support for REGISTRY_KEY on other macros
+* Add getUniqueRegistryKey method for node and topic
+* make getOrcreateRegistry more generic for nodes and classes
+* Add scoped Bookkeeping test
+* Add first test on the new macros and methods
+* get resolve_topic_name method to get the proper namespaced/remapped key
+* Add REGISTER_ENTITY and UNREGISTER_ENTITY macros
+* Add INITIALIZE_REGISTRY macro
+* Accept only if it is castable to double
+* Rename the methods to getOrcreateRegistry
+* add initializeRegistry method and some macros
+* add createRegistry and getRegistry method for reutilizing the RegistryMap
+* remove the node namespace argument
+* add a way to handle the topic remappings
+* Contributors: Jordan Palacios, Sai Kishor Kothakota
+
 2.4.0 (2024-11-14)
 ------------------
 * Create stop thread test
