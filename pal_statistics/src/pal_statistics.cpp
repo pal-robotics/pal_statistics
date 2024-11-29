@@ -333,22 +333,26 @@ void StatisticsRegistry::publisherThreadCycle()
 {
   rclcpp::WallRate rate(2000);
   while (rclcpp::ok() && !interrupt_thread_) {
-    while (!is_data_ready_ && !interrupt_thread_) {
-      rate.sleep();
+    try {
+      while (!is_data_ready_ && !interrupt_thread_) {
+        rate.sleep();
+      }
+
+      std::unique_lock<std::mutex> data_lock(data_mutex_);
+
+      while (registration_list_->hasPendingData()) {
+        bool minor_changes = updateMsg(names_msg_, values_msg_, true);
+
+        std::unique_lock<std::mutex> pub_lock(pub_mutex_);
+        data_lock.unlock();
+        doPublish(!minor_changes);
+        pub_lock.unlock();
+        data_lock.lock();
+      }
+      is_data_ready_ = false;
+    } catch (const std::exception & e) {
+      RCLCPP_ERROR(getLogger(), "Exception in publisher thread: %s!. Aborting!", e.what());
     }
-
-    std::unique_lock<std::mutex> data_lock(data_mutex_);
-
-    while (registration_list_->hasPendingData()) {
-      bool minor_changes = updateMsg(names_msg_, values_msg_, true);
-
-      std::unique_lock<std::mutex> pub_lock(pub_mutex_);
-      data_lock.unlock();
-      doPublish(!minor_changes);
-      pub_lock.unlock();
-      data_lock.lock();
-    }
-    is_data_ready_ = false;
   }
 }
 
