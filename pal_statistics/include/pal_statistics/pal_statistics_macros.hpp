@@ -103,6 +103,15 @@ std::string getUniqueRegistryKey(const NodeT & node, const std::string & topic)
  */
 std::shared_ptr<StatisticsRegistry> getRegistry(const std::string & registry_key);
 
+/**
+ * @brief Deletes the registry stored in the global registry map using the key.
+ * @param registry_key - The key to delete the registry in the global registry map
+ *
+ * @note This function is not real-time safe
+ * @note If the registry doesn't exist, it does nothing
+ */
+void deleteRegistry(const std::string & registry_key);
+
 [[deprecated("Use getOrCreateRegistry(parameters_interface, topics_interface, logging_interface, "
              "clock_interface, topic, registry_key) instead")]]
 std::shared_ptr<StatisticsRegistry> getRegistry(

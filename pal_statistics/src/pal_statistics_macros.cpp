@@ -77,6 +77,12 @@ std::shared_ptr<StatisticsRegistry> getRegistry(const std::string & key)
   }
 }
 
+void deleteRegistry(const std::string & key)
+{
+  auto & registries = getRegistryMap();
+  registries.erase(key);
+}
+
 std::shared_ptr<StatisticsRegistry> getRegistry(
   rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameters_interface,
   rclcpp::node_interfaces::NodeTopicsInterface::SharedPtr topics_interface,
