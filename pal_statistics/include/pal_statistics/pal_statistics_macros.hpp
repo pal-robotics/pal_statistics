@@ -159,6 +159,23 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 
 #define INITIALIZE_REGISTRY(...) INITIALIZE_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
+#define DELETE_REGISTRY_1_ARGS(REGISTRY_KEY) \
+  pal_statistics::deleteRegistry(REGISTRY_KEY)
+
+#define DELETE_REGISTRY_2_ARGS(NODE, TOPIC) \
+  pal_statistics::deleteRegistry(pal_statistics::getUniqueRegistryKey(NODE, TOPIC))
+
+#define GET_3TH_ARG(arg1, arg2, arg3, ...) arg3
+#define DELETE_REGISTRY_MACRO_CHOOSER(...) \
+  GET_3TH_ARG( \
+    __VA_ARGS__, DELETE_REGISTRY_2_ARGS, \
+    DELETE_REGISTRY_1_ARGS)
+
+#define DELETE_REGISTRY(...) DELETE_REGISTRY_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
+
+#define CLEAR_ALL_REGISTRIES() \
+  pal_statistics::clearAllRegistries()
+
 #define REGISTER_ENTITY_3_ARGS(REGISTRY_KEY, ID, ENTITY) \
   if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) { \
     pal_statistics::customRegister(*pal_statistics::getRegistry(REGISTRY_KEY), ID, ENTITY); \
@@ -253,7 +270,6 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 #define PUBLISH_STATISTICS_2_ARGS(NODE, TOPIC) \
   pal_statistics::getRegistry(NODE, TOPIC)->publish();
 
-#define GET_3TH_ARG(arg1, arg2, arg3, ...) arg3
 #define PUBLISH_STATISTICS_MACRO_CHOOSER(...) \
   GET_3TH_ARG( \
     __VA_ARGS__, PUBLISH_STATISTICS_2_ARGS, \
