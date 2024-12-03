@@ -112,6 +112,12 @@ std::shared_ptr<StatisticsRegistry> getRegistry(const std::string & registry_key
  */
 void deleteRegistry(const std::string & registry_key);
 
+/**
+ * @brief Deletes all the registries stored in the global registry map.
+ * @note This function is not real-time safe
+ */
+void clearAllRegistries();
+
 [[deprecated("Use getOrCreateRegistry(parameters_interface, topics_interface, logging_interface, "
              "clock_interface, topic, registry_key) instead")]]
 std::shared_ptr<StatisticsRegistry> getRegistry(
