@@ -262,8 +262,15 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 #define PUBLISH_STATISTICS(...) PUBLISH_STATISTICS_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 
-#define PUBLISH_ASYNC_STATISTICS_1_ARGS(REGISTRY_KEY) pal_statistics::getRegistry( \
-    REGISTRY_KEY)->publishAsync();
+#define PUBLISH_ASYNC_STATISTICS_1_ARGS(REGISTRY_KEY) \
+  if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) { \
+    pal_statistics::getRegistry(REGISTRY_KEY)->publishAsync(); \
+  } else { \
+    RCLCPP_WARN_STREAM_ONCE( \
+      rclcpp::get_logger("pal_statistics"), \
+      "Unable to publish async statistics in " << REGISTRY_KEY << \
+        ", as the registry is not found."); \
+  }
 #define PUBLISH_ASYNC_STATISTICS_2_ARGS(NODE, TOPIC) pal_statistics::getRegistry( \
     NODE, \
     TOPIC)->publishAsync();
