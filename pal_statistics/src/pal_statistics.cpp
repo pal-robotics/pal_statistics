@@ -227,6 +227,7 @@ IdType StatisticsRegistry::registerInternal(
     std::unique_lock<std::mutex> data_lock(data_mutex_);
     id = registration_list_->registerVariable(name, std::move(variable), enabled);
     enabled_ids_->set_capacity(registration_list_->size());
+    setEnabledmpl(id, enabled);
   }
 
   if (bookkeeping) {
