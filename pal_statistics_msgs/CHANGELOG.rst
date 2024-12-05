@@ -2,6 +2,9 @@
 Changelog for package pal_statistics_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 2.5.0 (2024-11-22)
 ------------------
 

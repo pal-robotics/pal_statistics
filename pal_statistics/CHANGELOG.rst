@@ -2,6 +2,23 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'fix/crash/on_destruction' into 'humble-devel'
+  Fix pal_statistics crash upon destruction
+  See merge request qa/pal_statistics!48
+* Add missing setEnabledmpl in registerInternal method
+* Add DELETE_REGISTRY and CLEAR_ALL_REGISTRIES macros
+* Check if the registry exists before calling `publishAsync`
+* Add clearAllRegistries method
+* Add deleteRegistry method in the macros.hpp
+* Catch exceptions thrown in the publisher thread
+* Merge branch 'make/topics/latched' into 'humble-devel'
+  Make all topics latched by default
+  See merge request qa/pal_statistics!47
+* Make all topics latched by default
+* Contributors: Jordan Palacios, Sai Kishor Kothakota
+
 2.5.0 (2024-11-22)
 ------------------
 * add the documentation to the getUniqueRegistryKey method
