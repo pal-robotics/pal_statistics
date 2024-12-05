@@ -103,6 +103,21 @@ std::string getUniqueRegistryKey(const NodeT & node, const std::string & topic)
  */
 std::shared_ptr<StatisticsRegistry> getRegistry(const std::string & registry_key);
 
+/**
+ * @brief Deletes the registry stored in the global registry map using the key.
+ * @param registry_key - The key to delete the registry in the global registry map
+ *
+ * @note This function is not real-time safe
+ * @note If the registry doesn't exist, it does nothing
+ */
+void deleteRegistry(const std::string & registry_key);
+
+/**
+ * @brief Deletes all the registries stored in the global registry map.
+ * @note This function is not real-time safe
+ */
+void clearAllRegistries();
+
 [[deprecated("Use getOrCreateRegistry(parameters_interface, topics_interface, logging_interface, "
              "clock_interface, topic, registry_key) instead")]]
 std::shared_ptr<StatisticsRegistry> getRegistry(
@@ -143,6 +158,23 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
     INITIALIZE_REGISTRY_2_ARGS)
 
 #define INITIALIZE_REGISTRY(...) INITIALIZE_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
+
+#define DELETE_REGISTRY_1_ARGS(REGISTRY_KEY) \
+  pal_statistics::deleteRegistry(REGISTRY_KEY)
+
+#define DELETE_REGISTRY_2_ARGS(NODE, TOPIC) \
+  pal_statistics::deleteRegistry(pal_statistics::getUniqueRegistryKey(NODE, TOPIC))
+
+#define GET_3TH_ARG(arg1, arg2, arg3, ...) arg3
+#define DELETE_REGISTRY_MACRO_CHOOSER(...) \
+  GET_3TH_ARG( \
+    __VA_ARGS__, DELETE_REGISTRY_2_ARGS, \
+    DELETE_REGISTRY_1_ARGS)
+
+#define DELETE_REGISTRY(...) DELETE_REGISTRY_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
+
+#define CLEAR_ALL_REGISTRIES() \
+  pal_statistics::clearAllRegistries()
 
 #define REGISTER_ENTITY_3_ARGS(REGISTRY_KEY, ID, ENTITY) \
   if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) { \
@@ -238,7 +270,6 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 #define PUBLISH_STATISTICS_2_ARGS(NODE, TOPIC) \
   pal_statistics::getRegistry(NODE, TOPIC)->publish();
 
-#define GET_3TH_ARG(arg1, arg2, arg3, ...) arg3
 #define PUBLISH_STATISTICS_MACRO_CHOOSER(...) \
   GET_3TH_ARG( \
     __VA_ARGS__, PUBLISH_STATISTICS_2_ARGS, \
@@ -247,8 +278,15 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 #define PUBLISH_STATISTICS(...) PUBLISH_STATISTICS_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
 
-#define PUBLISH_ASYNC_STATISTICS_1_ARGS(REGISTRY_KEY) pal_statistics::getRegistry( \
-    REGISTRY_KEY)->publishAsync();
+#define PUBLISH_ASYNC_STATISTICS_1_ARGS(REGISTRY_KEY) \
+  if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) { \
+    pal_statistics::getRegistry(REGISTRY_KEY)->publishAsync(); \
+  } else { \
+    RCLCPP_WARN_STREAM_ONCE( \
+      rclcpp::get_logger("pal_statistics"), \
+      "Unable to publish async statistics in " << REGISTRY_KEY << \
+        ", as the registry is not found."); \
+  }
 #define PUBLISH_ASYNC_STATISTICS_2_ARGS(NODE, TOPIC) pal_statistics::getRegistry( \
     NODE, \
     TOPIC)->publishAsync();
