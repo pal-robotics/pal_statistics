@@ -2,6 +2,9 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 2.5.1 (2024-12-05)
 ------------------
 * Merge branch 'fix/crash/on_destruction' into 'humble-devel'
