@@ -362,7 +362,9 @@ void StatisticsRegistry::GeneratedStatistics::update(
   const pal_statistics_msgs::msg::StatisticsValues & values)
 {
   msg_.header = values.header;
-  if (last_names_version_ == names.names_version && !msg_.statistics.empty()) {
+  if (last_names_version_.has_value() && last_names_version_.value() == names.names_version &&
+    !msg_.statistics.empty())
+  {
     // only need to update the values
     for (size_t i = 0; i < values.values.size(); ++i) {
       msg_.statistics[i].value = values.values[i];

@@ -32,6 +32,7 @@
 
 #include <memory>
 #include <mutex>
+#include <limits>
 #include <string>
 
 #include "pal_statistics/pal_statistics_utils.hpp"
@@ -251,7 +252,7 @@ private:
   struct GeneratedStatistics
   {
     GeneratedStatistics()
-    : last_names_version_(-1)
+    : last_names_version_(std::nullopt)
     {
     }
     void update(
@@ -260,7 +261,7 @@ private:
 
     /// This message is generated using an updated StatiticsNames and StatisticsValues
     pal_statistics_msgs::msg::Statistics msg_;
-    unsigned int last_names_version_;
+    std::optional<unsigned int> last_names_version_;
   };
 
   pal_statistics_msgs::msg::StatisticsNames names_msg_;
