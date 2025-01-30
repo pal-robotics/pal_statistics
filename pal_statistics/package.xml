@@ -15,7 +15,7 @@
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
 
-  <depend>boost</depend>
+  <depend>libboost-dev</depend>
   <depend>pal_statistics_msgs</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_lifecycle</depend>
