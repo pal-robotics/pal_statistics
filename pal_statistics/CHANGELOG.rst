@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.6.1 (2025-01-30)
+------------------
 * Merge branch 'add/sai/maintainer' into 'humble-devel'
   Add Sai to the package maintainers
   See merge request qa/pal_statistics!51
