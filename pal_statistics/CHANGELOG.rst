@@ -2,6 +2,22 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'add/sai/maintainer' into 'humble-devel'
+  Add Sai to the package maintainers
+  See merge request qa/pal_statistics!51
+* Add Sai to the package maintainers
+* Merge branch 'use/core/libboost' into 'humble-devel'
+  Use libboost-dev instead of whole boost libraries
+  See merge request qa/pal_statistics!50
+* Use libboost-dev instead of whole boost libraries
+* Merge branch 'fix/includes/clang' into 'humble-devel'
+  use std::optional to initialize properly instead of -1
+  See merge request qa/pal_statistics!49
+* use std::optional to initialize properly instead of -1
+* Contributors: Jordan Palacios, Sai Kishor Kothakota
+
 2.6.0 (2024-12-05)
 ------------------
 
