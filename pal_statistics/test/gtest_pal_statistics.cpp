@@ -52,6 +52,16 @@ using pal_statistics::RegistrationsRAII;
 using pal_statistics::IdType;
 using pal_statistics::getRegistry;
 
+static const auto kNamesQoS = rclcpp::SystemDefaultsQoS()
+  .keep_last(1u)
+  .reliable()
+  .transient_local();
+
+static const auto kDataQoS = rclcpp::SystemDefaultsQoS()
+  .keep_last(1u)
+  .best_effort()
+  .transient_local();
+
 namespace
 {
 std::vector<std::string> getVariables(const pal_statistics_msgs::msg::Statistics & msg)
@@ -177,14 +187,14 @@ public:
     container_.resize(5);
 
     sub_ = node_->template create_subscription<pal_statistics_msgs::msg::Statistics>(
-      std::string("~/") + DEFAULT_STATISTICS_TOPIC + "/full", 1,
+      std::string("~/") + DEFAULT_STATISTICS_TOPIC + "/full", kDataQoS,
       std::bind(&PalStatisticsTestHelperClass::fullTopicCb, this, std::placeholders::_1));
     names_sub_ = node_->template create_subscription<pal_statistics_msgs::msg::StatisticsNames>(
-      std::string("~/") + DEFAULT_STATISTICS_TOPIC + "/names", 1,
+      std::string("~/") + DEFAULT_STATISTICS_TOPIC + "/names", kNamesQoS,
       std::bind(&PalStatisticsTestHelperClass::namesTopicCb, this, std::placeholders::_1));
     values_sub_ =
       node_->template create_subscription<pal_statistics_msgs::msg::StatisticsValues>(
-      std::string("~/") + DEFAULT_STATISTICS_TOPIC + "/values", 1,
+      std::string("~/") + DEFAULT_STATISTICS_TOPIC + "/values", kDataQoS,
       std::bind(&PalStatisticsTestHelperClass::valuesTopicCb, this, std::placeholders::_1));
   }
 
@@ -799,7 +809,7 @@ void PalStatisticsTestHelperClass<NodeT>::stressAsyncTest()
   rclcpp::SubscriptionOptions sub_opts;
   sub_opts.callback_group = cb_group;
   auto topic_sub = node_->template create_subscription<pal_statistics_msgs::msg::Statistics>(
-    std::string(statistics_topic) + "/full", rclcpp::QoS(rclcpp::KeepAll()),
+    std::string(statistics_topic) + "/full", kDataQoS,
     [&](const pal_statistics_msgs::msg::Statistics::SharedPtr) {received_messages++;}, sub_opts);
 
   auto future_handle = std::async(
@@ -812,8 +822,8 @@ void PalStatisticsTestHelperClass<NodeT>::stressAsyncTest()
     rclcpp::sleep_for(std::chrono::milliseconds(100));
   }
 
-  rclcpp::Rate rate(1e4);
-  size_t num_messages = 3e4;
+  rclcpp::Rate rate(std::chrono::milliseconds(10));
+  size_t num_messages = 1000;
   size_t success_async = 0;
   for (size_t i = 0; i < num_messages; ++i) {
     success_async += registry->publishAsync();
@@ -824,10 +834,10 @@ void PalStatisticsTestHelperClass<NodeT>::stressAsyncTest()
   rclcpp::sleep_for(std::chrono::milliseconds(500));
   group_executor->cancel();
 
-
-  EXPECT_EQ(
+  // Reliability is not guaranteed, allow for some error
+  EXPECT_NEAR(
     success_async - registry->registration_list_->overwritten_data_count_,
-    received_messages);
+    received_messages, 50);
 }
 
 template<typename NodeT>

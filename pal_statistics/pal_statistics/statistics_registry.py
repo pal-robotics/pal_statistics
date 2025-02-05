@@ -31,7 +31,7 @@
 
 from pal_statistics_msgs.msg import Statistic, Statistics, StatisticsNames, StatisticsValues
 from rclpy.node import Node
-from rclpy.qos import QoSDurabilityPolicy, QoSProfile
+from rclpy.qos import QoSDurabilityPolicy, QoSProfile, QoSReliabilityPolicy
 
 
 class Registration:
@@ -56,11 +56,19 @@ class StatisticsRegistry:
         self.topic = topic
         self.node = node
         self.functions = {}
-        transient_local_qos = QoSProfile(depth=1, durability=QoSDurabilityPolicy.TRANSIENT_LOCAL)
-        self.full_pub = self.node.create_publisher(Statistics, topic + '/full', 1)
+
+        names_qos = QoSProfile(depth=1, durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
+                               reliability=QoSReliabilityPolicy.RELIABLE)
+        data_qos = QoSProfile(depth=1, durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
+                              reliability=QoSReliabilityPolicy.BEST_EFFORT)
+
+        self.full_pub = self.node.create_publisher(
+            Statistics, topic + '/full', qos_profile=data_qos)
         self.names_pub = self.node.create_publisher(
-            StatisticsNames, topic + '/names', qos_profile=transient_local_qos)
-        self.values_pub = self.node.create_publisher(StatisticsValues, topic + '/values', 1)
+            StatisticsNames, topic + '/names', qos_profile=names_qos)
+        self.values_pub = self.node.create_publisher(
+            StatisticsValues, topic + '/values', qos_profile=data_qos)
+
         self.names_changed = True
         self.last_names_version = 1
 

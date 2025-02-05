@@ -60,17 +60,26 @@ StatisticsRegistry::StatisticsRegistry(
   registration_list_(new RegistrationList(logger_, clock_)),
   enabled_ids_(new LockFreeQueue<EnabledId>())
 {
-  rclcpp::QoS latch_qos{rclcpp::KeepAll()};
-  latch_qos.reliable();
-  latch_qos.transient_local();  // latch
+  // "names" is published once, we want to make sure they are always available
+  const auto names_qos = rclcpp::SystemDefaultsQoS()
+    .keep_last(1u)
+    .reliable()
+    .transient_local();  // latch
+
+  // "full" and "values" are constantly streamed, we still latch the last
+  // message but there are no guarantees that the subscriber will get it
+  const auto data_qos = rclcpp::SystemDefaultsQoS()
+    .keep_last(1u)
+    .best_effort()
+    .transient_local();  // latch
 
   pub_ = rclcpp::create_publisher<pal_statistics_msgs::msg::Statistics>(
-    parameters_interface, topics_interface, topic + "/full", latch_qos);
+    parameters_interface, topics_interface, topic + "/full", data_qos);
 
   pub_names_ = rclcpp::create_publisher<pal_statistics_msgs::msg::StatisticsNames>(
-    parameters_interface, topics_interface, topic + "/names", latch_qos);
+    parameters_interface, topics_interface, topic + "/names", names_qos);
   pub_values_ = rclcpp::create_publisher<pal_statistics_msgs::msg::StatisticsValues>(
-    parameters_interface, topics_interface, topic + "/values", latch_qos);
+    parameters_interface, topics_interface, topic + "/values", data_qos);
 
   publish_async_attempts_ = 0;
   publish_async_failures_ = 0;
