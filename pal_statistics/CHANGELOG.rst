@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.6.2 (2025-02-05)
+------------------
 * Reworked all pubilsher QoS policies
   Specially important was avoiding keeping all messages, this was running
   away with memory. Also, we switch to a best effort reliability instead
