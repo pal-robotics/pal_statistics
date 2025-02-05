@@ -2,6 +2,14 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Reworked all pubilsher QoS policies
+  Specially important was avoiding keeping all messages, this was running
+  away with memory. Also, we switch to a best effort reliability instead
+  of reliable, no sense in retrying to send old data.
+* Contributors: Jordan Palacios
+
 2.6.1 (2025-01-30)
 ------------------
 * Merge branch 'add/sai/maintainer' into 'humble-devel'
