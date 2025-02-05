@@ -38,7 +38,7 @@ from rclpy.duration import Duration
 import rclpy.exceptions
 from rclpy.logging import LoggingSeverity, set_logger_level
 from rclpy.node import Node
-from rclpy.qos import QoSDurabilityPolicy, QoSProfile
+from rclpy.qos import QoSDurabilityPolicy, QoSProfile, QoSReliabilityPolicy
 
 
 DEFAULT_TOPIC = 'pal_statistics'
@@ -161,14 +161,20 @@ class TestPalStatistics(unittest.TestCase):
         self.evaluate_msgs({}, registry)
 
     def test_publish(self):
+        names_qos = QoSProfile(depth=1, durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
+                               reliability=QoSReliabilityPolicy.RELIABLE)
+        data_qos = QoSProfile(depth=1, durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
+                              reliability=QoSReliabilityPolicy.BEST_EFFORT)
+
         self.sub = self.node.create_subscription(
-            Statistics, DEFAULT_TOPIC + '/full', self.full_msg_cb, 1)
-        transient_local_qos = QoSProfile(depth=1, durability=QoSDurabilityPolicy.TRANSIENT_LOCAL)
+            Statistics, DEFAULT_TOPIC + '/full', self.full_msg_cb,
+            qos_profile=data_qos)
         self.names_sub = self.node.create_subscription(
             StatisticsNames, DEFAULT_TOPIC + '/names',  self.names_msg_cb,
-            qos_profile=transient_local_qos)
+            qos_profile=names_qos)
         self.values_sub = self.node.create_subscription(
-            StatisticsValues, DEFAULT_TOPIC + '/values', self.values_msg_cb, 1)
+            StatisticsValues, DEFAULT_TOPIC + '/values', self.values_msg_cb,
+            qos_profile=data_qos)
 
         rclpy.spin_once(self.node, timeout_sec=0.5)
         registry = StatisticsRegistry(DEFAULT_TOPIC, self.node)
