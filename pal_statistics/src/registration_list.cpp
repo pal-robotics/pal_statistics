@@ -103,7 +103,7 @@ void RegistrationList::doUpdate()
   assert(last_values.values.capacity() >= ids_.size());
 
   // This is for optimization, majority of the time everything is enabled and this runs 40% faster
-  if (all_enabled_) {
+  if (all_enabled_ && (last_values.values.size() == references_.size())) {
     last_values.names = ids_;
     size_t ref_size = references_.size();
     for (size_t i = 0; i < ref_size; ++i) {
