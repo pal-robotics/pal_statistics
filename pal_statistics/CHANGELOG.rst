@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.6.3 (2025-06-12)
+------------------
 * Extend the possibility to regisiter custom data types
 * Check for the size equality to avoid crashing
 * Contributors: Sai Kishor Kothakota
