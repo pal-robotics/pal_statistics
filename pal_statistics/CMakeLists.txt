@@ -4,6 +4,17 @@ project(pal_statistics)
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
+f(WIN32)
+  # set the same behavior for windows as it is on linux
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 NEW)
+  endif()
+  if(NOT Boost_headers_FOUND)
+    find_package(Boost REQUIRED)
+  endif()
+endif()
+
 ament_auto_add_library(${PROJECT_NAME} SHARED
         src/pal_statistics_utils.cpp src/pal_statistics.cpp
         src/pal_statistics_macros.cpp src/registration_list.cpp)
