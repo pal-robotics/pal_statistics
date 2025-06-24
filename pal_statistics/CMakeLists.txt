@@ -7,9 +7,7 @@ ament_auto_find_build_dependencies()
 if(WIN32)
   # set the same behavior for windows as it is on linux
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-  if(POLICY CMP0167)
-    cmake_policy(SET CMP0167 NEW)
-  endif()
+  find_package(Boost QUIET COMPONENTS headers)
   if(NOT Boost_headers_FOUND)
     find_package(Boost REQUIRED)
   endif()
@@ -18,6 +16,9 @@ endif()
 ament_auto_add_library(${PROJECT_NAME} SHARED
         src/pal_statistics_utils.cpp src/pal_statistics.cpp
         src/pal_statistics_macros.cpp src/registration_list.cpp)
+target_link_libraries(${PROJECT_NAME}
+        Boost::boost
+)
 
 # ##############################################################################
 # Testing ##
@@ -44,4 +45,5 @@ endif()
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
 
+ament_export_dependencies(Boost)
 ament_auto_package()
