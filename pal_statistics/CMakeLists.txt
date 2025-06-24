@@ -4,7 +4,7 @@ project(pal_statistics)
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
-f(WIN32)
+if(WIN32)
   # set the same behavior for windows as it is on linux
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
   if(POLICY CMP0167)
