@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10.0)
 project(pal_statistics)
 
 find_package(ament_cmake_auto REQUIRED)
