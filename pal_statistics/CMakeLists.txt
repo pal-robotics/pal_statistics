@@ -7,6 +7,7 @@ ament_auto_find_build_dependencies()
 if(WIN32)
   # set the same behavior for windows as it is on linux
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
   find_package(Boost QUIET COMPONENTS headers)
   if(NOT Boost_headers_FOUND)
     find_package(Boost REQUIRED)
