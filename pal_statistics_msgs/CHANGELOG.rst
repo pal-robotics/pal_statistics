@@ -2,8 +2,8 @@
 Changelog for package pal_statistics_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.6.4 (2025-07-02)
+------------------
 * Fix cmake deprecation (#19)
   * Fix cmake deprecation
   cmake version < then 3.10 is deprecated

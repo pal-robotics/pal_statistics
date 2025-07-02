@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.6.4 (2025-07-02)
+------------------
 * Fix windows build (#18)
   * Export symbols
   * Fix typo
