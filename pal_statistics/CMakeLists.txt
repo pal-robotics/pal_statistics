@@ -17,9 +17,11 @@ endif()
 ament_auto_add_library(${PROJECT_NAME} SHARED
         src/pal_statistics_utils.cpp src/pal_statistics.cpp
         src/pal_statistics_macros.cpp src/registration_list.cpp)
-target_link_libraries(${PROJECT_NAME}
-        Boost::boost
-)
+if(WIN32)
+  target_link_libraries(${PROJECT_NAME}
+          Boost::boost
+  )
+endif()
 
 # ##############################################################################
 # Testing ##
