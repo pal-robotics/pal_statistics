@@ -40,6 +40,10 @@ if(BUILD_TESTING)
     pal_statistics-test PRIVATE src) # dirty hack for a forward declaration
   target_link_libraries(pal_statistics-test ${PROJECT_NAME})
 
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "loongarch64")
+    target_link_libraries(pal_statistics-test atomic)
+  endif()
+
   # Add pal_statistics_py.test
   ament_add_pytest_test(pal_statistics_pytest test/test_pal_statistics.py)
 endif()
