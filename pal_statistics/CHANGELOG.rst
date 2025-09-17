@@ -2,6 +2,11 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix ament_auto warning about headers install destination
+* Contributors: Noel Jimenez
+
 2.6.4 (2025-07-02)
 ------------------
 * Fix windows build (#18)
