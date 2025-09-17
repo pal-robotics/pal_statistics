@@ -49,9 +49,4 @@ endif()
 ament_python_install_package(${PROJECT_NAME})
 
 ament_export_dependencies(Boost)
-
-if(ament_cmake_auto_VERSION VERSION_LESS "2.6.0")
-  ament_auto_package(USE_SCOPED_HEADER_INSTALL_DIR)
-else()
-  ament_auto_package()
-endif()
+ament_auto_package()
