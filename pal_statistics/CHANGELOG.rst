@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.6.5 (2025-09-17)
+------------------
 * Fix ament_auto warning about headers install destination
 * Contributors: Noel Jimenez
 
