@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.6.6 (2025-09-17)
+------------------
 * Revert "Merge branch 'fix/ament_auto_headers_install_dst' into 'humble-devel'"
   This reverts merge request !58
 * Contributors: Jordan Palacios
