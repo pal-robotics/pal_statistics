@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>pal_statistics</name>
-  <version>2.6.4</version>
+  <version>2.7.0</version>
   <description>The pal_statistics package</description>
 
   <maintainer email="jordan.palacios@pal-robotics.com">Jordan Palacios</maintainer>

@@ -3,9 +3,16 @@ project(pal_statistics)
 
 find_package(ament_cmake_auto REQUIRED)
 find_package(ament_cmake_python REQUIRED)
-find_package(pal_statistics_msgs REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(rclcpp_lifecycle REQUIRED)
+
+set(DEPENDENCIES
+  pal_statistics_msgs
+  rclcpp
+  rclcpp_lifecycle
+)
+
+foreach(Dependency IN ITEMS ${DEPENDENCIES})
+  find_package(${Dependency} REQUIRED)
+endforeach()
 
 set(TARGET_DEPENDENCIES
   ${pal_statistics_msgs_TARGETS}
@@ -21,14 +28,17 @@ if(WIN32)
   if(NOT Boost_headers_FOUND)
     find_package(Boost REQUIRED)
   endif()
+  list(APPEND DEPENDENCIES
+    Boost
+  )
   list(APPEND TARGET_DEPENDENCIES
     Boost::boost
   )
 endif()
 
 add_library(${PROJECT_NAME} SHARED
-        src/pal_statistics_utils.cpp src/pal_statistics.cpp
-        src/pal_statistics_macros.cpp src/registration_list.cpp)
+  src/pal_statistics_utils.cpp src/pal_statistics.cpp
+  src/pal_statistics_macros.cpp src/registration_list.cpp)
 
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -36,7 +46,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-        ${TARGET_DEPENDENCIES}
+  ${TARGET_DEPENDENCIES}
 )
 
 
@@ -80,16 +90,17 @@ install(
 ament_export_include_directories(
   "include/${PROJECT_NAME}"
 )
+
 ament_export_libraries(
   ${PROJECT_NAME}
 )
+
 ament_export_targets(
   export_${PROJECT_NAME}
 )
+
 ament_export_dependencies(
-  pal_statistics_msgs
-  rclcpp
-  rclcpp_lifecycle
+  ${DEPENDENCIES}
 )
 
 ament_package()
