@@ -268,18 +268,21 @@ void StatisticsRegistry::handlePendingDisables(const std::unique_lock<std::mutex
 
 void StatisticsRegistry::doPublish(bool publish_names_msg)
 {
-  if (pub_->get_subscription_count() > 0) {
-    generated_statistics_.update(names_msg_, values_msg_);
-    pub_->publish(generated_statistics_.msg_);
-  }
+  if(rclcpp::ok())
+  {
+    if (pub_->get_subscription_count() > 0) {
+      generated_statistics_.update(names_msg_, values_msg_);
+      pub_->publish(generated_statistics_.msg_);
+    }
 
-  // We don't check subscribers here, because this topic is latched and we
-  // always want the latest version published
-  if (publish_names_msg) {  // only publish strings if changed
-    pub_names_->publish(names_msg_);
-  }
-  if (pub_values_->get_subscription_count() > 0) {  // only publish strings if changed
-    pub_values_->publish(values_msg_);
+    // We don't check subscribers here, because this topic is latched and we
+    // always want the latest version published
+    if (publish_names_msg) {  // only publish strings if changed
+      pub_names_->publish(names_msg_);
+    }
+    if (pub_values_->get_subscription_count() > 0) {  // only publish strings if changed
+      pub_values_->publish(values_msg_);
+    }
   }
 }
 
@@ -345,7 +348,13 @@ void StatisticsRegistry::publisherThreadCycle()
   while (rclcpp::ok() && !interrupt_thread_) {
     try {
       while (!is_data_ready_ && !interrupt_thread_) {
-        rate.sleep();
+        try {
+          rate.sleep();
+        } catch (const std::exception & e) {
+          RCLCPP_DEBUG(getLogger(), 
+            "Stopping publisher thread, as the context may be invalid: %s", e.what());
+          return;
+        }
       }
 
       std::unique_lock<std::mutex> data_lock(data_mutex_);
