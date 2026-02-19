@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import graphitesend
 import rospy
@@ -10,7 +10,7 @@ if __name__ == "__main__":
     rospy.init_node('carbon_collector_node')
 
     if not rospy.has_param('~topics'):
-        print "No topics were specified"
+        print("No topics were specified")
         sys.exit(1)
 
     topics = rospy.get_param('~topics')

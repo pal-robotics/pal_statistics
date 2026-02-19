@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 import sys
@@ -8,7 +8,7 @@ if __name__ == "__main__":
     rospy.init_node('statsd_collector_node')
 
     if not rospy.has_param('~topics'):
-        print "No topics were specified"
+        print("No topics were specified")
         sys.exit(1)
 
     topics = rospy.get_param('~topics')

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2020 PAL Robotics S.L.
 #
@@ -32,6 +32,8 @@
 from pal_statistics_msgs.msg import Statistic, Statistics, StatisticsNames, StatisticsValues
 from rclpy.node import Node
 from rclpy.qos import QoSDurabilityPolicy, QoSProfile, QoSReliabilityPolicy
+
+__all__ = ['Registration', 'StatisticsRegistry']
 
 
 class Registration:

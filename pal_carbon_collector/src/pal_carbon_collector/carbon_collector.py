@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import graphitesend
 import rospy
@@ -25,7 +25,7 @@ class CarbonCollector:
         result = self.gs.send_list(stats, timestamp.to_sec())
 
         if self.dry_run:
-            print result
+            print(result)
 
         return result
 
