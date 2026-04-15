@@ -16,6 +16,7 @@
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
 
+  <depend>libatomic</depend>
   <depend>libboost-dev</depend>
   <depend>pal_statistics_msgs</depend>
   <depend>rclcpp</depend>

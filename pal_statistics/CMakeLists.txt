@@ -23,6 +23,25 @@ if(WIN32)
   )
 endif()
 
+include(CheckCXXSourceCompiles)
+# simulate a boost::lockfree::detail::tagged_ptr
+check_cxx_source_compiles("
+  #include <atomic>
+  #include <cstdint>
+  struct alignas(2 * sizeof(void*)) tagged_ptr { void* ptr; uintptr_t tag; };
+  std::atomic<tagged_ptr> x;
+  int main() {
+    tagged_ptr t{nullptr, 0};
+    x.store(t);
+    x.load();
+    x.compare_exchange_strong(t, t);
+    return 0;
+  }
+" PAL_STATISTICS_INLINE_ATOMICS)
+if(NOT PAL_STATISTICS_INLINE_ATOMICS)
+  target_link_libraries(${PROJECT_NAME} atomic)
+endif()
+
 # ##############################################################################
 # Testing ##
 # ##############################################################################
