@@ -298,11 +298,24 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 #define PUBLISH_ASYNC_STATISTICS(...) PUBLISH_ASYNC_STATISTICS_MACRO_CHOOSER(__VA_ARGS__)( \
     __VA_ARGS__)
 
-#define START_PUBLISH_THREAD_1_ARGS(REGISTRY_KEY) pal_statistics::getRegistry( \
-    REGISTRY_KEY)->startPublishThread();
-#define START_PUBLISH_THREAD_2_ARGS(NODE, TOPIC) pal_statistics::getRegistry( \
-    NODE, \
-    TOPIC)->startPublishThread();
+#define START_PUBLISH_THREAD_1_ARGS(REGISTRY_KEY) \
+  if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) { \
+    pal_statistics::getRegistry(REGISTRY_KEY)->startPublishThread(); \
+  } else { \
+    RCLCPP_WARN_STREAM_ONCE( \
+      rclcpp::get_logger("pal_statistics"), \
+      "Unable to start publisher thread for statistics in " << REGISTRY_KEY << \
+        ", as the registry is not found."); \
+  }
+#define START_PUBLISH_THREAD_2_ARGS(NODE, TOPIC) \
+  if (pal_statistics::getRegistry(NODE, TOPIC) != nullptr) { \
+    pal_statistics::getRegistry(NODE, TOPIC)->startPublishThread(); \
+  } else { \
+    RCLCPP_WARN_STREAM_ONCE( \
+      rclcpp::get_logger("pal_statistics"), \
+      "Unable to start publisher thread for statistics in " << TOPIC << \
+        ", as the registry is not found."); \
+  }
 
 #define START_PUBLISH_THREAD_MACRO_CHOOSER(...) \
   GET_3TH_ARG( \
@@ -311,11 +324,24 @@ std::shared_ptr<StatisticsRegistry> getRegistry(
 
 #define START_PUBLISH_THREAD(...) START_PUBLISH_THREAD_MACRO_CHOOSER(__VA_ARGS__)(__VA_ARGS__)
 
-#define STOP_PUBLISHER_THREAD_1_ARGS(REGISTRY_KEY) pal_statistics::getRegistry( \
-    REGISTRY_KEY)->stopPublisherThread();
-#define STOP_PUBLISHER_THREAD_2_ARGS(NODE, TOPIC) pal_statistics::getRegistry( \
-    NODE, \
-    TOPIC)->stopPublisherThread();
+#define STOP_PUBLISHER_THREAD_1_ARGS(REGISTRY_KEY) \
+  if (pal_statistics::getRegistry(REGISTRY_KEY) != nullptr) { \
+    pal_statistics::getRegistry(REGISTRY_KEY)->stopPublisherThread(); \
+  } else { \
+    RCLCPP_WARN_STREAM_ONCE( \
+      rclcpp::get_logger("pal_statistics"), \
+      "Unable to stop publisher thread for statistics in " << REGISTRY_KEY << \
+        ", as the registry is not found."); \
+  }
+#define STOP_PUBLISHER_THREAD_2_ARGS(NODE, TOPIC) \
+  if (pal_statistics::getRegistry(NODE, TOPIC) != nullptr) { \
+    pal_statistics::getRegistry(NODE, TOPIC)->stopPublisherThread(); \
+  } else { \
+    RCLCPP_WARN_STREAM_ONCE( \
+      rclcpp::get_logger("pal_statistics"), \
+      "Unable to stop publisher thread for statistics in " << TOPIC << \
+        ", as the registry is not found."); \
+  }
 
 #define STOP_PUBLISHER_THREAD_MACRO_CHOOSER(...) \
   GET_3TH_ARG( \
