@@ -2,6 +2,16 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'codex/guard-statistics-publisher-thread' into 'humble-devel'
+  Guard publisher thread macros
+  See merge request qa/pal_statistics!63
+* Guard publisher thread macros
+  Avoid dereferencing a missing statistics registry when starting or stopping a publisher thread through the helper macros.
+  Most registry-based macros already warn when the registry is not found. Apply the same pattern to START_PUBLISH_THREAD and STOP_PUBLISHER_THREAD so callers fail gracefully instead of crashing on a null registry pointer.
+* Contributors: Sai Kishor Kothakota, Tobias Fischer
+
 2.7.0 (2025-09-17)
 ------------------
 
