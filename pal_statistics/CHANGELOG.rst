@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.8.0 (2026-08-06)
+------------------
 * Merge branch 'codex/guard-statistics-publisher-thread' into 'humble-devel'
   Guard publisher thread macros
   See merge request qa/pal_statistics!63
