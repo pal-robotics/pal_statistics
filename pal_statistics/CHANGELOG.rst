@@ -2,6 +2,11 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Export Boost dependency only for Windows
+* Contributors: Noel Jimenez
+
 2.8.0 (2026-08-06)
 ------------------
 * Merge branch 'codex/guard-statistics-publisher-thread' into 'humble-devel'
