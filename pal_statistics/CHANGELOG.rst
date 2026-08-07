@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.8.1 (2026-08-07)
+------------------
 * Export Boost dependency only for Windows
 * Contributors: Noel Jimenez
 
