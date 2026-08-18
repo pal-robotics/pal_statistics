@@ -2,6 +2,14 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'fix/link-atomic' into 'humble-devel'
+  Link atomic library
+  See merge request qa/pal_statistics!62
+* Link atomic library if needed
+* Contributors: Mathias Lüdtke, Sai Kishor Kothakota
+
 2.8.1 (2026-08-07)
 ------------------
 * Export Boost dependency only for Windows
