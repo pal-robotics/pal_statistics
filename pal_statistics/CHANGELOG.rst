@@ -2,6 +2,11 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Find Boost in config mode
+* Contributors: Mathias Lüdtke
+
 2.8.2 (2026-08-18)
 ------------------
 * Merge branch 'fix/link-atomic' into 'humble-devel'
