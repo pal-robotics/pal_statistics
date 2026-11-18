@@ -8,9 +8,9 @@ if(WIN32)
   # set the same behavior for windows as it is on linux
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-  find_package(Boost QUIET COMPONENTS headers)
+  find_package(Boost QUIET COMPONENTS headers CONFIG)
   if(NOT Boost_headers_FOUND)
-    find_package(Boost REQUIRED)
+    find_package(Boost REQUIRED CONFIG)
   endif()
 endif()
 
