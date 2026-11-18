@@ -2,8 +2,8 @@
 Changelog for package pal_statistics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.8.3 (2026-11-18)
+------------------
 * Find Boost in config mode
 * Contributors: Mathias Lüdtke
 
