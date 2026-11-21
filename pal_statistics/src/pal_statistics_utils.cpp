@@ -159,7 +159,7 @@ bool RegistrationsRAII::disableAll()
 {
   bool result = true;
   for (auto it = registrations_.begin(); it != registrations_.end(); ++it) {
-    result |= (*it).obj_.lock()->disable((*it).id_);
+    result &= (*it).obj_.lock()->disable((*it).id_);
   }
   return result;
 }

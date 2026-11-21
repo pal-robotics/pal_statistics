@@ -59,6 +59,9 @@ if(BUILD_TESTING)
     pal_statistics-test PRIVATE src) # dirty hack for a forward declaration
   target_link_libraries(pal_statistics-test ${PROJECT_NAME})
 
+  ament_add_gtest(first_publish_timing-test test/gtest_first_publish_timing.cpp)
+  target_link_libraries(first_publish_timing-test ${PROJECT_NAME})
+
   # Add pal_statistics_py.test
   ament_add_pytest_test(pal_statistics_pytest test/test_pal_statistics.py)
 endif()

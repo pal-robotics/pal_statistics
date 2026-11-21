@@ -32,6 +32,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -117,6 +118,9 @@ private:
   std::vector<IdType> ids_;
   std::vector<VariableHolder> references_;
   std::vector<bool> enabled_;
+  // Index of each id in the vectors above, for a lookup without a search
+  std::unordered_map<IdType, size_t> id_to_index_;
+  size_t disabled_count_;
 
   struct NameValues
   {
