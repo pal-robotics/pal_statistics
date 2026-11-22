@@ -39,31 +39,30 @@ RegistrationList::RegistrationList(
   const rclcpp::Logger logger, const rclcpp::Clock::SharedPtr clock,
   size_t internal_buffer_capacity)
 : last_id_(0), names_version_(0), logger_(logger), clock_(clock), buffer_size_(
-    internal_buffer_capacity), all_enabled_(true), registrations_changed_(true)
+    internal_buffer_capacity), disabled_count_(0), all_enabled_(true),
+  registrations_changed_(true)
 {
   overwritten_data_count_ = 0;
 }
 
 void RegistrationList::unregisterVariable(const IdType & id)
 {
-  for (size_t i = 0; i < ids_.size(); ++i) {
-    if (ids_[i] == id) {
-      deleteElement(i);
-      break;
-    }
+  const auto it = id_to_index_.find(id);
+  if (it != id_to_index_.end()) {
+    deleteElement(it->second);
   }
 }
 
 void RegistrationList::setEnabled(const IdType & id, bool enabled)
 {
-  registrationsChanged();
-  for (size_t i = 0; i < ids_.size(); ++i) {
-    if (ids_[i] == id) {
-      enabled_[i] = enabled;
-      all_enabled_ = all_enabled_ && enabled;
-      break;
-    }
+  const auto it = id_to_index_.find(id);
+  if (it == id_to_index_.end() || enabled_[it->second] == enabled) {
+    return;
   }
+  enabled_[it->second] = enabled;
+  disabled_count_ = enabled ? disabled_count_ - 1 : disabled_count_ + 1;
+  all_enabled_ = (disabled_count_ == 0);
+  registrationsChanged();
 }
 
 void RegistrationList::unregisterVariable(const std::string & name)
@@ -159,10 +158,6 @@ bool RegistrationList::smartFillMsg(
   if (names.names.empty() || registrations_changed_) {
     fillMsg(names, values);
     registrations_changed_ = false;
-    all_enabled_ = true;
-    for (size_t i = 0; i < enabled_.size(); ++i) {
-      all_enabled_ = all_enabled_ && enabled_[i];
-    }
     return false;
   }
 
@@ -198,6 +193,9 @@ void RegistrationList::deleteElement(size_t index)
   }
 
   name_id_.right.erase(id);
+  if (!enabled_[index]) {
+    --disabled_count_;
+  }
 
   // Faster way of removing an object of a vector if we don't care about the
   // internal ordering. We just care that they all have the same order
@@ -209,6 +207,11 @@ void RegistrationList::deleteElement(size_t index)
   references_.resize(references_.size() - 1);
   enabled_.swap(enabled_[index], enabled_.back());
   enabled_.resize(enabled_.size() - 1);
+  id_to_index_.erase(id);
+  if (index < ids_.size()) {
+    id_to_index_[ids_[index]] = index;
+  }
+  all_enabled_ = (disabled_count_ == 0);
 
   registrationsChanged();
 }
@@ -232,6 +235,11 @@ int RegistrationList::registerVariable(
   ids_.push_back(id);
   references_.push_back(std::move(holder));
   enabled_.push_back(enabled);
+  id_to_index_[id] = ids_.size() - 1;
+  if (!enabled) {
+    ++disabled_count_;
+  }
+  all_enabled_ = (disabled_count_ == 0);
   // reserve memory for values
   if (needs_more_capacity) {
     // Reset last_values_buffer_ size to be able to contain buffer_size_ copies
